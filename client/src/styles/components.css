@@ -1,0 +1,28 @@
+/* Button style */
+.btn-primary {
+  @apply bg-primary text-white px-5 py-2 rounded shadow-md hover:bg-blue-600 transition font-semibold;
+}
+
+/* Input style */
+.input-field {
+  @apply w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary;
+}
+
+/* Card: used in Toys section */
+.card {
+  @apply bg-white shadow-md p-6 rounded-lg text-center transition transform hover:scale-105;
+}
+
+/* Icon styling inside card */
+.card svg {
+  @apply text-primary mb-2;
+}
+
+/* Typography helpers */
+.section-title {
+  @apply text-2xl md:text-4xl font-bold mb-6 text-primary;
+}
+
+.section-subtitle {
+  @apply text-gray-600 max-w-2xl mx-auto text-lg mb-8;
+}
