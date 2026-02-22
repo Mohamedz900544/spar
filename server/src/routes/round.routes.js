@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { createRound, getOneRound, getRounds, getRoundStudentsWithSessionAndRatings, updateRound, updateRoundStatus } from "../controllers/round.controller.js";
+import { createRound, deleteRound, getOneRound, getRounds, getRoundStudentsWithSessionAndRatings, updateRound, updateRoundStatus } from "../controllers/round.controller.js";
 import { adminOnly, authRequired } from '../middleware/auth.js';
 import Enrollment from '../models/Enrollment.js';
 import { upload2 } from '../config/multer.js';
@@ -19,6 +19,7 @@ router.patch("/:id/status", authRequired, adminOnly, updateRoundStatus);
 router.get("/:id", authRequired, adminOnly, getOneRound);
 
 router.put("/:id", authRequired, adminOnly, updateRound);
+router.delete("/:id", authRequired, adminOnly, deleteRound);
 router.post('/:roundId/students/:studentId/image', authRequired, upload2.array('image'), async (req, res) => {
     try {
         let enrollmentUrl;

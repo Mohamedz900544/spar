@@ -71,6 +71,17 @@ const Tabs = ({ activeTab, setActiveTab, tabButtonBase, newMessagesCount }) => {
                 <Users className="w-4 h-4" />
                 Instructors
             </button>
+            <button
+                onClick={() => setActiveTab("users")}
+                className={
+                    activeTab === "users"
+                        ? `${tabButtonBase} bg-[#0b63c7] text-white shadow-md`
+                        : `${tabButtonBase} bg-white/80 text-slate-700 border border-[#dbeafe] hover:bg-white`
+                }
+            >
+                <Users className="w-4 h-4" />
+                Users
+            </button>
 
             <button
                 onClick={() => setActiveTab("gallery")}

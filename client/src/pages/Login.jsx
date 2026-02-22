@@ -26,6 +26,12 @@ const schema = yup.object().shape({
 const Login = () => {
   const navigate = useNavigate();
   const [serverError, setServerError] = useState("");
+  const hasCompletedProfile = (user) => {
+    const firstChild = user?.children?.[0];
+    const hasChildName = Boolean(firstChild?.name && firstChild.name.trim());
+    const hasChildAge = Number(firstChild?.age) > 0;
+    return hasChildName && hasChildAge;
+  };
 
   const {
     register,
@@ -50,7 +56,8 @@ const Login = () => {
 
       // لازم يكون الريسبونس سليم وفيه token و user
 
-      const role = res.data.user.role;
+      const user = res.data.user;
+      const role = user.role;
 
       // ========= تخزين البيانات في localStorage =========
       // التوكن
@@ -73,6 +80,10 @@ const Login = () => {
       } else if (role === "instructor") {
         navigate("/instructor");
       } else {
+        if (!hasCompletedProfile(user)) {
+          navigate("/parent/profile");
+          return;
+        }
         navigate("/parent");
       }
     } catch (err) {

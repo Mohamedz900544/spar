@@ -38,7 +38,10 @@ router.get("/dashboard", authRequired, adminOnly, async (req, res) => {
       Message.find().lean(),
       ChildPhoto.find().lean(),
       SessionRating.find().lean(),
-      User.find({ role: "parent" }).select("children").lean(),
+      User.find({ role: "parent" })
+        .select("name email phone photoUrl children createdAt linkedRoundCodes linkedRounds")
+        .sort({ createdAt: "desc" })
+        .lean(),
       User.find({ role: "instructor" })
         .select("name email phone campusCode photoUrl createdAt linkedRoundCodes linkedRounds")
         .sort({ createdAt: "desc" })
@@ -109,6 +112,7 @@ router.get("/dashboard", authRequired, adminOnly, async (req, res) => {
       roundRatings,
       studentPhotos,
       instructors,
+      parents,
     });
   } catch (err) {
     console.error("Admin dashboard error:", err);

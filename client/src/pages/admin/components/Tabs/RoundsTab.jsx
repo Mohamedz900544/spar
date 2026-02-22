@@ -44,7 +44,8 @@ export const RoundsTab = ({
     setEvenSessionDateAndTime,
     oddSessionDateAndTime,
     setOddSessionDateAndTime,
-    studentPhotos
+    studentPhotos,
+    handleDeleteRound
 }) => {
 
     const navigate = useNavigate()
@@ -402,6 +403,12 @@ export const RoundsTab = ({
                                             className="px-2 py-1 rounded-full border text-[10px] font-medium border-[#fef3c7] text-[#854d0e] hover:bg-[#fef9c3]"
                                         >
                                             Completed
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteRound(r.id)}
+                                            className="px-2 py-1 rounded-full border text-[10px] font-medium border-[#fee2e2] text-[#b91c1c] hover:bg-[#fee2e2]"
+                                        >
+                                            Delete
                                         </button>
                                     </div>
                                     <button

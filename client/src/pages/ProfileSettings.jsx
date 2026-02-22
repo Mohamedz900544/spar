@@ -1,16 +1,26 @@
 import { useState, useEffect } from "react";
-import { Camera, Save, Loader2, User, Lock, Phone, Baby, Plus, Minus, Loader } from "lucide-react";
-import axios from "axios"; // Ensure axios is installed
+import { Camera, Save, Loader2, User, Baby, Loader } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const ParentProfile = ({ userData, setUserData }) => {
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-
     const [isLoadingMeData, setIsLoadingMeData] = useState(true);
     const [selectedFile, setSelectedFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
     const [message, setMessage] = useState({ type: "", text: "" });
+    const [stepIndex, setStepIndex] = useState(0);
+    const steps = [
+        { key: "childName", title: "Child Name", required: true },
+        { key: "childAge", title: "Child Age", required: true },
+        { key: "profilePhoto", title: "Profile Photo", required: false },
+        { key: "campusCode", title: "Campus Code", required: false },
+    ];
+    const MotionDiv = motion.div;
     useEffect(() => {
         const controller = new AbortController();
         // Load initial data
@@ -22,7 +32,14 @@ const ParentProfile = ({ userData, setUserData }) => {
                     headers: { Authorization: `Bearer ${token}` },
                     signal: controller.signal
                 });
-                setUserData(res.data.user);
+                const incoming = res.data.user || {};
+                setUserData({
+                    ...incoming,
+                    campusCode: incoming.campusCode || "",
+                    children: incoming.children?.length
+                        ? incoming.children
+                        : [{ name: "", age: "" }]
+                });
             } catch {
                 console.error("Failed to load profile");
             } finally {
@@ -42,29 +59,37 @@ const ParentProfile = ({ userData, setUserData }) => {
         }
     };
 
-    // Handle Change Children
-    const handleRemoveChildren = (index) => {
-        const updatedChildren = userData.children.filter((child, ind) => ind !== index)
-        setUserData({ ...userData, children: updatedChildren })
-    }
-    // Handle Change Children
-    const handleAddNewChildren = () => {
-        userData.children.push({ name: "", age: "" })
-        setUserData({ ...userData })
-    }
-
-    // Handle adding data to child in children array
-    const handleChangeChildrenData = (e, index) => {
-        let allChildren = [...userData.children]
-        allChildren[index] = { ...allChildren[index], [e.target.name]: e.target.value };
-        // if index of child input equal index inside the loop array return the changed name or age else return child
-        // debugger
-        setUserData({ ...userData, children: allChildren })
-    }
+    const handleChangeChild = (field, value) => {
+        const current = userData.children?.[0] || { name: "", age: "" };
+        const updated = [{ ...current, [field]: value }];
+        setUserData({ ...userData, children: updated });
+    };
 
     // Handle Text Change
     const handleChange = (e) => {
         setUserData({ ...userData, [e.target.name]: e.target.value });
+    };
+    const currentChild = userData.children?.[0] || { name: "", age: "" };
+    const isChildNameValid = Boolean(currentChild.name && currentChild.name.trim());
+    const numericAge = Number(currentChild.age);
+    const isChildAgeValid = numericAge >= 3 && numericAge <= 18;
+    const currentStep = steps[stepIndex];
+    const canProceed = () => {
+        if (currentStep.key === "childName") return isChildNameValid;
+        if (currentStep.key === "childAge") return isChildAgeValid;
+        return true;
+    };
+    const handleNext = () => {
+        if (!canProceed()) {
+            setMessage({ type: "error", text: "Please complete this field to continue." });
+            return;
+        }
+        setMessage({ type: "", text: "" });
+        setStepIndex((prev) => Math.min(prev + 1, steps.length - 1));
+    };
+    const handleBack = () => {
+        setMessage({ type: "", text: "" });
+        setStepIndex((prev) => Math.max(prev - 1, 0));
     };
 
     // Submit Form
@@ -81,6 +106,7 @@ const ParentProfile = ({ userData, setUserData }) => {
             formData.append("profilePhoto", selectedFile); // Must match backend multer config
         }
         formData.append('children', JSON.stringify(userData.children))
+        formData.append('campusCode', userData.campusCode || "")
 
         try {
             const res = await axios.put(`${API_BASE_URL}/api/parent/profile`, formData, {
@@ -90,8 +116,9 @@ const ParentProfile = ({ userData, setUserData }) => {
                 },
             });
 
-            setUserData(res.data.user); // Update state with new data from server
+            setUserData(res.data.user);
             setMessage({ type: "success", text: "Profile updated successfully!" });
+            navigate("/parent");
         } catch (error) {
             setMessage({ type: "error", text: error.response?.data?.message || "Update failed" });
         } finally {
@@ -101,168 +128,142 @@ const ParentProfile = ({ userData, setUserData }) => {
 
     return (
         <div className="min-h-screen bg-[#f0f7ff] p-4 md:p-10 flex justify-center">
-            {isLoadingMeData ? <Loader className="text-black animate-spin w-6 h-6" /> :
-
-                <div className="max-w-2xl w-full bg-white rounded-3xl shadow-sm border border-[#dbeafe] p-6 md:p-8">
-
-                    <h1 className="text-2xl font-bold text-slate-800 mb-6">Account Settings</h1>
-
-                    <form onSubmit={handleSubmit} className="space-y-6">
-
-                        {/* --- Photo Upload Section --- */}
-                        <div className="flex flex-col items-center gap-4 mb-8">
-                            <div className="relative group">
-                                <div className="w-28 h-28 rounded-full border-4 border-[#e0f2fe] overflow-hidden bg-slate-100">
-                                    {previewUrl || userData.photoUrl ? (
-                                        <img
-                                            src={previewUrl || userData.photoUrl}
-                                            alt="Profile"
-                                            className="w-full h-full object-cover"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-slate-300">
-                                            <User size={48} />
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Camera Icon Overlay */}
-                                <label htmlFor="photo-upload" className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full cursor-pointer shadow-md transition-colors">
-                                    <Camera size={18} />
-                                    <input
-                                        id="photo-upload"
-                                        type="file"
-                                        className="hidden"
-                                        accept="image/*"
-                                        onChange={handleFileChange}
-                                    />
-                                </label>
-                            </div>
-                            <p className="text-xs text-slate-500">Allowed *.jpeg, *.jpg, *.png, *.gif</p>
+            {isLoadingMeData ? (
+                <Loader className="text-black animate-spin w-6 h-6" />
+            ) : (
+                <div className="max-w-xl w-full bg-white rounded-3xl shadow-sm border border-[#dbeafe] p-6 md:p-8">
+                    <div className="text-center mb-6">
+                        <h1 className="text-2xl font-bold text-slate-800">Complete Your Profile</h1>
+                        <p className="text-sm text-slate-500 mt-1">Finish the required details to access your dashboard.</p>
+                    </div>
+                    {message.text && (
+                        <div className={`p-3 rounded-lg text-sm text-center mb-4 ${message.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+                            {message.text}
                         </div>
-
-                        {/* --- Form Fields --- */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-700">Full Name</label>
-                                <div className="relative">
-                                    <User className="absolute left-3 top-3 text-slate-400 w-4 h-4" />
-                                    <input
-                                        type="text"
-                                        name="name"
-                                        value={userData.name}
-                                        onChange={handleChange}
-                                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-700">Phone Number</label>
-                                <div className="relative">
-                                    <Phone className="absolute left-3 top-3 text-slate-400 w-4 h-4" />
-                                    <input
-                                        type="text"
-                                        name="phone"
-                                        value={userData.phone}
-                                        onChange={handleChange}
-                                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                                    />
-                                </div>
-                            </div>
-                            <div className="space-y-2 md:col-span-2">
-                                {userData.children.map((child, index) => <div className="w-full " key={index}>
-                                    <div className="grid sm:grid-cols-3 gap-2">
-
-                                        <div>
-                                            <label className="text-sm font-medium text-slate-700">Child {index + 1} </label>
-                                            <div className="relative" >
-                                                <Baby className="absolute left-3 top-3 text-slate-400 w-4 h-4" />
-                                                <input
-                                                    type="text"
-                                                    name="name"
-                                                    value={child?.name}
-                                                    onChange={(e) => handleChangeChildrenData(e, index)}
-                                                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                                                />
-
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <label className="text-sm font-medium text-slate-700">Age </label>
-
-                                            <div className="relative">
-                                                <Baby className="absolute left-3 top-3 text-slate-400 w-4 h-4" />
-                                                <input
-                                                    type="number"
-                                                    name="age"
-                                                    value={child?.age}
-                                                    onChange={(e) => handleChangeChildrenData(e, index)}
-                                                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="flex pt-4">
-                                            <button
-                                                onClick={() => handleRemoveChildren(index)}
-                                                type="button"
-                                                disabled={loading}
-                                                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-xl font-medium shadow-lg shadow-blue-600/20 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
-                                            >
-                                                <Minus />
-                                            </button>
+                    )}
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="flex items-center justify-between text-xs text-slate-500">
+                            <span>Step {stepIndex + 1} of {steps.length}</span>
+                            <span>{currentStep.title}{currentStep.required ? " (required)" : " (optional)"}</span>
+                        </div>
+                        <AnimatePresence mode="wait">
+                            <MotionDiv
+                                key={currentStep.key}
+                                initial={{ opacity: 0, x: 30 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -30 }}
+                                transition={{ duration: 0.35 }}
+                                className="space-y-4"
+                            >
+                                {currentStep.key === "childName" && (
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-slate-700">Child Name</label>
+                                        <div className="relative">
+                                            <Baby className="absolute left-3 top-3 text-slate-400 w-4 h-4" />
+                                            <input
+                                                type="text"
+                                                value={currentChild.name || ""}
+                                                onChange={(e) => handleChangeChild("name", e.target.value)}
+                                                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                                placeholder="Your child name"
+                                            />
                                         </div>
                                     </div>
-                                </div>)}
-                            </div>
-                            <div className="flex w-full pt-4 col-span-2">
-                                <button
-                                    onClick={handleAddNewChildren}
-                                    type="button"
-                                    disabled={loading}
-                                    className="flex justify-center items-center w-full gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-medium shadow-lg shadow-blue-600/20 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
-                                >
-                                    <Plus />
-                                </button>
-                            </div>
-
-                        </div>
-
-                        <div className="space-y-2 opacity-60 pointer-events-none">
-                            <label className="text-sm font-medium text-slate-700">Email Address (Cannot change)</label>
-                            <div className="relative">
-                                <Lock className="absolute left-3 top-3 text-slate-400 w-4 h-4" />
-                                <input
-                                    type="email"
-                                    value={userData.email}
-                                    readOnly
-                                    className="w-full pl-10 pr-4 py-2.5 text-black rounded-xl border border-slate-200 bg-slate-50"
-                                />
-                            </div>
-                        </div>
-
-                        {/* --- Message & Button --- */}
-                        {message.text && (
-                            <div className={`p-3 rounded-lg text-sm text-center ${message.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
-                                {message.text}
-                            </div>
-                        )}
-
-                        <div className="flex justify-end pt-4">
+                                )}
+                                {currentStep.key === "childAge" && (
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-slate-700">Child Age</label>
+                                        <div className="relative">
+                                            <Baby className="absolute left-3 top-3 text-slate-400 w-4 h-4" />
+                                            <input
+                                                type="number"
+                                                min={3}
+                                                max={18}
+                                                value={currentChild.age || ""}
+                                                onChange={(e) => handleChangeChild("age", e.target.value)}
+                                                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                                placeholder="e.g. 7"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                                {currentStep.key === "profilePhoto" && (
+                                    <div className="flex flex-col items-center gap-4">
+                                        <div className="relative group">
+                                            <div className="w-28 h-28 rounded-full border-4 border-[#e0f2fe] overflow-hidden bg-slate-100">
+                                                {previewUrl || userData.photoUrl ? (
+                                                    <img
+                                                        src={previewUrl || userData.photoUrl}
+                                                        alt="Profile"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-slate-300">
+                                                        <User size={48} />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <label htmlFor="photo-upload" className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full cursor-pointer shadow-md transition-colors">
+                                                <Camera size={18} />
+                                                <input
+                                                    id="photo-upload"
+                                                    type="file"
+                                                    className="hidden"
+                                                    accept="image/*"
+                                                    onChange={handleFileChange}
+                                                />
+                                            </label>
+                                        </div>
+                                        <p className="text-xs text-slate-500">Optional</p>
+                                    </div>
+                                )}
+                                {currentStep.key === "campusCode" && (
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-slate-700">Campus Code</label>
+                                        <input
+                                            type="text"
+                                            name="campusCode"
+                                            value={userData.campusCode || ""}
+                                            onChange={handleChange}
+                                            className="w-full pr-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                            placeholder="Optional"
+                                        />
+                                    </div>
+                                )}
+                            </MotionDiv>
+                        </AnimatePresence>
+                        <div className="flex items-center justify-between gap-3">
                             <button
-                                type="submit"
-                                disabled={loading}
-                                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-medium shadow-lg shadow-blue-600/20 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                                type="button"
+                                onClick={handleBack}
+                                disabled={stepIndex === 0 || loading}
+                                className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition disabled:opacity-50"
                             >
-                                {loading ? <Loader2 className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />}
-                                Save Changes
+                                Back
                             </button>
+                            {stepIndex < steps.length - 1 ? (
+                                <button
+                                    type="button"
+                                    onClick={handleNext}
+                                    disabled={loading}
+                                    className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium transition disabled:opacity-60"
+                                >
+                                    Next
+                                </button>
+                            ) : (
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="flex items-center gap-2 px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium transition disabled:opacity-60"
+                                >
+                                    {loading ? <Loader2 className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />}
+                                    Save and Continue
+                                </button>
+                            )}
                         </div>
-
                     </form>
                 </div>
-            }
+            )}
         </div>
     );
 };

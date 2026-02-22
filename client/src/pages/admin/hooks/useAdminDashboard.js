@@ -222,6 +222,9 @@ export const useAdminDashboard = () => {
   const [isCreatingInstructor, setIsCreatingInstructor] = useState(false);
   const [instructorCampusDrafts, setInstructorCampusDrafts] = useState({});
 
+  const [users, setUsers] = useState([]);
+  const [userSearch, setUserSearch] = useState("");
+
   // rounds
   const [rounds, setRounds] = useState([]);
   const [roundRatings, setRoundRatings] =
@@ -420,6 +423,59 @@ export const useAdminDashboard = () => {
     }
   }
 
+  async function handleDeleteRound(id) {
+    const token = getTokenOrRedirect();
+    if (!token) return;
+    const round = rounds.find((r) => r.id === id || r._id === id);
+    const confirmed = window.confirm(
+      `Delete round "${round?.name || "this round"}"? This will remove sessions, enrollments, and ratings.`
+    );
+    if (!confirmed) return;
+
+    try {
+      await axios.delete(`${API_BASE_URL}/api/admin/rounds/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      setRounds((prev) => prev.filter((r) => r.id !== id && r._id !== id))
+      if (round?.code) {
+        setRoundRatings((prev) => prev.filter((r) => r.roundCode !== round.code))
+      }
+      setEnrollments((prev) =>
+        prev.filter((e) => {
+          const roundId = e.round?.toString?.() || e.round;
+          return roundId !== id && e.roundCode !== round?.code;
+        })
+      )
+      setSessions((prev) =>
+        prev.filter((s) => {
+          const roundId = s.round?.toString?.() || s.round;
+          return roundId !== id;
+        })
+      )
+      setStudentPhotos((prev) => {
+        if (!round?.code) return prev;
+        const remaining = {};
+        const enrollmentsToRemove = enrollments
+          .filter((e) => {
+            const roundId = e.round?.toString?.() || e.round;
+            return roundId === id || e.roundCode === round.code;
+          })
+          .map((e) => e.id || e._id);
+        const toRemove = new Set(enrollmentsToRemove.filter(Boolean));
+        Object.entries(prev || {}).forEach(([key, value]) => {
+          if (!toRemove.has(key)) remaining[key] = value;
+        });
+        return remaining;
+      });
+      toast.success('Round deleted successfully')
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to delete round')
+    }
+  }
+
   async function handleUpdateSession(e, sessionData) {
     e.preventDefault()
     try {
@@ -518,6 +574,14 @@ export const useAdminDashboard = () => {
 
       if (Array.isArray(data.instructors))
         setInstructors(data.instructors);
+
+      if (Array.isArray(data.parents)) {
+        const normalizedParents = data.parents.map((p) => ({
+          ...p,
+          id: p._id?.toString() || p.id,
+        }));
+        setUsers(normalizedParents);
+      }
 
       if (Array.isArray(data.roundRatings))
         setRoundRatings(data.roundRatings);
@@ -1192,6 +1256,11 @@ export const useAdminDashboard = () => {
     handleInstructorCampusChange,
     handleUpdateInstructorCampus,
 
+    // users
+    users,
+    userSearch,
+    setUserSearch,
+
     // rounds
     rounds,
     roundRatings,
@@ -1206,6 +1275,7 @@ export const useAdminDashboard = () => {
     regenerateRoundCode,
     regenerateSessions,
     handleRoundSessionChange,
+    handleDeleteRound,
 
     // photos
     studentPhotos,

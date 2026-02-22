@@ -26,24 +26,13 @@ const phoneSchema = yup
 
 // ✅ validation schema (خلي الباسورد 8 أحرف عشان يطابق الباك إند)
 const schema = yup.object().shape({
-  parentName: yup.string().required("Parent name is required"),
+  parentName: yup.string().required("Full name is required"),
   email: yup.string().email("Enter a valid email").required("Email is required"),
-
-  // ✅ NEW: phone required
   phone: phoneSchema,
-
   password: yup
     .string()
     .min(8, "Password must be at least 8 characters")
     .required("Password is required"),
-  childName: yup.string().required("Child name is required"),
-  childAge: yup
-    .number()
-    .typeError("Child age is required")
-    .min(3, "Minimum age is 3")
-    .max(18, "Maximum age is 18")
-    .required("Child age is required"),
-  campusCode: yup.string().optional(),
 });
 
 // ✅ Normalize phone before sending (keep leading + if exists, remove spaces/hyphens/etc)
@@ -58,7 +47,6 @@ const normalizePhone = (raw) => {
 const SignUp = () => {
   const navigate = useNavigate();
   const [serverError, setServerError] = useState("");
-  const [profilePhoto, setProfilePhoto] = useState(null)
   const {
     register,
     handleSubmit,
@@ -73,13 +61,6 @@ const SignUp = () => {
       formData.append('email', data.email)
       formData.append('phone', data.phone)
       formData.append('password', data.password)
-      formData.append('role', data.role)
-      formData.append('child', JSON.stringify({
-        name: data.childName,
-        age: data.childAge
-      }))
-      formData.append('profilePhoto', profilePhoto)
-      formData.append('campusCode', data.campusCode || null)
       await axios.post(`${API_BASE_URL}/api/auth/signup`, formData)
 
       // ✅ حفظ التوكن واليوزر (تقدر تغيرها بعدين لـ httpOnly cookie في بروडकشن)
@@ -141,8 +122,7 @@ const SignUp = () => {
               <li>• Get updates about new camps and special events.</li>
             </ul>
             <p className="text-xs text-slate-500">
-              Have a campus code from your school or center? Enter it during
-              sign up so we know where you&apos;re joining from.
+              You can complete your child&apos;s profile after signing in.
             </p>
           </motion.div>
 
@@ -157,7 +137,7 @@ const SignUp = () => {
               Parent Sign Up
             </h2>
             <p className="text-xs text-slate-500 text-center mb-6">
-              Tell us about you and your child to get started.
+              Create your parent account to get started.
             </p>
 
             {/* Server error */}
@@ -243,73 +223,6 @@ const SignUp = () => {
                     {errors.password.message}
                   </p>
                 )}
-              </div>
-
-              {/* Child Name */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Child Name
-                </label>
-                <input
-                  type="text"
-                  {...register("childName")}
-                  className={inputClass}
-                  placeholder="First child name"
-                />
-                {errors.childName && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.childName.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Child Age */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Child Age
-                </label>
-                <input
-                  type="number"
-                  {...register("childAge")}
-                  className={inputClass}
-                  placeholder="e.g. 7"
-                  min={3}
-                  max={18}
-                />
-                {errors.childAge && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.childAge.message}
-                  </p>
-                )}
-              </div>
-              {/* Profile Photo */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Profile Photo
-                </label>
-                <input
-                  type="file"
-                  onChange={(e) => setProfilePhoto(e.target.files[0])}
-                  className={inputClass}
-                />
-                {errors.childAge && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.childAge.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Campus Code */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Campus Code (optional)
-                </label>
-                <input
-                  type="text"
-                  {...register("campusCode")}
-                  className={inputClass}
-                  placeholder="e.g. CAIRO-123"
-                />
               </div>
 
               {/* Submit */}

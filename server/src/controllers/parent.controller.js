@@ -288,16 +288,17 @@ export const rateSession = async (req, res) => {
 }
 
 export const getParentProfile = async (req, res) => {
-    const { name, phone, children: childrenStr } = req.body
+    const { name, phone, children: childrenStr, campusCode } = req.body
 
     console.log(typeof childrenStr)
-    const children = JSON.parse(childrenStr)
+    const children = childrenStr ? JSON.parse(childrenStr) : undefined
     console.log(typeof children)
 
-    const userDoc = await User.findById(req.user._id, "-__v -createdAt -updatedAt -children -linkedRounds -linkedRoundCodes -role -campusCode")
+    const userDoc = await User.findById(req.user._id, "-__v -createdAt -updatedAt -children -linkedRounds -linkedRoundCodes -role")
 
     userDoc.name = name || userDoc.name;
     userDoc.phone = phone || userDoc.phone;
+    userDoc.campusCode = campusCode ?? userDoc.campusCode;
     userDoc.children = children || userDoc.children
 
     // debugger

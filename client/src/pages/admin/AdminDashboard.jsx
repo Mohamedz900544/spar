@@ -27,6 +27,7 @@ import OverviewTab from "./components/Tabs/OverviewTab";
 import { RoundsTab } from "./components/Tabs/RoundsTab";
 import { SessionsTab } from "./components/Tabs/SessionsTab";
 import { EnrollmentsTab } from "./components/Tabs/EnrollmentsTab";
+import { UsersTab } from "./components/Tabs/UsersTab";
 // import { GalleryTab } from "./components/Tabs/GalleryTab";
 function generateRoundCode() {
   return `SPRV-${Math.floor(Math.random() * 1000)}-${Date.now()}`
@@ -65,6 +66,7 @@ const AdminDashboard = () => {
     handleSessionStatusToggle,
 
     // enrollments
+    enrollments,
     filteredEnrollments,
     enrollmentStatusFilter,
     setEnrollmentStatusFilter,
@@ -99,6 +101,11 @@ const AdminDashboard = () => {
     handleInstructorCampusChange,
     handleUpdateInstructorCampus,
 
+    // users
+    users,
+    userSearch,
+    setUserSearch,
+
     // rounds
     rounds,
     newRound,
@@ -111,6 +118,7 @@ const AdminDashboard = () => {
     getRoundRating,
     regenerateSessions,
     handleRoundSessionChange,
+    handleDeleteRound,
 
     // photos
     studentPhotos,
@@ -197,6 +205,7 @@ const AdminDashboard = () => {
                 oddSessionDateAndTime={oddSessionDateAndTime}
                 setOddSessionDateAndTime={setOddSessionDateAndTime}
                 studentPhotos={studentPhotos}
+                handleDeleteRound={handleDeleteRound}
               />
             )}
 
@@ -220,6 +229,16 @@ const AdminDashboard = () => {
                 filteredEnrollments={filteredEnrollments}
                 handleEnrollmentNoteChange={handleEnrollmentNoteChange}
                 handleEnrollmentStatusChange={handleEnrollmentStatusChange}
+              />
+            )}
+
+            {activeTab === "users" && (
+              <UsersTab
+                users={users}
+                userSearch={userSearch}
+                setUserSearch={setUserSearch}
+                enrollments={enrollments}
+                rounds={rounds}
               />
             )}
 

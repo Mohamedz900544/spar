@@ -34,6 +34,7 @@ function App() {
     email: "",
     phone: "",
     photoUrl: "",
+    campusCode: "",
     children: [{
       name: "",
       age: 0

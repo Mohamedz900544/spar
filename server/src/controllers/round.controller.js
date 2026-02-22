@@ -4,6 +4,7 @@ import Round from "../models/Round.js";
 import Session from "../models/Session.js";
 import SessionRating from "../models/SessionRating.js";
 import User from "../models/User.js";
+import ChildPhoto from "../models/ChildPhoto.js";
 
 export const getRounds = async (req, res) => {
     try {
@@ -192,3 +193,43 @@ export const updateRound = async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 }
+
+export const deleteRound = async (req, res) => {
+    try {
+        const round = await Round.findById(req.params.id);
+        if (!round) {
+            return res.status(404).json({ message: "Round not found" });
+        }
+
+        const enrollments = await Enrollment.find({ round: round._id }).select("_id").lean();
+        const enrollmentIds = enrollments.map((e) => e._id);
+
+        await Promise.all([
+            Session.deleteMany({ round: round._id }),
+            Enrollment.deleteMany({ round: round._id }),
+            SessionRating.deleteMany({ round: round._id }),
+            enrollmentIds.length
+                ? ChildPhoto.deleteMany({ enrollment: { $in: enrollmentIds } })
+                : Promise.resolve(),
+            User.updateMany(
+                { linkedRounds: round._id },
+                { $pull: { linkedRounds: round._id } }
+            ),
+            User.updateMany(
+                { linkedRoundCodes: round.code },
+                { $pull: { linkedRoundCodes: round.code } }
+            ),
+            User.updateMany(
+                { "children.enrolledRounds": round._id },
+                { $pull: { "children.$[].enrolledRounds": round._id } }
+            ),
+        ]);
+
+        await Round.findByIdAndDelete(round._id);
+
+        return res.json({ message: "Round deleted" });
+    } catch (err) {
+        console.error("Delete round error:", err);
+        return res.status(500).json({ message: "Server error" });
+    }
+};

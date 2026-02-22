@@ -73,6 +73,12 @@ const ParentDashboard = ({ parent, setParent }) => {
 
   const getRole = () =>
     typeof window !== "undefined" ? localStorage.getItem("sparvi_role") : null;
+  const hasCompletedProfile = (user) => {
+    const firstChild = user?.children?.[0];
+    const hasChildName = Boolean(firstChild?.name && firstChild.name.trim());
+    const hasChildAge = Number(firstChild?.age) > 0;
+    return hasChildName && hasChildAge;
+  };
 
   // Load Dashboard Data (Untouched Backend Logic)
   useEffect(() => {
@@ -127,6 +133,10 @@ const ParentDashboard = ({ parent, setParent }) => {
           throw new Error(json.message || "Failed to load dashboard");
         }
 
+        if (!hasCompletedProfile(json.parent)) {
+          navigate("/parent/profile");
+          return;
+        }
         setParent(json.parent);
         setEnrollments(json.enrollments || []);
 
