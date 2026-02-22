@@ -24,6 +24,7 @@ import { useState } from "react";
 import AdminHeader from "./pages/admin/components/AdminHeader";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import { BlockHeader } from "./components/blocks/BlockHeader";
+import InstructorDashboard from "./pages/InstructorDashboard";
 // import { EmailVerificationPage } from "./pages/EmailVerification";
 
 function App() {
@@ -63,6 +64,9 @@ function App() {
       <Route path="*" element={<NotFound />} />
       <Route element={<ProtectedRoute allowedRole={["admin", "agent"]} redirectTo="/inbox/login" />}>
         <Route path="/inbox" element={<Inbox />} />
+      </Route>
+      <Route element={<ProtectedRoute allowedRole={"instructor"} redirectTo="/login" />}>
+        <Route path="/instructor" element={<InstructorDashboard />} />
       </Route>
       <Route element={<ProtectedRoute allowedRole={"parent"} />} >
         <Route path="/blocks" element={<BlocksHome />} />
