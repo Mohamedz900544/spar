@@ -1,10 +1,14 @@
 import { motion } from "framer-motion";
-import { CalendarClock, ImageIcon, Inbox, MessageSquare, Users } from "lucide-react";
+import { CalendarClock, ImageIcon, Inbox, MessageSquare, Users, BarChart3, GraduationCap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Tabs = ({ activeTab, setActiveTab, tabButtonBase, newMessagesCount }) => {
     const MotionContainer = motion.div
     const navigate = useNavigate();
+
+    const activeStyle = `${tabButtonBase} bg-[#102a5a] text-white shadow-md`;
+    const inactiveStyle = `${tabButtonBase} bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-[#102a5a]/20`;
+
     return (
         <MotionContainer
             initial={{ opacity: 0, x: 40 }}
@@ -14,23 +18,15 @@ const Tabs = ({ activeTab, setActiveTab, tabButtonBase, newMessagesCount }) => {
         >
             <button
                 onClick={() => setActiveTab("overview")}
-                className={
-                    activeTab === "overview"
-                        ? `${tabButtonBase} bg-[#0b63c7] text-white shadow-md`
-                        : `${tabButtonBase} bg-white/80 text-slate-700 border border-[#dbeafe] hover:bg-white`
-                }
+                className={activeTab === "overview" ? activeStyle : inactiveStyle}
             >
-                <Users className="w-4 h-4" />
+                <BarChart3 className="w-4 h-4" />
                 Overview
             </button>
 
             <button
                 onClick={() => setActiveTab("rounds")}
-                className={
-                    activeTab === "rounds"
-                        ? `${tabButtonBase} bg-[#0b63c7] text-white shadow-md`
-                        : `${tabButtonBase} bg-white/80 text-slate-700 border border-[#dbeafe] hover:bg-white`
-                }
+                className={activeTab === "rounds" ? activeStyle : inactiveStyle}
             >
                 <CalendarClock className="w-4 h-4" />
                 Rounds
@@ -38,11 +34,7 @@ const Tabs = ({ activeTab, setActiveTab, tabButtonBase, newMessagesCount }) => {
 
             <button
                 onClick={() => setActiveTab("sessions")}
-                className={
-                    activeTab === "sessions"
-                        ? `${tabButtonBase} bg-[#0b63c7] text-white shadow-md`
-                        : `${tabButtonBase} bg-white/80 text-slate-700 border border-[#dbeafe] hover:bg-white`
-                }
+                className={activeTab === "sessions" ? activeStyle : inactiveStyle}
             >
                 <CalendarClock className="w-4 h-4" />
                 Sessions
@@ -50,11 +42,7 @@ const Tabs = ({ activeTab, setActiveTab, tabButtonBase, newMessagesCount }) => {
 
             <button
                 onClick={() => setActiveTab("enrollments")}
-                className={
-                    activeTab === "enrollments"
-                        ? `${tabButtonBase} bg-[#0b63c7] text-white shadow-md`
-                        : `${tabButtonBase} bg-white/80 text-slate-700 border border-[#dbeafe] hover:bg-white`
-                }
+                className={activeTab === "enrollments" ? activeStyle : inactiveStyle}
             >
                 <Users className="w-4 h-4" />
                 Enrollments
@@ -62,22 +50,15 @@ const Tabs = ({ activeTab, setActiveTab, tabButtonBase, newMessagesCount }) => {
 
             <button
                 onClick={() => setActiveTab("instructors")}
-                className={
-                    activeTab === "instructors"
-                        ? `${tabButtonBase} bg-[#0b63c7] text-white shadow-md`
-                        : `${tabButtonBase} bg-white/80 text-slate-700 border border-[#dbeafe] hover:bg-white`
-                }
+                className={activeTab === "instructors" ? activeStyle : inactiveStyle}
             >
-                <Users className="w-4 h-4" />
+                <GraduationCap className="w-4 h-4" />
                 Instructors
             </button>
+
             <button
                 onClick={() => setActiveTab("users")}
-                className={
-                    activeTab === "users"
-                        ? `${tabButtonBase} bg-[#0b63c7] text-white shadow-md`
-                        : `${tabButtonBase} bg-white/80 text-slate-700 border border-[#dbeafe] hover:bg-white`
-                }
+                className={activeTab === "users" ? activeStyle : inactiveStyle}
             >
                 <Users className="w-4 h-4" />
                 Users
@@ -85,11 +66,7 @@ const Tabs = ({ activeTab, setActiveTab, tabButtonBase, newMessagesCount }) => {
 
             <button
                 onClick={() => setActiveTab("gallery")}
-                className={
-                    activeTab === "gallery"
-                        ? `${tabButtonBase} bg-[#0b63c7] text-white shadow-md`
-                        : `${tabButtonBase} bg-white/80 text-slate-700 border border-[#dbeafe] hover:bg-white`
-                }
+                className={activeTab === "gallery" ? activeStyle : inactiveStyle}
             >
                 <ImageIcon className="w-4 h-4" />
                 Gallery
@@ -97,23 +74,20 @@ const Tabs = ({ activeTab, setActiveTab, tabButtonBase, newMessagesCount }) => {
 
             <button
                 onClick={() => setActiveTab("messages")}
-                className={
-                    activeTab === "messages"
-                        ? `${tabButtonBase} bg-[#0b63c7] text-white shadow-md`
-                        : `${tabButtonBase} bg-white/80 text-slate-700 border border-[#dbeafe] hover:bg-white`
-                }
+                className={activeTab === "messages" ? activeStyle : inactiveStyle}
             >
                 <Inbox className="w-4 h-4" />
                 Messages
                 {newMessagesCount > 0 && (
-                    <span className="ml-1 inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-[#fee2e2] text-[10px] font-semibold text-[#b91c1c]">
+                    <span className="ml-1 inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-[#FBBF24] text-[10px] font-bold text-[#102a5a]">
                         {newMessagesCount}
                     </span>
                 )}
             </button>
+
             <button
                 onClick={() => navigate("/admin/inbox")}
-                className={`${tabButtonBase} bg-white/80 text-slate-700 border border-[#dbeafe] hover:bg-white`}
+                className={inactiveStyle}
             >
                 <MessageSquare className="w-4 h-4" />
                 WhatsApp Inbox

@@ -54,27 +54,18 @@ const Login = () => {
         password: data.password,
       });
 
-      // لازم يكون الريسبونس سليم وفيه token و user
-
       const user = res.data.user;
       const role = user.role;
 
-      // ========= تخزين البيانات في localStorage =========
-      // التوكن
       localStorage.setItem("sparvi_token", res.data.token);
-      localStorage.setItem("token", res.data.token); // احتياطي لو في كود قديم
-
-      // الدور
+      localStorage.setItem("token", res.data.token);
       localStorage.setItem("sparvi_role", role);
-      localStorage.setItem("role", role); // احتياطي
-
-      // معلومات المستخدم
+      localStorage.setItem("role", role);
       localStorage.setItem("sparvi_user_name", res.data.user.name || "");
       localStorage.setItem("sparvi_user_email", res.data.user.email || "");
       localStorage.setItem("sparvi_user", JSON.stringify(res.data.user || {}));
-      localStorage.setItem("user", JSON.stringify(res.data.user || {})); // احتياطي
+      localStorage.setItem("user", JSON.stringify(res.data.user || {}));
 
-      // ========= توجيه حسب الدور =========
       if (role === "admin") {
         navigate("/admin");
       } else if (role === "instructor") {
@@ -101,15 +92,15 @@ const Login = () => {
   };
 
   const inputClass =
-    "w-full rounded-xl border border-[#c7d2fe] px-3 py-2.5 text-sm " +
-    "bg-[#f9fbff] text-slate-800 outline-none " +
-    "focus:ring-2 focus:ring-[#0ea5e9] focus:border-[#0ea5e9] " +
-    "transition-shadow shadow-sm placeholder:text-slate-400";
+    "w-full rounded-xl border border-slate-200 px-4 py-3 text-sm " +
+    "bg-white text-slate-800 outline-none " +
+    "focus:ring-2 focus:ring-[#FBBF24] focus:border-[#FBBF24] " +
+    "transition-all shadow-sm placeholder:text-slate-400";
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#f0f7ff] via-[#e3f2ff] to-[#ffffff]">
-      {/* navbar أبيض ثابت */}
-      <div className="bg-white border-b border-[#e2e8f0]">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f0f4ff] via-[#e8efff] to-white">
+      {/* Navbar */}
+      <div className="bg-white/80 backdrop-blur-sm border-b border-slate-100">
         <Navbar />
       </div>
 
@@ -128,10 +119,10 @@ const Login = () => {
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.7, delay: 0.1, ease: "easeOut" }}
           >
-            <p className="text-sm font-semibold tracking-[0.18em] uppercase text-[#fbbf24] mb-2">
+            <p className="text-sm font-semibold tracking-[0.18em] uppercase text-[#FBBF24] mb-2">
               Parent Portal
             </p>
-            <h1 className="text-3xl font-extrabold text-[#0b63c7] mb-4 leading-tight">
+            <h1 className="text-3xl font-extrabold text-[#102a5a] mb-4 leading-tight font-display">
               Welcome back to <br />
               <span className="text-slate-900">Sparvi Lab</span>
             </h1>
@@ -147,36 +138,31 @@ const Login = () => {
 
           {/* Right side card */}
           <motion.div
-            className="bg-white/90 backdrop-blur-sm p-8 rounded-3xl shadow-[0_16px_45px_rgba(15,118,210,0.18)] border border-[#dbeafe] max-w-md w-full mx-auto"
+            className="bg-white p-8 rounded-3xl shadow-[0_20px_60px_rgba(16,42,90,0.1)] border border-slate-100 max-w-md w-full mx-auto"
             initial={{ x: 40, opacity: 0, scale: 0.98 }}
             animate={{ x: 0, opacity: 1, scale: 1 }}
             transition={{ duration: 0.7, delay: 0.15, ease: "easeOut" }}
           >
-            <h2 className="text-2xl font-bold mb-2 text-[#0b63c7] text-center">
+            <h2 className="text-2xl font-bold mb-2 text-[#102a5a] text-center font-display">
               Login
             </h2>
-            <p className="text-xs text-slate-500 text-center mb-2">
+            <p className="text-xs text-slate-500 text-center mb-5">
               Use the email you registered with Sparvi Lab.
             </p>
 
-            {/* مثال ليوزر تجريبي لو حابب – امسحه لو مش محتاجه */}
-            {/* <p className="text-[11px] text-slate-500 text-center mb-4">
-              Test admin:{" "}
-              <span className="font-mono">admin@sparvilab.com</span> /{" "}
-              <span className="font-mono">Admin123!</span>
-            </p> */}
-
             {/* Server error */}
             {serverError && (
-              <p className="mb-3 text-xs text-red-500 text-center">
-                {serverError}
-              </p>
+              <div className="mb-4 bg-red-50 border border-red-200 rounded-xl p-3">
+                <p className="text-xs text-red-600 text-center">
+                  {serverError}
+                </p>
+              </div>
             )}
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">
                   Email
                 </label>
                 <input
@@ -187,7 +173,7 @@ const Login = () => {
                   autoComplete="email"
                 />
                 {errors.email && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-red-500 text-xs mt-1.5">
                     {errors.email.message}
                   </p>
                 )}
@@ -195,7 +181,7 @@ const Login = () => {
 
               {/* Password */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">
                   Password
                 </label>
                 <input
@@ -206,7 +192,7 @@ const Login = () => {
                   autoComplete="current-password"
                 />
                 {errors.password && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-red-500 text-xs mt-1.5">
                     {errors.password.message}
                   </p>
                 )}
@@ -216,7 +202,7 @@ const Login = () => {
               <motion.button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full mt-2 rounded-full bg-gradient-to-r from-[#fbbf24] via-[#f59e0b] to-[#fb923c] text-slate-900 text-sm font-semibold px-4 py-2.5 shadow-md hover:shadow-lg transition-transform duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full mt-2 rounded-full bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 text-sm font-semibold px-4 py-3 shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
                 whileTap={{ scale: 0.97 }}
                 whileHover={!isSubmitting ? { y: -2 } : {}}
               >
@@ -225,10 +211,10 @@ const Login = () => {
             </form>
 
             {/* Extra links */}
-            <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-slate-500">
+            <div className="mt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-slate-500">
               <button
                 type="button"
-                className="text-[#0b63c7] hover:text-[#0754a7] hover:underline text-left"
+                className="text-[#102a5a] hover:text-[#1a3a6b] hover:underline text-left font-medium"
               >
                 Forgot your password?
               </button>
@@ -237,7 +223,7 @@ const Login = () => {
                 New to Sparvi Lab?{" "}
                 <Link
                   to="/signup"
-                  className="text-[#f97316] font-semibold hover:underline"
+                  className="text-[#D97706] font-semibold hover:underline"
                 >
                   Create an account
                 </Link>
@@ -248,8 +234,8 @@ const Login = () => {
       </main>
 
       {/* Footer */}
-      <footer className="py-6 text-center text-xs md:text-sm text-slate-500 bg-[#edf2fb] border-t border-[#dbe2ff]">
-        © {new Date().getFullYear()} Sparvi Lab. All rights reserved.
+      <footer className="py-5 text-center text-xs text-slate-400 bg-[#040b18] text-slate-500">
+        <p className="text-slate-500">© {new Date().getFullYear()} Sparvi Lab. All rights reserved.</p>
       </footer>
     </div>
   );

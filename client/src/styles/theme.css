@@ -1,7 +1,16 @@
 :root {
-  --primary: #007bff;
-  --secondary: #ffc107;
-  --accent: #00c897;
-  --danger: #ff5f5f;
-  --light-bg: #f8fbff;
+  --primary: #FBBF24;
+  --primary-hover: #F59E0B;
+  --secondary: #102a5a;
+  --accent: #2dd4bf;
+  --navy: #102a5a;
+  --navy-dark: #0a1a38;
+  --navy-light: #1a3a6b;
+  --gold: #FBBF24;
+  --gold-dark: #F59E0B;
+  --teal: #2dd4bf;
+  --danger: #ef4444;
+  --light-bg: #ffffff;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
 }

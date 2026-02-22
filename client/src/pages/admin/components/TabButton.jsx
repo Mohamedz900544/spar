@@ -5,9 +5,9 @@ const baseClasses =
   "flex items-center gap-2 px-4 py-2.5 rounded-full text-sm md:text-base font-medium transition-all duration-200";
 
 const TabButton = ({ active, icon: Icon, label, onClick, badge }) => {
-  const activeClasses = "bg-[#0b63c7] text-white shadow-md";
+  const activeClasses = "bg-[#102a5a] text-white shadow-md";
   const inactiveClasses =
-    "bg-white/80 text-slate-700 border border-[#dbeafe] hover:bg-white";
+    "bg-white/80 text-slate-700 border border-[#e2e8f0] hover:bg-white";
 
   return (
     <button

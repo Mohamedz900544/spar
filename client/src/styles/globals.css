@@ -1,15 +1,19 @@
 body {
-  background-color: #f8fbff;
-  color: #1f2937; /* Tailwind's gray-800 */
-  font-family: 'Poppins', sans-serif;
+  background-color: #ffffff;
+  color: #1e293b;
+  font-family: 'Inter', system-ui, sans-serif;
   margin: 0;
   padding: 0;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
-h1, h2, h3, h4 {
-  font-weight: 600;
-  color: #1d4ed8; /* Tailwind blue-700 */
+h1,
+h2,
+h3,
+h4 {
+  font-family: 'Poppins', 'Inter', sans-serif;
+  font-weight: 700;
+  color: #102a5a;
 }
 
 a {
@@ -20,7 +24,8 @@ a {
 ::-webkit-scrollbar {
   width: 8px;
 }
+
 ::-webkit-scrollbar-thumb {
-  background-color: #2ca9e1;
+  background-color: #102a5a;
   border-radius: 4px;
 }

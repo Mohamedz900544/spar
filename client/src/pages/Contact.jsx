@@ -17,19 +17,16 @@ const Contact = () => {
   const MotionButton = motion.button;
 
   const inputClass =
-    "w-full rounded-xl border border-[#c7d2fe] px-3 py-2.5 text-sm " +
-    "bg-[#f9fbff] text-slate-800 outline-none " +
-    "focus:ring-2 focus:ring-[#0ea5e9] focus:border-[#0ea5e9] " +
-    "transition-shadow shadow-sm placeholder:text-slate-400";
+    "w-full rounded-xl border border-slate-200 px-4 py-3 text-sm " +
+    "bg-white text-slate-800 outline-none " +
+    "focus:ring-2 focus:ring-[#FBBF24] focus:border-[#FBBF24] " +
+    "transition-all shadow-sm placeholder:text-slate-400";
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormState((prev) => ({ ...prev, [name]: value }));
   };
 
-  /* -------------------------------------------
-     SUBMIT CONTACT FORM → BACKEND
-  -------------------------------------------- */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -69,9 +66,9 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#f5f7ff] via-[#e8f3ff] to-[#ffffff]">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f0f4ff] via-[#e8efff] to-white">
       {/* Navbar */}
-      <div className="bg-white border-b border-[#e2e8f0]">
+      <div className="bg-white/80 backdrop-blur-sm border-b border-slate-100">
         <Navbar />
       </div>
 
@@ -90,19 +87,19 @@ const Contact = () => {
             transition={{ duration: 0.7, delay: 0.1, ease: "easeOut" }}
             className="space-y-4"
           >
-            <p className="text-sm font-semibold tracking-[0.18em] uppercase text-[#fbbf24]">
+            <p className="text-sm font-semibold tracking-[0.18em] uppercase text-[#FBBF24]">
               Contact Us
             </p>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-[#0b63c7] leading-tight">
+            <h1 className="text-2xl md:text-3xl font-extrabold text-[#102a5a] leading-tight font-display">
               Get in touch with
               <br />
               <span className="text-slate-900">Sparvi Lab</span>
             </h1>
 
-            <div className="mt-4 space-y-3">
+            <div className="mt-4 space-y-4">
               <div className="flex items-center gap-3">
-                <div className="rounded-full bg-[#eff6ff] p-2">
-                  <Mail className="w-5 h-5 text-[#0b63c7]" />
+                <div className="rounded-xl bg-[#102a5a]/10 p-2.5">
+                  <Mail className="w-5 h-5 text-[#102a5a]" />
                 </div>
                 <div>
                   <p className="text-xs text-slate-500">Email</p>
@@ -113,8 +110,8 @@ const Contact = () => {
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="rounded-full bg-[#eff6ff] p-2">
-                  <PhoneCall className="w-5 h-5 text-[#0b63c7]" />
+                <div className="rounded-xl bg-[#102a5a]/10 p-2.5">
+                  <PhoneCall className="w-5 h-5 text-[#102a5a]" />
                 </div>
                 <div>
                   <p className="text-xs text-slate-500">Phone / WhatsApp</p>
@@ -128,12 +125,12 @@ const Contact = () => {
 
           {/* Form */}
           <MotionContainer
-            className="bg-white/90 p-8 rounded-3xl shadow-lg border border-[#dbeafe] max-w-md w-full mx-auto"
+            className="bg-white p-8 rounded-3xl shadow-[0_20px_60px_rgba(16,42,90,0.1)] border border-slate-100 max-w-md w-full mx-auto"
             initial={{ x: 80, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.7, delay: 0.15 }}
           >
-            <h2 className="text-xl font-bold mb-2 text-[#0b63c7] text-center">
+            <h2 className="text-xl font-bold mb-4 text-[#102a5a] text-center font-display">
               Send us a message
             </h2>
 
@@ -169,14 +166,14 @@ const Contact = () => {
                 name="message"
                 value={formState.message}
                 onChange={handleChange}
-                className={`${inputClass} min-h-[110px] resize-none`}
+                className={`${inputClass} min-h-[120px] resize-none`}
                 placeholder="Your message"
                 required
               />
 
               <MotionButton
                 type="submit"
-                className="w-full rounded-full bg-gradient-to-r from-[#fbbf24] via-[#f59e0b] to-[#fb923c] text-slate-900 text-sm font-semibold px-4 py-2.5"
+                className="w-full rounded-full bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 text-sm font-semibold px-4 py-3 shadow-md hover:shadow-lg transition-all"
                 whileTap={{ scale: 0.97 }}
               >
                 Send Message
@@ -186,8 +183,8 @@ const Contact = () => {
         </MotionContainer>
       </main>
 
-      <footer className="py-6 text-center text-xs text-slate-500 bg-white border-t">
-        © {new Date().getFullYear()} Sparvi Lab. All rights reserved.
+      <footer className="py-5 text-center text-xs bg-[#040b18]">
+        <p className="text-slate-500">© {new Date().getFullYear()} Sparvi Lab. All rights reserved.</p>
       </footer>
     </div>
   );

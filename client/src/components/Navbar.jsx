@@ -40,17 +40,19 @@ const Navbar = () => {
 
   /* ================= STYLES ================= */
   const linkBase =
-    "whitespace-nowrap text-sm md:text-base font-medium transition-colors duration-300";
+    "whitespace-nowrap text-sm font-medium transition-colors duration-300 relative";
 
   const linkInactive = effectiveScrolled
-    ? "text-[#333333] hover:text-[#FBBF24]"
+    ? "text-[#102a5a] hover:text-[#FBBF24]"
     : "text-white/90 hover:text-white";
 
-  const linkActive = effectiveScrolled ? "text-[#FBBF24]" : "text-white";
+  const linkActive = effectiveScrolled
+    ? "text-[#FBBF24]"
+    : "text-white font-semibold";
 
   const mobileLinkBase =
-    "block w-full py-4 text-[16px] font-semibold transition-colors duration-300";
-  const mobileInactive = "text-[#333333] hover:text-[#FBBF24]";
+    "block w-full py-4 text-[15px] font-semibold transition-colors duration-300";
+  const mobileInactive = "text-[#102a5a] hover:text-[#FBBF24]";
   const mobileActive = "text-[#FBBF24]";
 
   return (
@@ -59,14 +61,14 @@ const Navbar = () => {
         "fixed top-0 left-0 w-full z-40",
         "transition-all duration-500 ease-[cubic-bezier(0.22,0.61,0.36,1)]",
         effectiveScrolled
-          ? "bg-white shadow-md"
+          ? "bg-white/95 backdrop-blur-md shadow-[0_2px_20px_rgba(0,0,0,0.08)]"
           : "bg-transparent shadow-none",
       ].join(" ")}
     >
       {/* ================= NAV BAR ================= */}
       <div
         className={[
-          "max-w-6xl mx-auto px-4 md:px-6 flex items-center justify-between",
+          "max-w-7xl mx-auto px-4 md:px-8 flex items-center justify-between",
           "transition-all duration-500",
           effectiveScrolled ? "h-14 md:h-16" : "h-16 md:h-20",
         ].join(" ")}
@@ -79,10 +81,10 @@ const Navbar = () => {
                 ? logoTransparent
                 : logoScrolled
             }
-            alt="Logo"
+            alt="Sparvi Lab"
             className={[
               "transition-all duration-300 object-contain",
-              effectiveScrolled ? "h-8 md:h-10" : "h-9 md:h-11",
+              effectiveScrolled ? "h-8 md:h-10" : "h-9 md:h-12",
             ].join(" ")}
           />
         </Link>
@@ -111,7 +113,7 @@ const Navbar = () => {
           </NavLink>
 
           <Link to="/signup">
-            <button className="rounded-full bg-[#FBBF24] hover:bg-[#f59e0b] text-[#333333] font-semibold px-5 py-2 shadow">
+            <button className="rounded-full bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 font-semibold px-6 py-2 shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 text-sm">
               Sign Up
             </button>
           </Link>
@@ -123,26 +125,24 @@ const Navbar = () => {
           className={[
             "md:hidden p-2 rounded-md transition",
             effectiveScrolled
-              ? "text-[#333333]"
+              ? "text-[#102a5a]"
               : "text-white",
           ].join(" ")}
         >
-          <Menu size={22} />
+          <Menu size={24} />
         </button>
       </div>
 
       {/* ================= MOBILE MENU ================= */}
       <div
-        className={`md:hidden fixed inset-0 z-50 ${
-          open ? "pointer-events-auto" : "pointer-events-none"
-        }`}
+        className={`md:hidden fixed inset-0 z-50 ${open ? "pointer-events-auto" : "pointer-events-none"
+          }`}
       >
         {/* OVERLAY */}
         <div
           onClick={() => setOpen(false)}
-          className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
-            open ? "opacity-100" : "opacity-0"
-          }`}
+          className={`absolute inset-0 bg-[#071228]/50 backdrop-blur-sm transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0"
+            }`}
         />
 
         {/* PANEL */}
@@ -153,25 +153,25 @@ const Navbar = () => {
             open ? "translate-x-0" : "translate-x-full",
           ].join(" ")}
         >
-          <div className="flex justify-end p-4">
+          <div className="flex items-center justify-between p-5">
+            <img src={logoScrolled} alt="Sparvi Lab" className="h-8" />
             <button
               onClick={() => setOpen(false)}
-              className="w-10 h-10 border rounded-md"
+              className="w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200 text-[#102a5a] hover:bg-slate-50"
             >
-              <X size={22} />
+              <X size={20} />
             </button>
           </div>
 
           <div className="px-6">
-            <nav className="divide-y">
+            <nav className="divide-y divide-slate-100">
               {navLinks.map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}
                   onClick={() => setOpen(false)}
                   className={({ isActive }) =>
-                    `${mobileLinkBase} ${
-                      isActive ? mobileActive : mobileInactive
+                    `${mobileLinkBase} ${isActive ? mobileActive : mobileInactive
                     }`
                   }
                 >
@@ -189,7 +189,7 @@ const Navbar = () => {
             </nav>
 
             <Link to="/signup" onClick={() => setOpen(false)}>
-              <button className="mt-8 w-full rounded-xl bg-[#FBBF24] text-[#333333] font-bold py-4">
+              <button className="mt-8 w-full rounded-xl bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 font-bold py-3.5 shadow-md transition-all duration-200">
                 Sign Up
               </button>
             </Link>

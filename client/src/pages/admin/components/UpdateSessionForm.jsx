@@ -16,7 +16,7 @@ const UpdateSessionForm = ({ openForm, setOpenForm, session, setSession, handleU
     return <div className={`fixed left-0 z-10 top-0 w-full justify-center items-center h-screen bg-[#0000005c] ${openForm ? 'flex' : 'hidden'}`}>
         <form ref={formRef} onSubmit={(e) => handleUpdateSession(e, session)} className="text-black  bg-white w-[500px] rounded-xl p-5 pb-6">
             <div className="flex justify-between items-center">
-                <h2 className="text-lg font-bold text-[#0b63c7]">
+                <h2 className="text-lg font-bold text-[#102a5a]">
                     Update Session
                 </h2>
                 <FaXmark
@@ -69,7 +69,7 @@ const UpdateSessionForm = ({ openForm, setOpenForm, session, setSession, handleU
                     className="bg-white rounded-lg border-2 px-2 py-1" />
             </div>
 
-            <button className="bg-[#0b63c7] rounded-full w-full text-white p-2 mt-4 hover:bg-[#0b63c9] active:scale-[90%] duration-300 transition">Update Session</button>
+            <button className="bg-[#102a5a] rounded-full w-full text-white p-2 mt-4 hover:bg-[#1a3a6b] active:scale-[90%] duration-300 transition">Update Session</button>
             {/*
 enrolled */}
         </form>

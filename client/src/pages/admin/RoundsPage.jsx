@@ -27,7 +27,7 @@ const RoundsPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#f5f7ff] via-[#e8f3ff] to-[#ffffff] flex flex-col">
-      <header className="bg-[#0b63c7] text-white px-5 md:px-8 py-3 flex items-center justify-between shadow-md">
+      <header className="bg-[#102a5a] text-white px-5 md:px-8 py-3 flex items-center justify-between shadow-md">
         <div>
           <h1 className="text-lg md:text-2xl font-extrabold leading-tight">
             Rounds
@@ -59,7 +59,7 @@ const RoundsPage = () => {
             className="grid grid-cols-1 lg:grid-cols-3 gap-5"
           >
             {/* Create round */}
-            <div className="bg-white rounded-2xl border border-[#dbeafe] p-5 shadow-sm lg:col-span-1">
+            <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5 shadow-sm lg:col-span-1">
               <h2 className="text-sm md:text-base font-semibold text-slate-900 mb-3">
                 Create new round
               </h2>
@@ -73,7 +73,7 @@ const RoundsPage = () => {
                   </label>
                   <input
                     type="text"
-                    className="w-full rounded-xl border border-[#dbeafe] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#0ea5e9]"
+                    className="w-full rounded-xl border border-[#e2e8f0] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
                     placeholder="Round 3 – Nasr City (Sunday)"
                     value={newRound.name}
                     onChange={(e) =>
@@ -88,7 +88,7 @@ const RoundsPage = () => {
                       Level
                     </label>
                     <select
-                      className="w-full rounded-xl border border-[#dbeafe] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#0ea5e9] text-xs"
+                      className="w-full rounded-xl border border-[#e2e8f0] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24] text-xs"
                       value={newRound.level}
                       onChange={(e) =>
                         handleNewRoundChange("level", e.target.value)
@@ -105,7 +105,7 @@ const RoundsPage = () => {
                     </label>
                     <input
                       type="text"
-                      className="w-full rounded-xl border border-[#dbeafe] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#0ea5e9]"
+                      className="w-full rounded-xl border border-[#e2e8f0] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
                       placeholder="Nasr City / Maadi ..."
                       value={newRound.campus}
                       onChange={(e) =>
@@ -122,7 +122,7 @@ const RoundsPage = () => {
                     </label>
                     <input
                       type="date"
-                      className="w-full rounded-xl border border-[#dbeafe] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#0ea5e9]"
+                      className="w-full rounded-xl border border-[#e2e8f0] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
                       value={newRound.startDate}
                       onChange={(e) =>
                         handleNewRoundChange("startDate", e.target.value)
@@ -135,7 +135,7 @@ const RoundsPage = () => {
                     </label>
                     <input
                       type="date"
-                      className="w-full rounded-xl border border-[#dbeafe] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#0ea5e9]"
+                      className="w-full rounded-xl border border-[#e2e8f0] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
                       value={newRound.endDate}
                       onChange={(e) =>
                         handleNewRoundChange("endDate", e.target.value)
@@ -152,7 +152,7 @@ const RoundsPage = () => {
                     <input
                       type="number"
                       min={1}
-                      className="w-full rounded-xl border border-[#dbeafe] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#0ea5e9]"
+                      className="w-full rounded-xl border border-[#e2e8f0] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
                       value={newRound.sessionsCount}
                       onChange={(e) =>
                         handleNewRoundChange(
@@ -169,7 +169,7 @@ const RoundsPage = () => {
                     <input
                       type="number"
                       min={1}
-                      className="w-full rounded-xl border border-[#dbeafe] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#0ea5e9]"
+                      className="w-full rounded-xl border border-[#e2e8f0] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
                       value={newRound.weeksPerSession}
                       onChange={(e) =>
                         handleNewRoundChange(
@@ -188,7 +188,7 @@ const RoundsPage = () => {
                   <div className="flex gap-2">
                     <input
                       type="text"
-                      className="flex-1 rounded-xl border border-[#dbeafe] px-3 py-2 bg-white text-slate-800 outline-none font-mono text-xs focus:ring-2 focus:ring-[#0ea5e9]"
+                      className="flex-1 rounded-xl border border-[#e2e8f0] px-3 py-2 bg-white text-slate-800 outline-none font-mono text-xs focus:ring-2 focus:ring-[#FBBF24]"
                       value={newRound.code}
                       onChange={(e) =>
                         handleNewRoundChange("code", e.target.value)
@@ -199,7 +199,7 @@ const RoundsPage = () => {
                       onClick={() =>
                         handleNewRoundChange("code", generateRoundCode())
                       }
-                      className="px-3 py-2 rounded-xl border border-[#0b63c7] text-[#0b63c7] text-xs font-semibold hover:bg-[#eff6ff]"
+                      className="px-3 py-2 rounded-xl border border-[#102a5a] text-[#102a5a] text-xs font-semibold hover:bg-[#f1f5f9]"
                     >
                       New
                     </button>
@@ -220,7 +220,7 @@ const RoundsPage = () => {
             </div>
 
             {/* Rounds list */}
-            <div className="bg-white rounded-2xl border border-[#dbeafe] p-5 shadow-sm lg:col-span-2">
+            <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5 shadow-sm lg:col-span-2">
               <h2 className="text-sm md:text-base font-semibold text-slate-900 mb-4">
                 Rounds list
               </h2>
@@ -247,7 +247,7 @@ const RoundsPage = () => {
                           </p>
                           <p className="text-[11px] text-slate-500 mt-1">
                             Code:{" "}
-                            <span className="font-mono font-semibold text-[#0b63c7]">
+                            <span className="font-mono font-semibold text-[#102a5a]">
                               {r.code}
                             </span>
                           </p>
@@ -300,7 +300,7 @@ const RoundsPage = () => {
                           </div>
                           <button
                             onClick={() => toggleRoundExpand(r.id)}
-                            className="px-3 py-1 rounded-full border border-[#dbeafe] text-[11px] text-[#0b63c7] hover:bg-[#eff6ff]"
+                            className="px-3 py-1 rounded-full border border-[#e2e8f0] text-[11px] text-[#102a5a] hover:bg-[#f1f5f9]"
                           >
                             {expandedRoundId === r.id
                               ? "Hide students"

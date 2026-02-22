@@ -24,7 +24,7 @@ export const GalleryTab = ({
             className="grid grid-cols-1 lg:grid-cols-3 gap-5"
         >
             {/* Upload form */}
-            <div className="bg-white rounded-2xl border border-[#dbeafe] p-5 shadow-sm lg:col-span-1">
+            <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5 shadow-sm lg:col-span-1">
                 <h2 className="text-sm md:text-base font-semibold text-slate-900 mb-3">
                     Add new gallery item
                 </h2>
@@ -35,7 +35,7 @@ export const GalleryTab = ({
                         </label>
                         <input
                             type="text"
-                            className="w-full rounded-xl border border-[#dbeafe] px-3 py-2 text-xs md:text-sm bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#0ea5e9]"
+                            className="w-full rounded-xl border border-[#e2e8f0] px-3 py-2 text-xs md:text-sm bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
                             placeholder="e.g. Kids building WalkyBot"
                             value={newGalleryTitle}
                             onChange={(e) => setNewGalleryTitle(e.target.value)}
@@ -75,7 +75,7 @@ export const GalleryTab = ({
             </div>
 
             {/* Gallery list */}
-            <div className="bg-white rounded-2xl border border-[#dbeafe] p-5 shadow-sm lg:col-span-2">
+            <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5 shadow-sm lg:col-span-2">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-sm md:text-base font-semibold text-slate-900">
                         Gallery items
@@ -94,8 +94,8 @@ export const GalleryTab = ({
                                 {g.fileName ?
                                     <img className='w-20 h-20 object-cover' src={`${import.meta.env.VITE_API_BASE_URL}/api/admin/gallery/${g.fileName}`} alt="" />
                                     :
-                                    <div className="w-10 h-10 rounded-lg bg-[#eff6ff] flex items-center justify-center relative">
-                                        <ImageIcon className="w-5 h-5 text-[#0b63c7]" />
+                                    <div className="w-10 h-10 rounded-lg bg-[#f1f5f9] flex items-center justify-center relative">
+                                        <ImageIcon className="w-5 h-5 text-[#102a5a]" />
                                         {g.featured && (
                                             <Star className="w-3 h-3 text-[#fbbf24] absolute -top-1 -right-1" />
                                         )}
@@ -126,7 +126,7 @@ export const GalleryTab = ({
                                         onClick={() =>
                                             handleGalleryPublishToggle(g.id)
                                         }
-                                        className="px-2 py-1 rounded-full border text-[10px] font-medium border-[#dbeafe] text-[#0b63c7] hover:bg-[#eff6ff]"
+                                        className="px-2 py-1 rounded-full border text-[10px] font-medium border-[#e2e8f0] text-[#102a5a] hover:bg-[#f1f5f9]"
                                     >
                                         {g.status === "Published"
                                             ? "Unpublish"

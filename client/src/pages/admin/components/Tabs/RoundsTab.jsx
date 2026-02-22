@@ -60,7 +60,7 @@ export const RoundsTab = ({
     >
         <style>{scrollbarStyles}</style>
         {/* Create round */}
-        <div className="bg-white rounded-2xl border border-[#dbeafe] p-5 shadow-sm lg:col-span-1">
+        <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5 shadow-sm lg:col-span-1">
             <h2 className="text-sm md:text-base font-semibold text-slate-900 mb-3">
                 Create new round
             </h2>
@@ -74,7 +74,7 @@ export const RoundsTab = ({
                     </label>
                     <input
                         type="text"
-                        className="w-full rounded-xl border border-[#dbeafe] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#0ea5e9]"
+                        className="w-full rounded-xl border border-[#e2e8f0] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
                         placeholder="Round 3 – Nasr City (Sunday)"
                         value={newRound.name}
                         onChange={(e) =>
@@ -89,7 +89,7 @@ export const RoundsTab = ({
                             Level
                         </label>
                         <select
-                            className="w-full rounded-xl border bg-white border-[#dbeafe] px-3 py-2 bg_white text-slate-800 outline-none focus:ring-2 focus:ring-[#0ea5e9] text-xs"
+                            className="w-full rounded-xl border bg-white border-[#e2e8f0] px-3 py-2 bg_white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24] text-xs"
                             value={newRound.level}
                             onChange={(e) =>
                                 handleNewRoundChange("level", e.target.value)
@@ -106,7 +106,7 @@ export const RoundsTab = ({
                         </label>
                         <input
                             type="text"
-                            className="w-full rounded-xl border border-[#dbeafe] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#0ea5e9]"
+                            className="w-full rounded-xl border border-[#e2e8f0] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
                             placeholder="Nasr City / Maadi ..."
                             value={newRound.campus}
                             onChange={(e) =>
@@ -123,7 +123,7 @@ export const RoundsTab = ({
                         </label>
                         <input
                             type="date"
-                            className="w-full rounded-xl border border-[#dbeafe] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#0ea5e9]"
+                            className="w-full rounded-xl border border-[#e2e8f0] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
                             value={newRound.startDate}
                             onChange={(e) =>
                                 handleNewRoundChange("startDate", e.target.value)
@@ -136,7 +136,7 @@ export const RoundsTab = ({
                         </label>
                         <input
                             type="date"
-                            className="w-full rounded-xl border border-[#dbeafe] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#0ea5e9]"
+                            className="w-full rounded-xl border border-[#e2e8f0] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
                             value={newRound.endDate}
                             onChange={(e) =>
                                 handleNewRoundChange("endDate", e.target.value)
@@ -151,7 +151,7 @@ export const RoundsTab = ({
                         </label>
                         <input
                             type="datetime-local"
-                            className="w-full rounded-xl border border-[#dbeafe] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#0ea5e9]"
+                            className="w-full rounded-xl border border-[#e2e8f0] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
                             value={evenSessionDateAndTime}
                             onChange={(e) => setEvenSessionDateAndTime(e.target.value)}
                         />
@@ -162,7 +162,7 @@ export const RoundsTab = ({
                         </label>
                         <input
                             type="datetime-local"
-                            className="w-full rounded-xl border border-[#dbeafe] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#0ea5e9]"
+                            className="w-full rounded-xl border border-[#e2e8f0] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
                             value={oddSessionDateAndTime}
                             onChange={(e) =>
                                 setOddSessionDateAndTime(e.target.value)
@@ -179,7 +179,7 @@ export const RoundsTab = ({
                         <input
                             type="number"
                             min={1}
-                            className="w-full rounded-xl border border-[#dbeafe] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#0ea5e9]"
+                            className="w-full rounded-xl border border-[#e2e8f0] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
                             value={newRound.sessionsCount}
                             onChange={(e) =>
                                 handleNewRoundChange(
@@ -196,7 +196,7 @@ export const RoundsTab = ({
                         <input
                             type="number"
                             min={1}
-                            className="w-full rounded-xl border border-[#dbeafe] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#0ea5e9]"
+                            className="w-full rounded-xl border border-[#e2e8f0] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
                             value={newRound.weeksPerSession}
                             onChange={(e) =>
                                 handleNewRoundChange(
@@ -216,7 +216,7 @@ export const RoundsTab = ({
                     <div className="flex gap-2">
                         <input
                             type="text"
-                            className="flex-1 rounded-xl border border-[#dbeafe] px-3 py-2 bg-white text-slate-800 outline-none font-mono text-xs focus:ring-2 focus:ring-[#0ea5e9]"
+                            className="flex-1 rounded-xl border border-[#e2e8f0] px-3 py-2 bg-white text-slate-800 outline-none font-mono text-xs focus:ring-2 focus:ring-[#FBBF24]"
                             value={newRound.code}
                             onChange={(e) =>
                                 handleNewRoundChange("code", e.target.value)
@@ -227,7 +227,7 @@ export const RoundsTab = ({
                             onClick={() =>
                                 handleNewRoundChange("code", generateRoundCode())
                             }
-                            className="px-3 py-2 rounded-xl border border-[#0b63c7] text-[#0b63c7] text-xs font-semibold hover:bg-[#eff6ff]"
+                            className="px-3 py-2 rounded-xl border border-[#102a5a] text-[#102a5a] text-xs font-semibold hover:bg-[#f1f5f9]"
                         >
                             New
                         </button>
@@ -249,7 +249,7 @@ export const RoundsTab = ({
                             onClick={() => {
                                 regenerateSessions(evenSessionDateAndTime, oddSessionDateAndTime)
                             }}
-                            className="text-[10px] text-[#0b63c7] hover:underline font-medium"
+                            className="text-[10px] text-[#102a5a] hover:underline font-medium"
                         >
                             Auto-fill dates
                         </button>
@@ -275,7 +275,7 @@ export const RoundsTab = ({
                                             onChange={(e) =>
                                                 handleRoundSessionChange(idx, "title", e.target.value)
                                             }
-                                            className="w-full rounded-md border border-[#dbeafe] px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-[#0ea5e9]"
+                                            className="w-full rounded-md border border-[#e2e8f0] px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-[#FBBF24]"
                                             placeholder="Title"
                                         />
                                     </div>
@@ -287,7 +287,7 @@ export const RoundsTab = ({
                                             onChange={(e) =>
                                                 handleRoundSessionChange(idx, "date", e.target.value)
                                             }
-                                            className="w-full rounded-md border border-[#dbeafe] px-2 py-1 text-[10px] outline-none focus:ring-1 focus:ring-[#0ea5e9]"
+                                            className="w-full rounded-md border border-[#e2e8f0] px-2 py-1 text-[10px] outline-none focus:ring-1 focus:ring-[#FBBF24]"
                                             title="session date"
                                         />
                                         <input
@@ -296,7 +296,7 @@ export const RoundsTab = ({
                                             onChange={(e) =>
                                                 handleRoundSessionChange(idx, "time", e.target.value)
                                             }
-                                            className="w-full rounded-md border border-[#dbeafe] px-1 py-1 text-[10px] outline-none focus:ring-1 focus:ring-[#0ea5e9]"
+                                            className="w-full rounded-md border border-[#e2e8f0] px-1 py-1 text-[10px] outline-none focus:ring-1 focus:ring-[#FBBF24]"
                                             title="session time"
                                         />
                                     </div>
@@ -309,7 +309,7 @@ export const RoundsTab = ({
                                             handleRoundSessionChange(idx, "description", e.target.value)
                                         }
                                         value={session.description}
-                                        className="w-full rounded-md border border-[#dbeafe] px-1 py-1 text-[10px] outline-none focus:ring-1 focus:ring-[#0ea5e9]" placeholder="description" />
+                                        className="w-full rounded-md border border-[#e2e8f0] px-1 py-1 text-[10px] outline-none focus:ring-1 focus:ring-[#FBBF24]" placeholder="description" />
                                 </div>
                             </div>
                         ))}
@@ -321,7 +321,7 @@ export const RoundsTab = ({
         </div>
 
         {/* Rounds list */}
-        <div className="bg-white rounded-2xl border border-[#dbeafe] p-5 shadow-sm lg:col-span-2">
+        <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5 shadow-sm lg:col-span-2">
             <h2 className="text-sm md:text-base font-semibold text-slate-900 mb-4">
                 Rounds list
             </h2>
@@ -351,7 +351,7 @@ export const RoundsTab = ({
                                     </div>
                                     <p className="text-[11px] text-slate-500 mt-1">
                                         Code:{" "}
-                                        <span className="font-mono font-semibold text-[#0b63c7]">
+                                        <span className="font-mono font-semibold text-[#102a5a]">
                                             {r.code}
                                         </span>
                                     </p>
@@ -414,7 +414,7 @@ export const RoundsTab = ({
                                     <button
                                         // onClick={() => toggleRoundExpand(r.id)}
                                         onClick={() => navigate(`/admin/round/${r.id}/students`)}
-                                        className="px-3 py-1 rounded-full border border-[#dbeafe] text-[11px] text-[#0b63c7] hover:bg-[#eff6ff]"
+                                        className="px-3 py-1 rounded-full border border-[#e2e8f0] text-[11px] text-[#102a5a] hover:bg-[#f1f5f9]"
                                     >
                                         {expandedRoundId === r.id
                                             ? "Hide students"

@@ -1,9 +1,8 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Custom styles */
 @import './globals.css';
 @import './theme.css';
 @import './components.css';
 @import './animations.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

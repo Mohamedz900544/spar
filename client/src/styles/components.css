@@ -1,28 +1,89 @@
-/* Button style */
+/* Button styles */
 .btn-primary {
-  @apply bg-primary text-white px-5 py-2 rounded shadow-md hover:bg-blue-600 transition font-semibold;
+  background-color: #FBBF24;
+  color: #0f172a;
+  padding: 0.625rem 1.5rem;
+  border-radius: 9999px;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: #F59E0B;
+}
+
+.btn-outline {
+  border: 2px solid #fff;
+  color: #fff;
+  padding: 0.625rem 1.5rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-outline:hover {
+  background-color: #fff;
+  color: #0f172a;
 }
 
 /* Input style */
 .input-field {
-  @apply w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary;
+  width: 100%;
+  padding: 0.625rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  background-color: #fff;
+  color: #1e293b;
+  outline: none;
+  transition: all 0.2s ease;
 }
 
-/* Card: used in Toys section */
+.input-field:focus {
+  box-shadow: 0 0 0 2px #FBBF24;
+  border-color: #FBBF24;
+}
+
+/* Card */
 .card {
-  @apply bg-white shadow-md p-6 rounded-lg text-center transition transform hover:scale-105;
+  background-color: #fff;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  padding: 1.5rem;
+  border-radius: 1rem;
+  text-align: center;
+  border: 1px solid #f1f5f9;
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: scale(1.02);
 }
 
 /* Icon styling inside card */
 .card svg {
-  @apply text-primary mb-2;
+  color: #102a5a;
+  margin-bottom: 0.5rem;
 }
 
 /* Typography helpers */
 .section-title {
-  @apply text-2xl md:text-4xl font-bold mb-6 text-primary;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #102a5a;
+}
+
+@media (min-width: 768px) {
+  .section-title {
+    font-size: 2.25rem;
+  }
 }
 
 .section-subtitle {
-  @apply text-gray-600 max-w-2xl mx-auto text-lg mb-8;
+  color: #64748b;
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 1.125rem;
+  margin-bottom: 2rem;
 }

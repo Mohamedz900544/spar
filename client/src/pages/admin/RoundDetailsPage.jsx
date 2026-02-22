@@ -167,7 +167,7 @@ const RoundDetailsPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#f5f7ff] via-[#e8f3ff] to-[#ffffff] flex flex-col">
       {/* Header */}
-      <header className="bg-[#0b63c7] text-white px-5 md:px-8 py-3 flex items-center justify-between shadow-md sticky top-0 z-10">
+      <header className="bg-[#102a5a] text-white px-5 md:px-8 py-3 flex items-center justify-between shadow-md sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <button 
             onClick={() => navigate('/admin')} 
@@ -196,18 +196,18 @@ const RoundDetailsPage = () => {
 
       <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-6 space-y-6">
         {/* Info Card */}
-        <div className="bg-white rounded-2xl border border-[#dbeafe] p-5 shadow-sm flex flex-wrap gap-6 items-center text-sm text-slate-700">
+        <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5 shadow-sm flex flex-wrap gap-6 items-center text-sm text-slate-700">
           <div className="flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-[#0b63c7]" />
+            <MapPin className="w-4 h-4 text-[#102a5a]" />
             <span className="font-medium">Campus:</span> {round.campus}
           </div>
           <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-[#0b63c7]" />
+            <Calendar className="w-4 h-4 text-[#102a5a]" />
             <span className="font-medium">Dates:</span> 
             {new Date(round.startDate).toLocaleDateString()} — {new Date(round.endDate).toLocaleDateString()}
           </div>
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-[#0b63c7]" />
+            <Clock className="w-4 h-4 text-[#102a5a]" />
             <span className="font-medium">Sessions:</span> {round.sessionsCount} ({round.weeksPerSession} wk/sess)
           </div>
           <div className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
@@ -219,13 +219,13 @@ const RoundDetailsPage = () => {
         </div>
 
         {/* Sessions Editor */}
-        <div className="bg-white rounded-2xl border border-[#dbeafe] shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-[#e5e7eb] flex justify-between items-center bg-slate-50">
             <h2 className="text-base font-bold text-slate-800">Manage Sessions</h2>
             <div className="flex gap-2">
               <button 
                 onClick={handleAutoFill}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-[#0b63c7] border border-blue-100 rounded-lg text-xs font-semibold hover:bg-blue-100 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-[#102a5a] border border-blue-100 rounded-lg text-xs font-semibold hover:bg-blue-100 transition-colors"
                 title="Generate dates based on Start Date and Weeks/Session"
               >
                 <Sparkles className="w-3.5 h-3.5" />

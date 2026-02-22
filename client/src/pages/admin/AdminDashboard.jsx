@@ -18,8 +18,6 @@ import {
 } from "lucide-react";
 
 import { useAdminDashboard } from "./hooks/useAdminDashboard";
-// import AdminHeader from "./components/AdminHeader";
-// import { Link, useNavigate } from "react-router-dom";
 import UpdateSessionForm from "./components/UpdateSessionForm";
 
 import Tabs from "./components/Tabs";
@@ -28,10 +26,11 @@ import { RoundsTab } from "./components/Tabs/RoundsTab";
 import { SessionsTab } from "./components/Tabs/SessionsTab";
 import { EnrollmentsTab } from "./components/Tabs/EnrollmentsTab";
 import { UsersTab } from "./components/Tabs/UsersTab";
-// import { GalleryTab } from "./components/Tabs/GalleryTab";
+
 function generateRoundCode() {
   return `SPRV-${Math.floor(Math.random() * 1000)}-${Date.now()}`
 }
+
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [isCreatingRound, setIsCreatingRound] = useState(false)
@@ -40,23 +39,13 @@ const AdminDashboard = () => {
   const MotionContainer = motion.div
   const [messageNoteDrafts, setMessageNoteDrafts] = useState({})
   const {
-    // meta
-    // isLoading,
     loadError,
-
-    // tabs
-    // activeTab,
-    // setActiveTab,
-
-    // stats
     totalKids,
     activeSessionsCount,
     activeRoundsCount,
     publishedPhotos,
     averageOccupancy,
     newMessagesCount,
-
-    // sessions
     sessions,
     filteredSessions,
     sessionSearch,
@@ -64,34 +53,18 @@ const AdminDashboard = () => {
     sessionStatusFilter,
     setSessionStatusFilter,
     handleSessionStatusToggle,
-
-    // enrollments
     enrollments,
     filteredEnrollments,
     enrollmentStatusFilter,
     setEnrollmentStatusFilter,
     handleEnrollmentStatusChange,
     handleEnrollmentNoteChange,
-
-    // // gallery
-    // galleryItems,
-    // newGalleryTitle,
-    // setNewGalleryTitle,
-    // newGalleryFile,
-    // setNewGalleryFile,
-    // handleAddGalleryItem,
-    // handleGalleryPublishToggle,
-    // handleGalleryFeaturedToggle,
-
-    // messages
     messages,
     filteredMessages,
     messageStatusFilter,
     setMessageStatusFilter,
     handleMessageStatusChange,
     handleMessageNoteChange,
-
-    // instructors
     instructors,
     newInstructor,
     isCreatingInstructor,
@@ -100,13 +73,9 @@ const AdminDashboard = () => {
     handleCreateInstructor,
     handleInstructorCampusChange,
     handleUpdateInstructorCampus,
-
-    // users
     users,
     userSearch,
     setUserSearch,
-
-    // rounds
     rounds,
     newRound,
     handleNewRoundChange,
@@ -119,21 +88,18 @@ const AdminDashboard = () => {
     regenerateSessions,
     handleRoundSessionChange,
     handleDeleteRound,
-
-    // photos
     studentPhotos,
     handleAddStudentPhotos,
-    // sessions
     deleteSessions,
     handleUpdateSession,
-    // isSendingGalleryImage,
   } = useAdminDashboard();
-  // const navigate = useNavigate()
+
   const [openForm, setOpenForm] = useState(false)
   const [sessionToUpdate, setSessionToUpdate] = useState({})
   const [expandedInstructorId, setExpandedInstructorId] = useState(null);
   const tabButtonBase =
     "flex items-center gap-2 px-4 py-2.5 rounded-full text-sm md:text-base font-medium transition-all duration-200";
+
   function handleFormUpdate(sessionId) {
     setOpenForm(true)
     const session = sessions.find(s => s.id === sessionId)
@@ -143,9 +109,9 @@ const AdminDashboard = () => {
     }
     setSessionToUpdate(session)
   }
+
   return (
     < >
-      {/* Admin header (no main navbar here) */}
       <UpdateSessionForm
         handleUpdateSession={handleUpdateSession}
         openForm={openForm}
@@ -244,13 +210,14 @@ const AdminDashboard = () => {
 
             {activeTab === "instructors" && (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                <div className="bg-white rounded-2xl border border-[#dbeafe] p-5 shadow-sm lg:col-span-1">
-                  <h2 className="text-sm md:text-base font-semibold text-slate-900 mb-3">
-                    Create instructor
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm lg:col-span-1">
+                  <h2 className="text-base font-bold text-[#102a5a] mb-4 flex items-center gap-2">
+                    <Plus className="w-4 h-4 text-[#FBBF24]" />
+                    Create Instructor
                   </h2>
                   <form onSubmit={handleCreateInstructor} className="space-y-3">
                     <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                      <label className="block text-xs font-semibold text-slate-600 mb-1">
                         Name
                       </label>
                       <input
@@ -259,12 +226,12 @@ const AdminDashboard = () => {
                         onChange={(e) =>
                           handleNewInstructorChange("name", e.target.value)
                         }
-                        className="w-full rounded-xl border border-[#dbeafe] px-3 py-2 text-xs md:text-sm bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#0ea5e9]"
+                        className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                      <label className="block text-xs font-semibold text-slate-600 mb-1">
                         Email
                       </label>
                       <input
@@ -273,12 +240,12 @@ const AdminDashboard = () => {
                         onChange={(e) =>
                           handleNewInstructorChange("email", e.target.value)
                         }
-                        className="w-full rounded-xl border border-[#dbeafe] px-3 py-2 text-xs md:text-sm bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#0ea5e9]"
+                        className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                      <label className="block text-xs font-semibold text-slate-600 mb-1">
                         Phone
                       </label>
                       <input
@@ -287,12 +254,12 @@ const AdminDashboard = () => {
                         onChange={(e) =>
                           handleNewInstructorChange("phone", e.target.value)
                         }
-                        className="w-full rounded-xl border border-[#dbeafe] px-3 py-2 text-xs md:text-sm bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#0ea5e9]"
+                        className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
+                      <label className="block text-xs font-semibold text-slate-600 mb-1">
                         Password
                       </label>
                       <input
@@ -301,13 +268,13 @@ const AdminDashboard = () => {
                         onChange={(e) =>
                           handleNewInstructorChange("password", e.target.value)
                         }
-                        className="w-full rounded-xl border border-[#dbeafe] px-3 py-2 text-xs md:text-sm bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#0ea5e9]"
+                        className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-slate-700 mb-1">
-                        Campus code
+                      <label className="block text-xs font-semibold text-slate-600 mb-1">
+                        Campus Code
                       </label>
                       <input
                         type="text"
@@ -315,42 +282,43 @@ const AdminDashboard = () => {
                         onChange={(e) =>
                           handleNewInstructorChange("campusCode", e.target.value)
                         }
-                        className="w-full rounded-xl border border-[#dbeafe] px-3 py-2 text-xs md:text-sm bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#0ea5e9]"
+                        className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all"
                       />
                     </div>
                     <button
                       type="submit"
                       disabled={isCreatingInstructor}
-                      className="w-full inline-flex items-center justify-center rounded-xl px-4 py-2 text-xs md:text-sm font-semibold bg-[#0b63c7] text-white hover:bg-[#0a5ab4] disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="w-full inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold bg-[#102a5a] text-white hover:bg-[#1a3a6b] disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-sm"
                     >
-                      {isCreatingInstructor ? "Creating..." : "Create instructor"}
+                      {isCreatingInstructor ? "Creating..." : "Create Instructor"}
                     </button>
                   </form>
                 </div>
-                <div className="bg-white rounded-2xl border border-[#dbeafe] p-5 shadow-sm lg:col-span-2">
-                  <div className="flex items-center justify-between mb-3">
-                    <h2 className="text-sm md:text-base font-semibold text-slate-900">
+
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm lg:col-span-2">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-base font-bold text-[#102a5a]">
                       Instructors
                     </h2>
-                    <span className="text-[11px] text-slate-500">
+                    <span className="inline-flex items-center rounded-full bg-[#102a5a]/10 text-[#102a5a] px-2.5 py-0.5 text-xs font-semibold">
                       {instructors.length} total
                     </span>
                   </div>
                   {instructors.length === 0 ? (
-                    <div className="text-xs text-slate-500">
+                    <div className="text-sm text-slate-500 py-8 text-center">
                       No instructors created yet.
                     </div>
                   ) : (
                     <div className="overflow-x-auto">
-                      <table className="min-w-full text-xs md:text-sm">
+                      <table className="min-w-full text-sm">
                         <thead>
-                          <tr className="border-b border-[#e5e7eb] text-slate-500">
-                            <th className="text-left py-2 pr-3">Name</th>
-                            <th className="text-left py-2 pr-3">Email</th>
-                            <th className="text-left py-2 pr-3">Phone</th>
-                            <th className="text-left py-2 pr-3">Campus</th>
-                            <th className="text-left py-2 pr-3">Linked rounds</th>
-                            <th className="text-left py-2 pr-3">Created</th>
+                          <tr className="border-b border-slate-200 text-slate-500">
+                            <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Name</th>
+                            <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Email</th>
+                            <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Phone</th>
+                            <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Campus</th>
+                            <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Linked Rounds</th>
+                            <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Created</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -360,13 +328,13 @@ const AdminDashboard = () => {
                             const isExpanded = expandedInstructorId === instructorId;
                             return (
                               <React.Fragment key={instructorId}>
-                                <tr className="border-b border-[#eef2ff] text-slate-700">
-                                  <td className="py-2 pr-3 font-semibold">
+                                <tr className="border-b border-slate-100 text-slate-700 hover:bg-slate-50/50 transition-colors">
+                                  <td className="py-3 pr-3 font-semibold text-[#102a5a]">
                                     {instructor.name}
                                   </td>
-                                  <td className="py-2 pr-3">{instructor.email}</td>
-                                  <td className="py-2 pr-3">{instructor.phone}</td>
-                                  <td className="py-2 pr-3">
+                                  <td className="py-3 pr-3">{instructor.email}</td>
+                                  <td className="py-3 pr-3">{instructor.phone}</td>
+                                  <td className="py-3 pr-3">
                                     <div className="flex items-center gap-2">
                                       <input
                                         type="text"
@@ -381,18 +349,18 @@ const AdminDashboard = () => {
                                             e.target.value
                                           )
                                         }
-                                        className="w-28 rounded-lg border border-[#dbeafe] px-2 py-1 text-xs bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#0ea5e9]"
+                                        className="w-28 rounded-lg border border-slate-200 px-2 py-1.5 text-xs bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all"
                                       />
                                       <button
                                         type="button"
                                         onClick={() => handleUpdateInstructorCampus(instructorId)}
-                                        className="rounded-lg border border-[#0b63c7] px-2 py-1 text-[11px] font-semibold text-[#0b63c7] hover:bg-[#eaf2ff]"
+                                        className="rounded-lg bg-[#FBBF24] px-2.5 py-1.5 text-[11px] font-bold text-[#102a5a] hover:bg-[#F59E0B] transition-colors shadow-sm"
                                       >
                                         Save
                                       </button>
                                     </div>
                                   </td>
-                                  <td className="py-2 pr-3">
+                                  <td className="py-3 pr-3">
                                     <button
                                       type="button"
                                       onClick={() =>
@@ -400,12 +368,12 @@ const AdminDashboard = () => {
                                           isExpanded ? null : instructorId
                                         )
                                       }
-                                      className="rounded-lg border border-[#dbeafe] px-2 py-1 text-[11px] text-slate-700 hover:bg-[#f1f5ff]"
+                                      className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-[11px] font-medium text-slate-700 hover:bg-slate-50 transition-colors"
                                     >
                                       {linkedRounds.length} rounds
                                     </button>
                                   </td>
-                                  <td className="py-2 pr-3">
+                                  <td className="py-3 pr-3 text-slate-500 text-xs">
                                     {instructor.createdAt
                                       ? new Date(
                                         instructor.createdAt
@@ -414,9 +382,10 @@ const AdminDashboard = () => {
                                   </td>
                                 </tr>
                                 {isExpanded && (
-                                  <tr className="border-b border-[#eef2ff] text-slate-600">
-                                    <td colSpan={6} className="py-2 pr-3">
-                                      <div className="text-[11px]">
+                                  <tr className="border-b border-slate-100 text-slate-600">
+                                    <td colSpan={6} className="py-3 pr-3">
+                                      <div className="text-xs bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
+                                        <span className="font-semibold text-[#102a5a]">Linked rounds: </span>
                                         {linkedRounds.length
                                           ? linkedRounds.join(", ")
                                           : "No linked rounds"}
@@ -435,20 +404,6 @@ const AdminDashboard = () => {
               </div>
             )}
 
-            {/* {activeTab === "gallery" && (
-              <GalleryTab
-                handleAddGalleryItem={handleAddGalleryItem}
-                newGalleryTitle={newGalleryTitle}
-                setNewGalleryTitle={setNewGalleryTitle}
-                galleryItems={galleryItems}
-                handleGalleryPublishToggle={handleGalleryPublishToggle}
-                handleGalleryFeaturedToggle={handleGalleryFeaturedToggle}
-                setNewGalleryFile={setNewGalleryFile}
-                newGalleryFile={newGalleryFile}
-                isSendingGalleryImage={isSendingGalleryImage}
-              />
-            )} */}
-
             {activeTab === "messages" && (
               <MotionContainer
                 key="messages"
@@ -456,52 +411,26 @@ const AdminDashboard = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.4 }}
-                className="bg-white rounded-2xl border border-[#dbeafe] p-5 shadow-sm"
+                className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm"
               >
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
-                  <h2 className="text-sm md:text-base font-semibold text-slate-900">
-                    Parent messages & requests
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
+                  <h2 className="text-base font-bold text-[#102a5a]">
+                    Parent Messages & Requests
                   </h2>
-                  <div className="flex items-center gap-1 text-[11px]">
-                    <Filter className="w-3.5 h-3.5 text-slate-500" />
-                    <button
-                      className={`px-2 py-1 rounded-full border text-[10px] ${messageStatusFilter === "All"
-                        ? "bg-[#0b63c7] text-white border-[#0b63c7]"
-                        : "border-[#dbeafe] text-slate-700"
-                        }`}
-                      onClick={() => setMessageStatusFilter("All")}
-                    >
-                      All
-                    </button>
-                    <button
-                      className={`px-2 py-1 rounded-full border text-[10px] ${messageStatusFilter === "New"
-                        ? "bg-[#0b63c7] text-white border-[#0b63c7]"
-                        : "border-[#dbeafe] text-slate-700"
-                        }`}
-                      onClick={() => setMessageStatusFilter("New")}
-                    >
-                      New
-                    </button>
-                    <button
-                      className={`px-2 py-1 rounded-full border text-[10px] ${messageStatusFilter === "In Progress"
-                        ? "bg-[#0b63c7] text-white border-[#0b63c7]"
-                        : "border-[#dbeafe] text-slate-700"
-                        }`}
-                      onClick={() =>
-                        setMessageStatusFilter("In Progress")
-                      }
-                    >
-                      In progress
-                    </button>
-                    <button
-                      className={`px-2 py-1 rounded-full border text-[10px] ${messageStatusFilter === "Closed"
-                        ? "bg-[#0b63c7] text-white border-[#0b63c7]"
-                        : "border-[#dbeafe] text-slate-700"
-                        }`}
-                      onClick={() => setMessageStatusFilter("Closed")}
-                    >
-                      Closed
-                    </button>
+                  <div className="flex items-center gap-1.5 text-xs">
+                    <Filter className="w-3.5 h-3.5 text-slate-400" />
+                    {["All", "New", "In Progress", "Closed"].map((status) => (
+                      <button
+                        key={status}
+                        className={`px-2.5 py-1.5 rounded-full border text-[11px] font-medium transition-all ${messageStatusFilter === status
+                            ? "bg-[#102a5a] text-white border-[#102a5a]"
+                            : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                          }`}
+                        onClick={() => setMessageStatusFilter(status)}
+                      >
+                        {status === "In Progress" ? "In progress" : status}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -511,97 +440,98 @@ const AdminDashboard = () => {
                     const draftValue = messageNoteDrafts[messageId] ?? m.internalNote ?? "";
                     const isDirty = draftValue !== (m.internalNote ?? "");
                     return (
-                    <div
-                      key={messageId}
-                      className="border border-[#e5e7eb] rounded-xl px-3 py-2.5 text-xs md:text-sm flex flex-col gap-2"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-semibold text-slate-800">
-                            {m.parentName} · {m.phone}
-                          </p>
-                          <p className="text-[11px] text-slate-500">
-                            Child age: {m.childAge}
-                          </p>
+                      <div
+                        key={messageId}
+                        className="border border-slate-200 rounded-xl px-4 py-3 text-sm flex flex-col gap-2 hover:border-slate-300 transition-colors"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-semibold text-[#102a5a]">
+                              {m.parentName} · {m.phone}
+                            </p>
+                            <p className="text-[11px] text-slate-500">
+                              Child age: {m.childAge}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span
+                              className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold ${m.status === "New"
+                                ? "bg-[#FBBF24]/20 text-[#92400e]"
+                                : m.status === "In Progress"
+                                  ? "bg-[#102a5a]/10 text-[#102a5a]"
+                                  : "bg-emerald-50 text-emerald-700"
+                                }`}
+                            >
+                              {m.status}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <span
-                            className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold ${m.status === "New"
-                              ? "bg-[#fee2e2] text-[#b91c1c]"
-                              : m.status === "In Progress"
-                                ? "bg-[#e0f2fe] text-[#075985]"
-                                : "bg-[#dcfce7] text-[#166534]"
-                              }`}
-                          >
-                            {m.status}
-                          </span>
+                        <p className="text-xs text-slate-600 leading-relaxed">
+                          {m.message}
+                        </p>
+                        <div className="flex flex-col gap-2 mt-1">
+                          <textarea
+                            className="w-full rounded-lg border border-slate-200 text-xs px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/30 focus:border-[#FBBF24] transition-all"
+                            placeholder="Internal note – e.g. sent WhatsApp message, waiting for reply..."
+                            value={draftValue}
+                            onChange={(e) =>
+                              setMessageNoteDrafts((prev) => ({
+                                ...prev,
+                                [messageId]: e.target.value,
+                              }))
+                            }
+                            rows={2}
+                          />
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleMessageNoteChange(messageId, draftValue)}
+                              disabled={!isDirty}
+                              className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full border text-[11px] font-semibold transition-all ${isDirty
+                                ? "border-[#FBBF24] text-[#102a5a] bg-[#FBBF24]/10 hover:bg-[#FBBF24]/20"
+                                : "border-slate-200 text-slate-400 cursor-not-allowed"
+                                }`}
+                            >
+                              Save note
+                            </button>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <button
+                              onClick={() =>
+                                handleMessageStatusChange(
+                                  messageId,
+                                  "In Progress"
+                                )
+                              }
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full border text-[10px] font-semibold border-[#102a5a]/20 text-[#102a5a] hover:bg-[#102a5a]/5 transition-colors"
+                            >
+                              <CheckCircle2 className="w-3 h-3" />
+                              Mark in progress
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleMessageStatusChange(messageId, "Closed")
+                              }
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full border text-[10px] font-semibold border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition-colors"
+                            >
+                              <CheckCircle2 className="w-3 h-3" />
+                              Mark closed
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleMessageStatusChange(messageId, "New")
+                              }
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full border text-[10px] font-semibold border-[#FBBF24]/30 text-[#92400e] hover:bg-[#FBBF24]/10 transition-colors"
+                            >
+                              <XCircle className="w-3 h-3" />
+                              Mark as new
+                            </button>
+                          </div>
                         </div>
                       </div>
-                      <p className="text-[11px] md:text-xs text-slate-600">
-                        {m.message}
-                      </p>
-                      <div className="flex flex-col gap-2 mt-1">
-                        <textarea
-                          className="w-full rounded-lg border border-[#dbeafe] text-[11px] px-2 py-1 bg-white text-slate-800 outline-none focus:ring-1 focus:ring-[#0ea5e9]"
-                          placeholder="Internal note – e.g. sent WhatsApp message, waiting for reply..."
-                          value={draftValue}
-                          onChange={(e) =>
-                            setMessageNoteDrafts((prev) => ({
-                              ...prev,
-                              [messageId]: e.target.value,
-                            }))
-                          }
-                          rows={2}
-                        />
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleMessageNoteChange(messageId, draftValue)}
-                            disabled={!isDirty}
-                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full border text-[10px] font-medium ${isDirty
-                              ? "border-[#0ea5e9] text-[#0b63c7] hover:bg-[#e0f2fe]"
-                              : "border-[#e2e8f0] text-slate-400 cursor-not-allowed"
-                              }`}
-                          >
-                            Save note
-                          </button>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <button
-                            onClick={() =>
-                              handleMessageStatusChange(
-                                messageId,
-                                "In Progress"
-                              )
-                            }
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-full border text-[10px] font-medium border-[#e0f2fe] text-[#075985] hover:bg-[#e0f2fe]"
-                          >
-                            <CheckCircle2 className="w-3 h-3" />
-                            Mark in progress
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleMessageStatusChange(messageId, "Closed")
-                            }
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-full border text-[10px] font-medium border-[#bbf7d0] text-[#166534] hover:bg-[#dcfce7]"
-                          >
-                            <CheckCircle2 className="w-3 h-3" />
-                            Mark closed
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleMessageStatusChange(messageId, "New")
-                            }
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-full border text-[10px] font-medium border-[#fee2e2] text-[#b91c1c] hover:bg-[#fee2e2]"
-                          >
-                            <XCircle className="w-3 h-3" />
-                            Mark as new
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )})}
+                    )
+                  })}
                   {filteredMessages.length === 0 && (
-                    <p className="text-xs text-slate-500">
+                    <p className="text-sm text-slate-500 py-4 text-center">
                       No messages match your filters.
                     </p>
                   )}
@@ -612,7 +542,7 @@ const AdminDashboard = () => {
         </div>
       </main>
 
-      <footer className="py-4 text-center text-[11px] md:text-xs text-slate-500 bg-white border-t border-[#e2e8f0]">
+      <footer className="py-5 text-center text-xs text-slate-400 bg-white border-t border-slate-100">
         © {new Date().getFullYear()} Sparvi Lab · Admin Dashboard
       </footer>
     </>

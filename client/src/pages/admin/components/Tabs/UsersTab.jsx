@@ -63,7 +63,7 @@ export const UsersTab = ({
       transition={{ duration: 0.4 }}
       className="grid grid-cols-1 lg:grid-cols-3 gap-5"
     >
-      <div className="bg-white rounded-2xl border border-[#dbeafe] p-5 shadow-sm lg:col-span-1">
+      <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5 shadow-sm lg:col-span-1">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm md:text-base font-semibold text-slate-900">
             Users
@@ -79,7 +79,7 @@ export const UsersTab = ({
             value={userSearch}
             onChange={(e) => setUserSearch(e.target.value)}
             placeholder="Search by phone number"
-            className="w-full rounded-xl border border-[#dbeafe] pl-9 pr-3 py-2 text-xs md:text-sm bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#0ea5e9]"
+            className="w-full rounded-xl border border-[#e2e8f0] pl-9 pr-3 py-2 text-xs md:text-sm bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
           />
         </div>
         <div className="space-y-2 max-h-[520px] overflow-y-auto custom-scrollbar pr-1">
@@ -92,7 +92,7 @@ export const UsersTab = ({
                 type="button"
                 onClick={() => setSelectedUserId(userId)}
                 className={`w-full text-left border rounded-xl px-3 py-2 text-xs md:text-sm transition ${isActive
-                  ? "border-[#0b63c7] bg-[#eff6ff]"
+                  ? "border-[#102a5a] bg-[#f1f5f9]"
                   : "border-[#e5e7eb] hover:bg-[#f8fafc]"
                   }`}
               >
@@ -108,7 +108,7 @@ export const UsersTab = ({
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-[#dbeafe] p-5 shadow-sm lg:col-span-2">
+      <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5 shadow-sm lg:col-span-2">
         {!selectedUser ? (
           <div className="text-xs text-slate-500">
             Select a user to view full details.
@@ -166,7 +166,7 @@ export const UsersTab = ({
                     return (
                       <div
                         key={code}
-                        className="rounded-full border border-[#dbeafe] px-3 py-1 text-[11px] text-slate-700 bg-[#f8fbff]"
+                        className="rounded-full border border-[#e2e8f0] px-3 py-1 text-[11px] text-slate-700 bg-[#f8fbff]"
                       >
                         {code}
                         {round?.name ? ` · ${round.name}` : ""}

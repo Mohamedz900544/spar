@@ -24,7 +24,7 @@ const SessionsPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#f5f7ff] via-[#e8f3ff] to-[#ffffff] flex flex-col">
-      <header className="bg-[#0b63c7] text-white px-5 md:px-8 py-3 flex items-center justify-between shadow-md">
+      <header className="bg-[#102a5a] text-white px-5 md:px-8 py-3 flex items-center justify-between shadow-md">
         <div>
           <h1 className="text-lg md:text-2xl font-extrabold leading-tight">
             Sessions
@@ -53,7 +53,7 @@ const SessionsPage = () => {
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4 }}
-            className="bg-white rounded-2xl border border-[#dbeafe] p-5 shadow-sm"
+            className="bg-white rounded-2xl border border-[#e2e8f0] p-5 shadow-sm"
           >
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
               <h2 className="text-sm md:text-base font-semibold text-slate-900">
@@ -65,7 +65,7 @@ const SessionsPage = () => {
                   <input
                     type="text"
                     placeholder="Search by title, campus or level"
-                    className="pl-7 pr-3 py-1.5 rounded-full border border-[#dbeafe] text-xs bg-white text-slate-800 outline-none focus:ring-1 focus:ring-[#0ea5e9]"
+                    className="pl-7 pr-3 py-1.5 rounded-full border border-[#e2e8f0] text-xs bg-white text-slate-800 outline-none focus:ring-1 focus:ring-[#FBBF24]"
                     value={sessionSearch}
                     onChange={(e) => setSessionSearch(e.target.value)}
                   />
@@ -76,8 +76,8 @@ const SessionsPage = () => {
                     <button
                       key={status}
                       className={`px-2 py-1 rounded-full border text-[10px] ${sessionStatusFilter === status
-                          ? "bg-[#0b63c7] text-white border-[#0b63c7]"
-                          : "border-[#dbeafe] text-slate-700"
+                          ? "bg-[#102a5a] text-white border-[#102a5a]"
+                          : "border-[#e2e8f0] text-slate-700"
                         }`}
                       onClick={() => setSessionStatusFilter(status)}
                     >
@@ -142,7 +142,7 @@ const SessionsPage = () => {
                       </td>
                       <td className="py-2 pl-3 text-right">
                         <div className="inline-flex items-center gap-1">
-                          <button className="p-1 rounded-full hover:bg-[#eff6ff] text-slate-500">
+                          <button className="p-1 rounded-full hover:bg-[#f1f5f9] text-slate-500">
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
                           <button className="p-1 rounded-full hover:bg-[#fee2e2] text-[#b91c1c]">
@@ -158,7 +158,7 @@ const SessionsPage = () => {
                           </button>
                           <button
                             onClick={() => handleSessionStatusToggle(s.id)}
-                            className="px-2 py-1 rounded-full border text-[10px] font-medium border-[#dbeafe] text-[#0b63c7] hover:bg-[#eff6ff]"
+                            className="px-2 py-1 rounded-full border text-[10px] font-medium border-[#e2e8f0] text-[#102a5a] hover:bg-[#f1f5f9]"
                           >
                             {s.status === "Active"
                               ? "Move to Draft"

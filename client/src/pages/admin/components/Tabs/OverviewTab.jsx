@@ -19,7 +19,7 @@ const OverviewTab = ({
             transition={{ duration: 0.4 }}
         >
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-                <div className="bg-white rounded-2xl border border-[#dbeafe] p-4 shadow-sm flex flex-col gap-1 md:col-span-1">
+                <div className="bg-white rounded-2xl border border-[#e2e8f0] p-4 shadow-sm flex flex-col gap-1 md:col-span-1">
                     <p className="text-xs uppercase tracking-wide text-slate-500">
                         Total kids
                     </p>
@@ -27,11 +27,11 @@ const OverviewTab = ({
                         <p className="text-2xl font-bold text-slate-900">
                             {totalKids}
                         </p>
-                        <Users className="w-7 h-7 text-[#0b63c7]" />
+                        <Users className="w-7 h-7 text-[#102a5a]" />
                     </div>
                 </div>
 
-                <div className="bg-white rounded-2xl border border-[#dbeafe] p-4 shadow-sm flex flex-col gap-1 md:col-span-1">
+                <div className="bg-white rounded-2xl border border-[#e2e8f0] p-4 shadow-sm flex flex-col gap-1 md:col-span-1">
                     <p className="text-xs uppercase tracking-wide text-slate-500">
                         Active sessions
                     </p>
@@ -39,11 +39,11 @@ const OverviewTab = ({
                         <p className="text-2xl font-bold text-slate-900">
                             {activeSessionsCount}
                         </p>
-                        <CalendarClock className="w-7 h-7 text-[#0b63c7]" />
+                        <CalendarClock className="w-7 h-7 text-[#102a5a]" />
                     </div>
                 </div>
 
-                <div className="bg-white rounded-2xl border border-[#dbeafe] p-4 shadow-sm flex flex-col gap-1 md:col-span-1">
+                <div className="bg-white rounded-2xl border border-[#e2e8f0] p-4 shadow-sm flex flex-col gap-1 md:col-span-1">
                     <p className="text-xs uppercase tracking-wide text-slate-500">
                         Active rounds
                     </p>
@@ -51,11 +51,11 @@ const OverviewTab = ({
                         <p className="text-2xl font-bold text-slate-900">
                             {activeRoundsCount}
                         </p>
-                        <CalendarClock className="w-7 h-7 text-[#0b63c7]" />
+                        <CalendarClock className="w-7 h-7 text-[#102a5a]" />
                     </div>
                 </div>
 
-                <div className="bg-white rounded-2xl border border-[#dbeafe] p-4 shadow-sm flex flex-col gap-1 md:col-span-1">
+                <div className="bg-white rounded-2xl border border-[#e2e8f0] p-4 shadow-sm flex flex-col gap-1 md:col-span-1">
                     <p className="text-xs uppercase tracking-wide text-slate-500">
                         Gallery photos
                     </p>
@@ -63,11 +63,11 @@ const OverviewTab = ({
                         <p className="text-2xl font-bold text-slate-900">
                             {publishedPhotos}
                         </p>
-                        <ImageIcon className="w-7 h-7 text-[#0b63c7]" />
+                        <ImageIcon className="w-7 h-7 text-[#102a5a]" />
                     </div>
                 </div>
 
-                <div className="bg-white rounded-2xl border border-[#dbeafe] p-4 shadow-sm flex flex-col gap-1 md:col-span-1">
+                <div className="bg-white rounded-2xl border border-[#e2e8f0] p-4 shadow-sm flex flex-col gap-1 md:col-span-1">
                     <p className="text-xs uppercase tracking-wide text-slate-500">
                         Occupancy
                     </p>
@@ -77,7 +77,7 @@ const OverviewTab = ({
                         </p>
                         <div className="w-16 h-2 rounded-full bg-[#e5e7eb] overflow-hidden">
                             <div
-                                className="h-full bg-[#0b63c7]"
+                                className="h-full bg-[#102a5a]"
                                 style={{ width: `${averageOccupancy}%` }}
                             />
                         </div>
@@ -87,7 +87,7 @@ const OverviewTab = ({
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Upcoming sessions */}
-                <div className="bg-white rounded-2xl border border-[#dbeafe] p-5 shadow-sm">
+                <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5 shadow-sm">
                     <div className="flex items-center justify-between mb-3">
                         <h2 className="text-sm font-semibold text-slate-900">
                             Upcoming sessions
@@ -124,7 +124,7 @@ const OverviewTab = ({
                 </div>
 
                 {/* Latest messages */}
-                <div className="bg-white rounded-2xl border border-[#dbeafe] p-5 shadow-sm">
+                <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5 shadow-sm">
                     <div className="flex items-center justify_between mb-3">
                         <h2 className="text-sm font-semibold text-slate-900">
                             Latest messages<br></br><br></br>

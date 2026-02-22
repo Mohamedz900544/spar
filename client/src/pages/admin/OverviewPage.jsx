@@ -18,7 +18,7 @@ const OverviewPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#f5f7ff] via-[#e8f3ff] to-[#ffffff] flex flex-col">
-      <header className="bg-[#0b63c7] text-white px-5 md:px-8 py-3 flex items-center justify-between shadow-md">
+      <header className="bg-[#102a5a] text-white px-5 md:px-8 py-3 flex items-center justify-between shadow-md">
         <div>
           <h1 className="text-lg md:text-2xl font-extrabold leading-tight">
             Overview
@@ -50,7 +50,7 @@ const OverviewPage = () => {
             transition={{ duration: 0.4 }}
             className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6"
           >
-            <div className="bg-white rounded-2xl border border-[#dbeafe] p-4 shadow-sm flex flex-col gap-1 md:col-span-1">
+            <div className="bg-white rounded-2xl border border-[#e2e8f0] p-4 shadow-sm flex flex-col gap-1 md:col-span-1">
               <p className="text-xs uppercase tracking-wide text-slate-500">
                 Total kids
               </p>
@@ -58,11 +58,11 @@ const OverviewPage = () => {
                 <p className="text-2xl font-bold text-slate-900">
                   {totalKids}
                 </p>
-                <Users className="w-7 h-7 text-[#0b63c7]" />
+                <Users className="w-7 h-7 text-[#102a5a]" />
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-[#dbeafe] p-4 shadow-sm flex flex-col gap-1 md:col-span-1">
+            <div className="bg-white rounded-2xl border border-[#e2e8f0] p-4 shadow-sm flex flex-col gap-1 md:col-span-1">
               <p className="text-xs uppercase tracking-wide text-slate-500">
                 Active sessions
               </p>
@@ -70,11 +70,11 @@ const OverviewPage = () => {
                 <p className="text-2xl font-bold text-slate-900">
                   {activeSessionsCount}
                 </p>
-                <CalendarClock className="w-7 h-7 text-[#0b63c7]" />
+                <CalendarClock className="w-7 h-7 text-[#102a5a]" />
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-[#dbeafe] p-4 shadow-sm flex flex-col gap-1 md:col-span-1">
+            <div className="bg-white rounded-2xl border border-[#e2e8f0] p-4 shadow-sm flex flex-col gap-1 md:col-span-1">
               <p className="text-xs uppercase tracking-wide text-slate-500">
                 Active rounds
               </p>
@@ -82,11 +82,11 @@ const OverviewPage = () => {
                 <p className="text-2xl font-bold text-slate-900">
                   {activeRoundsCount}
                 </p>
-                <CalendarClock className="w-7 h-7 text-[#0b63c7]" />
+                <CalendarClock className="w-7 h-7 text-[#102a5a]" />
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-[#dbeafe] p-4 shadow-sm flex flex-col gap-1 md:col-span-1">
+            <div className="bg-white rounded-2xl border border-[#e2e8f0] p-4 shadow-sm flex flex-col gap-1 md:col-span-1">
               <p className="text-xs uppercase tracking-wide text-slate-500">
                 Gallery photos
               </p>
@@ -94,11 +94,11 @@ const OverviewPage = () => {
                 <p className="text-2xl font-bold text-slate-900">
                   {publishedPhotos}
                 </p>
-                <ImageIcon className="w-7 h-7 text-[#0b63c7]" />
+                <ImageIcon className="w-7 h-7 text-[#102a5a]" />
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-[#dbeafe] p-4 shadow-sm flex flex-col gap-1 md:col-span-1">
+            <div className="bg-white rounded-2xl border border-[#e2e8f0] p-4 shadow-sm flex flex-col gap-1 md:col-span-1">
               <p className="text-xs uppercase tracking-wide text-slate-500">
                 Occupancy
               </p>
@@ -108,7 +108,7 @@ const OverviewPage = () => {
                 </p>
                 <div className="w-16 h-2 rounded-full bg-[#e5e7eb] overflow-hidden">
                   <div
-                    className="h-full bg-[#0b63c7]"
+                    className="h-full bg-[#102a5a]"
                     style={{ width: `${averageOccupancy}%` }}
                   />
                 </div>
@@ -124,7 +124,7 @@ const OverviewPage = () => {
             className="grid grid-cols-1 lg:grid-cols-2 gap-6"
           >
             {/* Upcoming sessions */}
-            <div className="bg-white rounded-2xl border border-[#dbeafe] p-5 shadow-sm">
+            <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5 shadow-sm">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-sm font-semibold text-slate-900">
                   Upcoming sessions
@@ -161,7 +161,7 @@ const OverviewPage = () => {
             </div>
 
             {/* Latest messages */}
-            <div className="bg-white rounded-2xl border border-[#dbeafe] p-5 shadow-sm">
+            <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5 shadow-sm">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-sm font-semibold text-slate-900">
                   Latest messages
