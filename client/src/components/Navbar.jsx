@@ -25,18 +25,17 @@ const Navbar = () => {
     return () => (document.body.style.overflow = "");
   }, [open]);
 
-  /* ================= SCROLL DETECTION ================= */
+  /* ================= SCROLL DETECTION — ALL PAGES ================= */
   useEffect(() => {
-    if (!isLanding) return;
     const onScroll = () => setScrolled(window.scrollY > 20);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [isLanding]);
+  }, []);
 
-  /* ================= CORE FIX ================= */
+  /* ================= CORE STYLE LOGIC ================= */
   const forceWhiteNavbar = open && scrolled;
-  const effectiveScrolled = !isLanding || scrolled || forceWhiteNavbar;
+  const effectiveScrolled = scrolled || forceWhiteNavbar;
 
   /* ================= STYLES ================= */
   const linkBase =
@@ -76,11 +75,7 @@ const Navbar = () => {
         {/* LOGO */}
         <Link to="/" className="shrink-0">
           <img
-            src={
-              isLanding && !effectiveScrolled
-                ? logoTransparent
-                : logoScrolled
-            }
+            src={effectiveScrolled ? logoScrolled : logoTransparent}
             alt="Sparvi Lab"
             className={[
               "transition-all duration-300 object-contain",
@@ -124,9 +119,7 @@ const Navbar = () => {
           onClick={() => setOpen(true)}
           className={[
             "md:hidden p-2 rounded-md transition",
-            effectiveScrolled
-              ? "text-[#102a5a]"
-              : "text-white",
+            effectiveScrolled ? "text-[#102a5a]" : "text-white",
           ].join(" ")}
         >
           <Menu size={24} />
