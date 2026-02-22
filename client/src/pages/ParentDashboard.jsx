@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import {
   Users,
@@ -8,38 +8,63 @@ import {
   Star,
   Image as ImageIcon,
   ChevronDown,
-  ChevronUp,
   CheckCircle2,
   Camera,
-  Sparkles
+  Sparkles,
+  LogOut,
+  Zap,
+  ArrowRight,
+  User,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import PropTypes from 'prop-types';
+import PropTypes from "prop-types";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-/* ====== RATING STARS COMPONENT ====== */
-const RatingStars = ({ value, onChange }) => {
-  return (
-    <div className="flex items-center gap-1.5">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <button
-          key={star}
-          type="button"
-          onClick={() => onChange(star)}
-          className="focus:outline-none transform transition-all duration-200 hover:scale-110 active:scale-90"
-        >
-          <Star
-            className={`w-5 h-5 transition-all duration-300 ${value && star <= value
-                ? "fill-[#FBBF24] text-[#FBBF24] drop-shadow-[0_2px_4px_rgba(251,191,36,0.4)]"
-                : "fill-slate-100 text-slate-200 hover:text-[#FBBF24]/50"
-              }`}
-          />
-        </button>
-      ))}
+/* ====== RATING STARS ====== */
+const RatingStars = ({ value, onChange }) => (
+  <div className="flex items-center gap-1.5">
+    {[1, 2, 3, 4, 5].map((star) => (
+      <button
+        key={star}
+        type="button"
+        onClick={() => onChange(star)}
+        className="focus:outline-none transform transition-all duration-200 hover:scale-110 active:scale-90"
+      >
+        <Star
+          className={`w-5 h-5 transition-all duration-300 ${value && star <= value
+              ? "fill-[#FBBF24] text-[#FBBF24] drop-shadow-[0_2px_4px_rgba(251,191,36,0.4)]"
+              : "fill-slate-100 text-slate-200 hover:text-[#FBBF24]/50"
+            }`}
+        />
+      </button>
+    ))}
+  </div>
+);
+
+/* ====== STAT CARD ====== */
+const StatCard = ({ icon: Icon, label, value, accent, subtext }) => (
+  <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 p-5 shadow-sm hover:shadow-md transition-all group">
+    <div className="flex items-center gap-4">
+      <div
+        className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform"
+        style={{ backgroundColor: `${accent}15` }}
+      >
+        <Icon className="w-5 h-5" style={{ color: accent }} />
+      </div>
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+          {label}
+        </p>
+        {typeof value === "string" || typeof value === "number" ? (
+          <p className="text-2xl font-bold text-[#102a5a] mt-0.5">{value}</p>
+        ) : (
+          <p className="text-sm font-medium text-[#102a5a] mt-1">{subtext}</p>
+        )}
+      </div>
     </div>
-  );
-};
+  </div>
+);
 
 /* ================= PARENT DASHBOARD ================= */
 const ParentDashboard = ({ parent, setParent }) => {
@@ -63,42 +88,31 @@ const ParentDashboard = ({ parent, setParent }) => {
   const [isEnrollingChild, setIsEnrollingChild] = useState(false);
 
   const getToken = () =>
-    typeof window !== "undefined" ? localStorage.getItem("sparvi_token") : null;
-
+    typeof window !== "undefined"
+      ? localStorage.getItem("sparvi_token")
+      : null;
   const getRole = () =>
-    typeof window !== "undefined" ? localStorage.getItem("sparvi_role") : null;
+    typeof window !== "undefined"
+      ? localStorage.getItem("sparvi_role")
+      : null;
+
   const hasCompletedProfile = (user) => {
     const firstChild = user?.children?.[0];
-    const hasChildName = Boolean(firstChild?.name && firstChild.name.trim());
-    const hasChildAge = Number(firstChild?.age) > 0;
-    return hasChildName && hasChildAge;
+    return Boolean(firstChild?.name?.trim()) && Number(firstChild?.age) > 0;
   };
 
   useEffect(() => {
     const token = getToken();
     const role = getRole();
+    if (!token || role !== "parent") { navigate("/login"); return; }
 
-    if (!token || role !== "parent") {
-      navigate("/login");
-      return;
-    }
     const controller = new AbortController();
     const enrichRoundsWithAllPhotos = (apiData) => {
       const { rounds, enrollments, studentPhotos } = apiData;
-
       return rounds.map((round) => {
-        const relatedEnrollments = enrollments.filter(
-          (e) => e.roundCode === round.code
-        );
-        const allPhotosForRound = relatedEnrollments.flatMap((enrollment) => {
-          return studentPhotos[enrollment.id] || [];
-        });
-
-        return {
-          ...round,
-          enrollments: relatedEnrollments,
-          photos: allPhotosForRound
-        };
+        const related = enrollments.filter((e) => e.roundCode === round.code);
+        const photos = related.flatMap((e) => studentPhotos[e.id] || []);
+        return { ...round, enrollments: related, photos };
       });
     };
 
@@ -106,12 +120,10 @@ const ParentDashboard = ({ parent, setParent }) => {
       try {
         setLoading(true);
         setGlobalError("");
-
         const res = await fetch(`${API_BASE_URL}/api/parent/dashboard`, {
           headers: { Authorization: `Bearer ${token}` },
-          signal: controller.signal
+          signal: controller.signal,
         });
-
         if (res.status === 401) {
           localStorage.removeItem("sparvi_token");
           localStorage.removeItem("sparvi_role");
@@ -119,347 +131,334 @@ const ParentDashboard = ({ parent, setParent }) => {
           navigate("/login");
           return;
         }
-
         const json = await res.json();
-
-        if (!res.ok) {
-          throw new Error(json.message || "Failed to load dashboard");
-        }
-
-        if (!hasCompletedProfile(json.parent)) {
-          navigate("/parent/profile");
-          return;
-        }
+        if (!res.ok) throw new Error(json.message || "Failed to load dashboard");
+        if (!hasCompletedProfile(json.parent)) { navigate("/parent/profile"); return; }
         setParent(json.parent);
         setEnrollments(json.enrollments || []);
-
-        const mergedRounds = enrichRoundsWithAllPhotos(json);
-        setRounds(mergedRounds);
-
-        const codes = (json.rounds || []).map((r) => r.code);
-        setLinkedRounds(codes);
+        setRounds(enrichRoundsWithAllPhotos(json));
+        setLinkedRounds((json.rounds || []).map((r) => r.code));
       } catch (err) {
         if (err?.name === "AbortError") return;
-        console.error("Dashboard load error:", err);
         setGlobalError(err.message || "Could not load dashboard data.");
       } finally {
         setLoading(false);
       }
     };
     loadDashboard();
-    return () => { controller.abort(); };
+    return () => controller.abort();
   }, [navigate, setParent]);
 
   const handleLinkRound = async (e) => {
     e.preventDefault();
     const code = roundCodeInput.trim().toUpperCase();
-
-    if (!code) {
-      setLinkErrorMessage("Please enter a round code.");
-      return;
-    }
-    if (!selectedChildId) {
-      setLinkErrorMessage("Please select a child to enroll.");
-      return;
-    }
-
+    if (!code) { setLinkErrorMessage("Please enter a round code."); return; }
+    if (!selectedChildId) { setLinkErrorMessage("Please select a child to enroll."); return; }
     const token = getToken();
     const role = getRole();
-
-    if (!token || role !== "parent") {
-      navigate("/login");
-      return;
-    }
-
+    if (!token || role !== "parent") { navigate("/login"); return; }
     try {
       setLinkErrorMessage("");
       setIsEnrollingChild(true);
       const res = await fetch(`${API_BASE_URL}/api/parent/link-round`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ code, childId: selectedChildId }),
       });
-
       const json = await res.json();
-
-      if (!res.ok) {
-        throw new Error(json.message || "Round code not found or not allowed.");
-      }
-
+      if (!res.ok) throw new Error(json.message || "Round code not found or not allowed.");
       if (json.round) {
-        setRounds((prev) => {
-          const exists = prev.some((r) => r.code === json.round.code);
-          if (exists) return prev;
-          return [...prev, json.round];
-        });
-
-        setLinkedRounds((prev) =>
-          prev.includes(json.round.code) ? prev : [...prev, json.round.code]
-        );
-
+        setRounds((prev) => prev.some((r) => r.code === json.round.code) ? prev : [...prev, json.round]);
+        setLinkedRounds((prev) => prev.includes(json.round.code) ? prev : [...prev, json.round.code]);
         setSelectedRoundCode(json.round.code);
       }
-
       if (Array.isArray(json.enrollments)) setEnrollments(json.enrollments);
       toast.success("Child enrolled successfully");
       setRoundCodeInput("");
     } catch (err) {
-      console.error("Link round error:", err);
       setLinkErrorMessage(err.message || "Could not link this round.");
     } finally {
       setIsEnrollingChild(false);
     }
   };
 
-  const visibleRounds = linkedRounds
-    .map((code) => rounds.find((r) => r.code === code))
-    .filter(Boolean);
-
-  const getChildrenForRound = (roundCode) =>
-    enrollments.filter((e) => e.roundCode === roundCode);
+  const visibleRounds = linkedRounds.map((code) => rounds.find((r) => r.code === code)).filter(Boolean);
+  const getChildrenForRound = (roundCode) => enrollments.filter((e) => e.roundCode === roundCode);
 
   const handleSessionRatingChange = (roundCode, sessionId, rating) => {
-    setSessionRatings((prev) => ({
-      ...prev,
-      [`${roundCode}-${sessionId}`]: rating,
-    }));
-    setRatingSubmitted((prev) => {
-      const key = `${roundCode}-${sessionId}`;
-      const copy = { ...prev };
-      delete copy[key];
-      return copy;
-    });
+    setSessionRatings((prev) => ({ ...prev, [`${roundCode}-${sessionId}`]: rating }));
+    setRatingSubmitted((prev) => { const copy = { ...prev }; delete copy[`${roundCode}-${sessionId}`]; return copy; });
   };
-
   const handleSessionFeedbackChange = (roundCode, sessionId, text) => {
-    setSessionFeedback((prev) => ({
-      ...prev,
-      [`${roundCode}-${sessionId}`]: text,
-    }));
+    setSessionFeedback((prev) => ({ ...prev, [`${roundCode}-${sessionId}`]: text }));
   };
 
   const handleSubmitRating = async (roundCode, session) => {
     const sessionId = session.id || session._id;
     const key = `${roundCode}-${sessionId}`;
-
     const rating = sessionRatings[key];
     const feedback = sessionFeedback[key] || "";
-
     if (!rating) return;
-
     const token = getToken();
-    const role = getRole();
-    if (!token || role !== "parent") {
-      navigate("/login");
-      return;
-    }
+    if (!token || getRole() !== "parent") { navigate("/login"); return; }
     try {
       const res = await fetch(`${API_BASE_URL}/api/parent/rate-session`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ roundCode, sessionId, rating, feedback }),
       });
-
       const json = await res.json();
-      if (!res.ok) {
-        throw new Error(json.message || "Could not save rating");
-      }
-
+      if (!res.ok) throw new Error(json.message || "Could not save rating");
       setRatingSubmitted((prev) => ({ ...prev, [key]: true }));
       toast.success("Feedback submitted successfully!");
-    } catch (err) {
-      console.error("Rating error:", err);
+    } catch {
       toast.error("Failed to submit feedback.");
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-white flex flex-col font-sans relative overflow-hidden">
-      <main className="flex-1 px-4 py-8 sm:px-6 lg:px-8 z-10">
-        <div className="max-w-6xl mx-auto space-y-8">
+  const handleLogout = () => {
+    localStorage.removeItem("sparvi_token");
+    localStorage.removeItem("sparvi_role");
+    localStorage.removeItem("sparvi_user");
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
 
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-[#f8fafc] to-white flex flex-col font-sans">
+      {/* ===== Top Banner ===== */}
+      <div
+        className="relative overflow-hidden"
+        style={{
+          background: "linear-gradient(135deg, #071228 0%, #102a5a 50%, #1a3a6b 100%)",
+        }}
+      >
+        {/* Floating shapes */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <Motion.div
+            className="absolute top-[15%] left-[10%] w-3 h-3 rounded-full bg-[#FBBF24]/30"
+            animate={{ y: [0, -10, 0], opacity: [0.3, 0.8, 0.3] }}
+            transition={{ duration: 5, repeat: Infinity }}
+          />
+          <Motion.div
+            className="absolute top-[40%] right-[15%] w-2 h-2 rounded-full bg-[#2dd4bf]/40"
+            animate={{ y: [0, -12, 0], opacity: [0.4, 0.9, 0.4] }}
+            transition={{ duration: 6, delay: 1, repeat: Infinity }}
+          />
+          <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-[#FBBF24]/5 blur-[100px]" />
+          <div className="absolute bottom-0 left-1/4 w-60 h-60 rounded-full bg-[#2dd4bf]/5 blur-[80px]" />
+        </div>
+
+        <div className="relative z-10 max-w-6xl mx-auto px-5 pt-8 pb-20">
+          {/* Top bar */}
+          <div className="flex items-center justify-between mb-8">
+            <Link to="/" className="inline-flex items-center gap-2">
+              <div className="w-9 h-9 rounded-xl bg-[#FBBF24] flex items-center justify-center">
+                <Zap className="w-4 h-4 text-[#102a5a]" />
+              </div>
+              <span className="text-white font-bold text-lg tracking-tight">
+                Sparvi Lab
+              </span>
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="hidden sm:inline">Sign Out</span>
+            </button>
+          </div>
+
+          {/* Welcome text */}
+          <Motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="inline-flex items-center gap-2 bg-white/10 rounded-full px-4 py-1.5 mb-5 backdrop-blur-sm border border-white/10">
+              <Sparkles className="w-3.5 h-3.5 text-[#FBBF24]" />
+              <span className="text-xs font-medium text-slate-300 tracking-wide uppercase">
+                Parent Portal
+              </span>
+            </div>
+            <h1 className="text-3xl md:text-4xl font-extrabold text-white leading-tight mb-3">
+              Welcome back
+              {parent?.name ? `, ${parent.name.split(" ")[0]}` : ""}
+              <span className="text-[#FBBF24]">!</span>
+            </h1>
+            <p className="text-slate-300 text-base max-w-lg">
+              Track sessions, browse project photos, and share feedback — all
+              in one place.
+            </p>
+          </Motion.div>
+        </div>
+      </div>
+
+      {/* ===== Main Content ===== */}
+      <main className="flex-1 px-4 sm:px-6 lg:px-8 -mt-10 pb-12 relative z-10">
+        <div className="max-w-6xl mx-auto space-y-8">
           {/* Global Error */}
           {globalError && (
-            <div className="bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-xl px-4 py-3 flex items-start gap-3 shadow-sm">
-              <svg className="w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <div className="bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-2xl px-5 py-3.5 flex items-start gap-3 shadow-sm">
+              <svg className="w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
               <p>{globalError}</p>
             </div>
           )}
 
-          {/* Loading State */}
+          {/* Loading */}
           {loading && (
-            <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm flex flex-col items-center justify-center">
-              <svg className="w-8 h-8 text-[#FBBF24] animate-spin mb-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-              <p className="text-sm font-medium text-slate-500 tracking-wide uppercase">Loading your dashboard...</p>
+            <div className="bg-white/80 backdrop-blur-xl rounded-3xl border border-white/60 p-16 text-center shadow-lg flex flex-col items-center">
+              <div className="w-10 h-10 border-3 border-[#FBBF24]/30 border-t-[#FBBF24] rounded-full animate-spin mb-4" />
+              <p className="text-sm font-medium text-slate-500">
+                Loading your dashboard…
+              </p>
             </div>
           )}
 
-          {/* Hero & Enrollment Form */}
+          {/* Stats + Enrollment Row */}
           {!loading && (
-            <Motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+            <Motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.5 }}
-              className="grid grid-cols-1 lg:grid-cols-[1.5fr,1fr] gap-8 items-center"
+              className="grid grid-cols-1 lg:grid-cols-3 gap-5"
             >
-              <div className="pr-4 lg:pr-8">
-                <p className="text-xs font-bold uppercase tracking-widest text-[#FBBF24] mb-3 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-[#FBBF24] shadow-[0_0_8px_rgba(251,191,36,0.5)]"></span>
-                  Parent Portal
-                </p>
-                <h1 className="text-3xl md:text-4xl font-extrabold text-[#102a5a] mb-4 leading-tight tracking-tight">
-                  Welcome{parent?.name ? `, ${parent.name}` : ""} to your{" "}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FBBF24] to-[#F59E0B]">Sparvi Lab</span> dashboard
-                </h1>
-                <p className="text-base text-slate-600 mb-5 leading-relaxed">
-                  Track your child&apos;s on-site electronics sessions, view their schedule, browse project photos, and share feedback with instructors all in one place.
-                </p>
-                <div className="inline-flex items-center gap-2 bg-white px-4 py-2.5 rounded-xl border border-slate-200 shadow-sm">
-                  <Sparkles className="w-4 h-4 text-[#FBBF24]" />
-                  <p className="text-sm font-medium text-slate-600">
-                    <span className="text-[#102a5a] font-semibold">Pro Tip:</span> Use the secure round code provided by the lab to unlock group access.
-                  </p>
-                </div>
-              </div>
-
-              {/* Enrollment Card */}
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-lg p-6 md:p-8">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 rounded-full bg-[#FBBF24]/10 border border-[#FBBF24]/20 flex items-center justify-center flex-shrink-0">
-                    <KeyRound className="w-6 h-6 text-[#FBBF24]" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-bold text-[#102a5a]">Enroll a Child</h2>
-                    <p className="text-sm text-slate-500">Link your child to a new round</p>
-                  </div>
-                </div>
-
-                <form onSubmit={handleLinkRound} className="space-y-4">
-                  <div className="relative group">
-                    <select
-                      value={selectedChildId}
-                      onChange={(e) => setSelectedChildId(e.target.value)}
-                      className="w-full appearance-none rounded-xl border border-slate-200 bg-white pl-4 pr-10 py-3 text-sm text-slate-900 outline-none focus:border-[#FBBF24] focus:ring-4 focus:ring-[#FBBF24]/10 transition-all cursor-pointer hover:border-slate-300"
-                    >
-                      <option value="" disabled>Select your child...</option>
-                      {parent.children && parent.children.length > 0 ? (
-                        parent.children.map((child, index) => (
-                          <option
-                            key={child._id || child.id || child.name || child.childName || index}
-                            value={child._id || child.id}
-                          >
-                            {child.name || child.childName}
-                          </option>
-                        ))
-                      ) : (
-                        <option disabled>No children registered</option>
-                      )}
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
-                      <ChevronDown className="h-4 w-4" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <input
-                      type="text"
-                      value={roundCodeInput}
-                      onChange={(e) => setRoundCodeInput(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-[#FBBF24] focus:ring-4 focus:ring-[#FBBF24]/10 transition-all uppercase font-mono tracking-wide hover:border-slate-300"
-                      placeholder="Enter code (e.g. SPRV-101)"
-                    />
-                  </div>
-
-                  {linkErrorMessage && (
-                    <Motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      className="flex items-start gap-2 text-sm text-rose-600 bg-rose-50 p-3 rounded-lg border border-rose-100 overflow-hidden"
-                    >
-                      <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                      {linkErrorMessage}
-                    </Motion.div>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={isEnrollingChild}
-                    className="w-full relative overflow-hidden inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-[#102a5a] to-[#1a3a6b] px-4 py-3 text-sm font-semibold text-white shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#FBBF24] focus:ring-offset-2 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed mt-2"
-                  >
-                    {isEnrollingChild ? (
-                      <span className="flex items-center gap-2">
-                        <svg className="w-4 h-4 animate-spin text-white/80" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        Enrolling...
-                      </span>
-                    ) : "Enroll Now"}
-                  </button>
-                </form>
-              </div>
-            </Motion.section>
+              {/* Stats */}
+              <StatCard
+                icon={CalendarClock}
+                label="Linked Rounds"
+                value={linkedRounds.length}
+                accent="#102a5a"
+              />
+              <StatCard
+                icon={Users}
+                label="Active Children"
+                value={
+                  visibleRounds.length
+                    ? enrollments.filter((e) => linkedRounds.includes(e.roundCode)).length
+                    : 0
+                }
+                accent="#10b981"
+              />
+              <StatCard
+                icon={ImageIcon}
+                label="Media Gallery"
+                accent="#FBBF24"
+                subtext="In-person session photos"
+              />
+            </Motion.div>
           )}
 
-          {/* Stats Bar */}
+          {/* Enrollment Card */}
           {!loading && (
-            <Motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, delay: 0.1 }}
-              className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6"
+            <Motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="bg-white/80 backdrop-blur-xl rounded-3xl border border-white/60 shadow-[0_20px_60px_rgba(16,42,90,0.06)] p-7 md:p-8"
             >
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow group">
-                <div className="h-12 w-12 rounded-full bg-[#102a5a]/10 text-[#102a5a] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                  <CalendarClock className="w-6 h-6" />
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-11 h-11 rounded-2xl bg-[#FBBF24]/10 flex items-center justify-center flex-shrink-0">
+                  <KeyRound className="w-5 h-5 text-[#FBBF24]" />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Linked Rounds</p>
-                  <p className="text-2xl font-bold text-[#102a5a] mt-0.5">{linkedRounds.length}</p>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow group">
-                <div className="h-12 w-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                  <Users className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Active Children</p>
-                  <p className="text-2xl font-bold text-[#102a5a] mt-0.5">
-                    {visibleRounds.length ? enrollments.filter((e) => linkedRounds.includes(e.roundCode)).length : 0}
+                  <h2 className="text-lg font-bold text-[#102a5a]">
+                    Enroll a Child
+                  </h2>
+                  <p className="text-sm text-slate-500">
+                    Enter the round code from the lab
                   </p>
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow group">
-                <div className="h-12 w-12 rounded-full bg-[#FBBF24]/10 text-[#FBBF24] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                  <ImageIcon className="w-6 h-6" />
+              <form
+                onSubmit={handleLinkRound}
+                className="flex flex-col sm:flex-row gap-3"
+              >
+                <div className="relative flex-1">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <select
+                    value={selectedChildId}
+                    onChange={(e) => setSelectedChildId(e.target.value)}
+                    className="w-full appearance-none rounded-2xl border border-slate-200 bg-slate-50/50 pl-11 pr-10 py-3.5 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all"
+                  >
+                    <option value="" disabled>
+                      Select child…
+                    </option>
+                    {parent?.children?.map((child, i) => (
+                      <option
+                        key={child._id || child.id || i}
+                        value={child._id || child.id}
+                      >
+                        {child.name || child.childName}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Media Gallery</p>
-                  <p className="text-sm font-medium text-[#102a5a] mt-1">In-person session photos</p>
+
+                <div className="relative flex-1">
+                  <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type="text"
+                    value={roundCodeInput}
+                    onChange={(e) => setRoundCodeInput(e.target.value)}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-11 pr-4 py-3.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all uppercase font-mono tracking-wide"
+                    placeholder="SPRV-101"
+                  />
                 </div>
-              </div>
-            </Motion.section>
+
+                <Motion.button
+                  type="submit"
+                  disabled={isEnrollingChild}
+                  className="flex items-center justify-center gap-2 rounded-2xl bg-[#FBBF24] hover:bg-[#F59E0B] text-[#102a5a] font-bold px-8 py-3.5 shadow-[0_8px_25px_rgba(251,191,36,0.3)] hover:shadow-[0_12px_35px_rgba(251,191,36,0.4)] transition-all disabled:opacity-60 text-sm whitespace-nowrap"
+                  whileTap={{ scale: 0.97 }}
+                  whileHover={{ y: -2 }}
+                >
+                  {isEnrollingChild ? (
+                    <div className="w-5 h-5 border-2 border-[#102a5a]/30 border-t-[#102a5a] rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      Enroll <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </Motion.button>
+              </form>
+
+              {linkErrorMessage && (
+                <Motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-4 bg-rose-50 border border-rose-100 rounded-2xl p-3 text-sm text-rose-600 text-center"
+                >
+                  {linkErrorMessage}
+                </Motion.div>
+              )}
+            </Motion.div>
           )}
 
           {/* Rounds List */}
           {!loading && visibleRounds.length > 0 && (
             <Motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, delay: 0.2 }}
-              className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="space-y-4"
             >
-              <div className="border-b border-slate-100 p-6 md:p-8 bg-slate-50/50">
-                <h2 className="text-xl font-bold text-[#102a5a] tracking-tight">Your Enrolled Rounds</h2>
-                <p className="text-sm text-slate-500 mt-1">Expand a round to view student progress, photo galleries, and submit session feedback.</p>
+              <div className="flex items-center justify-between px-1">
+                <h2 className="text-xl font-bold text-[#102a5a]">
+                  Your Enrolled Rounds
+                </h2>
+                <span className="text-xs font-medium text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
+                  {visibleRounds.length} round{visibleRounds.length !== 1 && "s"}
+                </span>
               </div>
 
-              <div className="p-4 md:p-6 space-y-4 bg-slate-50/30">
+              <div className="space-y-4">
                 {visibleRounds.map((round) => {
                   const children = getChildrenForRound(round.code);
                   const isSelected = selectedRoundCode === round.code;
@@ -467,46 +466,61 @@ const ParentDashboard = ({ parent, setParent }) => {
                   return (
                     <div
                       key={round.id || round.code}
-                      className={`bg-white border rounded-2xl transition-all duration-300 overflow-hidden ${isSelected ? "border-[#FBBF24]/50 shadow-md ring-1 ring-[#FBBF24]/20" : "border-slate-200 hover:border-slate-300 shadow-sm"
+                      className={`bg-white/80 backdrop-blur-xl rounded-3xl border transition-all duration-300 overflow-hidden ${isSelected
+                          ? "border-[#FBBF24]/40 shadow-[0_12px_40px_rgba(251,191,36,0.08)]"
+                          : "border-white/60 shadow-sm hover:shadow-md"
                         }`}
                     >
                       {/* Round Toggle Header */}
                       <button
                         type="button"
-                        onClick={() => setSelectedRoundCode((prev) => (prev === round.code ? null : round.code))}
-                        className="w-full flex items-center justify-between text-left p-5 md:p-6 focus:outline-none hover:bg-slate-50/50 transition-colors group"
+                        onClick={() =>
+                          setSelectedRoundCode((prev) =>
+                            prev === round.code ? null : round.code
+                          )
+                        }
+                        className="w-full flex items-center justify-between text-left p-6 md:p-7 hover:bg-slate-50/30 transition-colors group"
                       >
                         <div className="flex-1 pr-4">
                           <div className="flex items-center gap-3 mb-1.5">
-                            <h3 className={`text-lg font-bold transition-colors ${isSelected ? 'text-[#102a5a]' : 'text-slate-900 group-hover:text-[#102a5a]'}`}>
+                            <h3 className="text-lg font-bold text-[#102a5a]">
                               {round.name}
                             </h3>
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${round.status === "Active"
-                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                : "bg-slate-100 text-slate-700 border-slate-200"
-                              }`}>
+                            <span
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${round.status === "Active"
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  : "bg-slate-100 text-slate-700 border-slate-200"
+                                }`}
+                            >
                               {round.status}
                             </span>
                           </div>
-
-                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500 font-medium">
-                            <span className="text-[#102a5a] bg-[#102a5a]/5 px-2 py-0.5 rounded border border-[#102a5a]/10 font-mono text-xs">{round.code}</span>
-                            <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500">
+                            <span className="text-[#102a5a] bg-[#102a5a]/5 px-2 py-0.5 rounded-lg border border-[#102a5a]/10 font-mono text-xs">
+                              {round.code}
+                            </span>
+                            <span className="w-1 h-1 rounded-full bg-slate-300" />
                             <span>{round.level}</span>
-                            <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+                            <span className="w-1 h-1 rounded-full bg-slate-300" />
                             <span>{round.campus}</span>
                           </div>
                         </div>
-
-                        <div className={`flex items-center justify-center w-10 h-10 rounded-full border shrink-0 transition-colors ${isSelected ? 'bg-[#FBBF24]/10 border-[#FBBF24]/20 text-[#FBBF24]' : 'bg-slate-50 border-slate-100 text-slate-400 group-hover:bg-slate-100 group-hover:text-slate-600'
-                          }`}>
-                          <Motion.div animate={{ rotate: isSelected ? 180 : 0 }} transition={{ duration: 0.3 }}>
+                        <div
+                          className={`flex items-center justify-center w-10 h-10 rounded-2xl shrink-0 transition-all ${isSelected
+                              ? "bg-[#FBBF24]/10 text-[#FBBF24]"
+                              : "bg-slate-100 text-slate-400 group-hover:text-slate-600"
+                            }`}
+                        >
+                          <Motion.div
+                            animate={{ rotate: isSelected ? 180 : 0 }}
+                            transition={{ duration: 0.3 }}
+                          >
                             <ChevronDown className="w-5 h-5" />
                           </Motion.div>
                         </div>
                       </button>
 
-                      {/* Expanded Details */}
+                      {/* Expanded */}
                       <AnimatePresence>
                         {isSelected && (
                           <Motion.div
@@ -516,9 +530,8 @@ const ParentDashboard = ({ parent, setParent }) => {
                             transition={{ duration: 0.3, ease: "easeInOut" }}
                             className="overflow-hidden"
                           >
-                            <div className="border-t border-slate-100 bg-slate-50/50 p-5 md:p-6 space-y-8">
-
-                              {/* Child Info */}
+                            <div className="border-t border-slate-100 bg-slate-50/30 p-6 md:p-7 space-y-8">
+                              {/* Students */}
                               <section>
                                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
                                   <Users className="w-4 h-4 text-slate-400" />
@@ -526,13 +539,20 @@ const ParentDashboard = ({ parent, setParent }) => {
                                 </h4>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                   {children.map((child) => (
-                                    <div key={child.id || child._id} className="bg-white border border-slate-200 rounded-xl p-4 flex items-center gap-4 shadow-sm hover:border-[#FBBF24]/30 hover:shadow-md transition-all">
-                                      <div className="w-10 h-10 rounded-full bg-[#102a5a] flex items-center justify-center text-white font-bold text-lg shrink-0">
+                                    <div
+                                      key={child.id || child._id}
+                                      className="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-4 shadow-sm hover:border-[#FBBF24]/30 hover:shadow-md transition-all"
+                                    >
+                                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#102a5a] to-[#1a3a6b] flex items-center justify-center text-white font-bold text-lg shrink-0">
                                         {(child.childName || child.name || "?")[0].toUpperCase()}
                                       </div>
                                       <div>
-                                        <p className="font-bold text-[#102a5a]">{child.childName || child.name}</p>
-                                        <p className="text-xs font-medium text-slate-500 mt-0.5">Level: {child.level || "Beginner"}</p>
+                                        <p className="font-bold text-[#102a5a]">
+                                          {child.childName || child.name}
+                                        </p>
+                                        <p className="text-xs font-medium text-slate-500 mt-0.5">
+                                          Level: {child.level || "Beginner"}
+                                        </p>
                                       </div>
                                     </div>
                                   ))}
@@ -546,24 +566,35 @@ const ParentDashboard = ({ parent, setParent }) => {
                                   Round Gallery
                                 </h4>
                                 {!round.photos || round.photos.length === 0 ? (
-                                  <div className="bg-white rounded-2xl p-8 text-center border border-dashed border-slate-300 shadow-sm">
-                                    <div className="mx-auto w-12 h-12 rounded-full bg-[#FBBF24]/10 border border-[#FBBF24]/20 flex items-center justify-center mb-3">
+                                  <div className="bg-white rounded-2xl p-8 text-center border border-dashed border-slate-200">
+                                    <div className="w-12 h-12 rounded-2xl bg-[#FBBF24]/10 flex items-center justify-center mx-auto mb-3">
                                       <Camera className="w-5 h-5 text-[#FBBF24]" />
                                     </div>
-                                    <p className="text-sm font-semibold text-[#102a5a]">No lab photos yet</p>
-                                    <p className="text-xs text-slate-500 mt-1">Instructors will upload moments from the session here.</p>
+                                    <p className="text-sm font-semibold text-[#102a5a]">
+                                      No lab photos yet
+                                    </p>
+                                    <p className="text-xs text-slate-500 mt-1">
+                                      Instructors will upload moments here.
+                                    </p>
                                   </div>
                                 ) : (
                                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                                     {round.photos.map((photo, index) => (
-                                      <div key={photo.id || index} className="aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100 relative group shadow-sm cursor-zoom-in">
+                                      <div
+                                        key={photo.id || index}
+                                        className="aspect-square rounded-2xl overflow-hidden border border-slate-100 bg-slate-100 relative group shadow-sm"
+                                      >
                                         <img
                                           src={photo.url}
                                           alt={photo.caption || "Lab Session"}
-                                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
+                                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
-                                          {photo.caption && <p className="text-xs text-white p-3 font-medium truncate">{photo.caption}</p>}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
+                                          {photo.caption && (
+                                            <p className="text-xs text-white p-3 font-medium truncate">
+                                              {photo.caption}
+                                            </p>
+                                          )}
                                         </div>
                                       </div>
                                     ))}
@@ -575,13 +606,12 @@ const ParentDashboard = ({ parent, setParent }) => {
                               <section>
                                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
                                   <Star className="w-4 h-4 text-[#FBBF24]" />
-                                  Session Schedule & Feedback
+                                  Sessions & Feedback
                                 </h4>
                                 <div className="space-y-3">
                                   {round?.sessions?.map((session) => {
                                     const sessionId = session.id || session._id;
                                     const key = `${round.code}-${sessionId}`;
-
                                     const rating = sessionRatings[key] || session.userRating || 0;
                                     const feedbackText = sessionFeedback[key] || session.feedback || "";
                                     const submitted = ratingSubmitted[key];
@@ -590,71 +620,86 @@ const ParentDashboard = ({ parent, setParent }) => {
                                     return (
                                       <div
                                         key={sessionId}
-                                        className={`bg-white border rounded-xl p-4 md:p-5 flex flex-col lg:flex-row gap-5 shadow-sm transition-colors ${isCompleted ? 'border-slate-200' : 'border-[#FBBF24]/20 bg-[#FBBF24]/5'}`}
+                                        className={`bg-white border rounded-2xl p-5 flex flex-col lg:flex-row gap-5 transition-colors ${isCompleted
+                                            ? "border-slate-100"
+                                            : "border-[#FBBF24]/20 bg-[#FBBF24]/5"
+                                          }`}
                                       >
                                         <div className="flex-1">
                                           <div className="flex items-center gap-2 mb-1">
-                                            <h5 className="font-bold text-[#102a5a] text-base">{session.title}</h5>
+                                            <h5 className="font-bold text-[#102a5a]">
+                                              {session.title}
+                                            </h5>
                                             {!isCompleted && (
-                                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-[#FBBF24]/20 text-[#92400e] uppercase tracking-wide">
+                                              <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-[#FBBF24]/20 text-[#92400e] uppercase tracking-wide">
                                                 Upcoming
                                               </span>
                                             )}
                                           </div>
-                                          <p className="text-sm text-slate-600 leading-relaxed max-w-2xl">{session?.description || "No description provided for this session."}</p>
-
-                                          <div className="flex items-center gap-3 mt-3 text-xs font-medium text-slate-500">
-                                            <div className="flex items-center gap-1.5 bg-slate-100/80 px-2 py-1 rounded-md border border-slate-200">
+                                          <p className="text-sm text-slate-600 leading-relaxed max-w-2xl">
+                                            {session?.description || "No description provided."}
+                                          </p>
+                                          <div className="mt-3">
+                                            <span className="inline-flex items-center gap-1.5 bg-slate-100/80 px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-medium text-slate-500">
                                               <CalendarClock className="w-3.5 h-3.5 text-slate-400" />
                                               {session.date || "Date TBA"}
-                                            </div>
+                                            </span>
                                           </div>
                                         </div>
 
-                                        <div className="lg:w-[320px] flex-shrink-0 bg-slate-50/80 rounded-xl p-4 border border-slate-100">
+                                        <div className="lg:w-[300px] flex-shrink-0 bg-slate-50/80 rounded-2xl p-4 border border-slate-100">
                                           {isCompleted ? (
-                                            <div className="flex flex-col gap-3 h-full">
+                                            <div className="flex flex-col gap-3">
                                               <div className="flex items-center justify-between">
-                                                <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Rate Session</p>
+                                                <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                                                  Rate Session
+                                                </p>
                                                 <RatingStars
                                                   value={rating}
-                                                  onChange={(stars) => handleSessionRatingChange(round.code, sessionId, stars)}
+                                                  onChange={(stars) =>
+                                                    handleSessionRatingChange(round.code, sessionId, stars)
+                                                  }
                                                 />
                                               </div>
-
                                               <textarea
                                                 value={feedbackText}
-                                                onChange={(e) => handleSessionFeedbackChange(round.code, sessionId, e.target.value)}
-                                                placeholder="Leave feedback for the instructor..."
-                                                className="w-full flex-1 min-h-[60px] rounded-lg border border-slate-200 bg-white p-2.5 text-sm text-slate-700 outline-none focus:border-[#FBBF24] focus:ring-2 focus:ring-[#FBBF24]/20 resize-none transition-all placeholder:text-slate-400"
+                                                onChange={(e) =>
+                                                  handleSessionFeedbackChange(round.code, sessionId, e.target.value)
+                                                }
+                                                placeholder="Leave feedback…"
+                                                className="w-full min-h-[60px] rounded-xl border border-slate-200 bg-white p-2.5 text-sm text-slate-700 outline-none focus:border-[#FBBF24] focus:ring-2 focus:ring-[#FBBF24]/20 resize-none transition-all placeholder:text-slate-400"
                                               />
-
-                                              <div className="flex items-center justify-between mt-auto pt-2">
+                                              <div className="flex items-center justify-between pt-1">
                                                 {submitted ? (
-                                                  <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100">
+                                                  <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100">
                                                     <CheckCircle2 className="w-4 h-4" /> Received
                                                   </span>
                                                 ) : (
-                                                  <span className="text-xs text-slate-400 italic">Not sent yet</span>
+                                                  <span className="text-xs text-slate-400 italic">
+                                                    Not sent yet
+                                                  </span>
                                                 )}
-
                                                 <button
                                                   type="button"
                                                   disabled={!rating}
                                                   onClick={() => handleSubmitRating(round.code, session)}
-                                                  className="rounded-lg bg-[#102a5a] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#1a3a6b] focus:outline-none focus:ring-2 focus:ring-[#FBBF24] focus:ring-offset-2 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                                                  className="rounded-xl bg-[#102a5a] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#1a3a6b] transition-all active:scale-[0.98] disabled:opacity-50"
                                                 >
-                                                  Submit Review
+                                                  Submit
                                                 </button>
                                               </div>
                                             </div>
                                           ) : (
-                                            <div className="h-full flex flex-col items-center justify-center text-center p-4">
-                                              <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mb-2">
+                                            <div className="flex flex-col items-center justify-center text-center py-4">
+                                              <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center mb-2">
                                                 <CalendarClock className="w-5 h-5 text-slate-400" />
                                               </div>
-                                              <p className="text-sm font-semibold text-[#102a5a]">Session pending</p>
-                                              <p className="text-xs text-slate-500 mt-1">Feedback opens after the session finishes.</p>
+                                              <p className="text-sm font-semibold text-[#102a5a]">
+                                                Pending
+                                              </p>
+                                              <p className="text-xs text-slate-500 mt-1">
+                                                Feedback opens after session.
+                                              </p>
                                             </div>
                                           )}
                                         </div>
@@ -663,7 +708,6 @@ const ParentDashboard = ({ parent, setParent }) => {
                                   })}
                                 </div>
                               </section>
-
                             </div>
                           </Motion.div>
                         )}
@@ -675,29 +719,32 @@ const ParentDashboard = ({ parent, setParent }) => {
             </Motion.section>
           )}
 
-          {/* Empty State */}
+          {/* Empty state */}
           {!loading && visibleRounds.length === 0 && (
-            <Motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-              className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm"
+            <Motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="bg-white/80 backdrop-blur-xl rounded-3xl border border-white/60 p-14 text-center shadow-sm"
             >
-              <div className="mx-auto w-16 h-16 rounded-full bg-[#FBBF24]/10 border border-[#FBBF24]/20 flex items-center justify-center mb-4">
-                <KeyRound className="w-8 h-8 text-[#FBBF24]" />
+              <div className="w-16 h-16 rounded-2xl bg-[#FBBF24]/10 flex items-center justify-center mx-auto mb-4">
+                <KeyRound className="w-7 h-7 text-[#FBBF24]" />
               </div>
-              <h3 className="text-lg font-bold text-[#102a5a] mb-2">No Rounds Linked Yet</h3>
-              <p className="text-sm text-slate-500 max-w-sm mx-auto leading-relaxed">
-                Use the form at the top of the page to enter a valid round code provided by the lab. This will unlock your child's schedule and media gallery.
+              <h3 className="text-lg font-bold text-[#102a5a] mb-2">
+                No Rounds Linked Yet
+              </h3>
+              <p className="text-sm text-slate-500 max-w-sm mx-auto">
+                Enter a valid round code above to unlock your child's schedule
+                and media gallery.
               </p>
-            </Motion.section>
+            </Motion.div>
           )}
-
         </div>
       </main>
 
-      <footer className="py-6 text-center bg-white border-t border-slate-100 mt-auto z-10">
-        <p className="text-sm text-slate-400 font-medium">
+      {/* Footer */}
+      <footer className="py-6 text-center text-xs bg-[#071228] mt-auto">
+        <p className="text-slate-500">
           © {new Date().getFullYear()} Sparvi Lab. All rights reserved.
         </p>
       </footer>
@@ -708,18 +755,18 @@ const ParentDashboard = ({ parent, setParent }) => {
 ParentDashboard.propTypes = {
   parent: PropTypes.shape({
     name: PropTypes.string.isRequired,
-    children: PropTypes.arrayOf(PropTypes.shape({
-      name: PropTypes.string,
-      childName: PropTypes.string,
-      level: PropTypes.string,
-      status: PropTypes.string,
-      age: PropTypes.number,
-      _id: PropTypes.string,
-      id: PropTypes.string,
-      enrolledRounds: PropTypes.arrayOf(PropTypes.shape({
-        _id: PropTypes.string
-      }))
-    }))
+    children: PropTypes.arrayOf(
+      PropTypes.shape({
+        name: PropTypes.string,
+        childName: PropTypes.string,
+        level: PropTypes.string,
+        status: PropTypes.string,
+        age: PropTypes.number,
+        _id: PropTypes.string,
+        id: PropTypes.string,
+        enrolledRounds: PropTypes.arrayOf(PropTypes.shape({ _id: PropTypes.string })),
+      })
+    ),
   }),
   setParent: PropTypes.func.isRequired,
 };
