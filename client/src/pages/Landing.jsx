@@ -100,9 +100,9 @@ const features = [
    ============================== */
 const FAQItem = ({ item, isOpen, onToggle }) => (
   <div
-    className={`rounded-2xl border-2 transition-all duration-300 ${isOpen
-      ? "border-navy-600 bg-white shadow-lg"
-      : "border-dashed border-slate-300 bg-white hover:border-slate-400"
+    className={`rounded-3xl border-2 transition-all duration-300 cursor-pointer ${isOpen
+        ? "border-[#1d4ed8] bg-white shadow-[0_4px_24px_rgba(29,78,216,0.1)]"
+        : "border-dashed border-slate-300 bg-white hover:border-slate-400"
       }`}
   >
     <button
@@ -110,18 +110,22 @@ const FAQItem = ({ item, isOpen, onToggle }) => (
       className="w-full flex items-center justify-between p-5 md:p-6 text-left gap-4"
     >
       <span
-        className={`font-semibold text-sm md:text-base transition-colors ${isOpen ? "text-[#102a5a]" : "text-slate-700"
+        className={`font-bold text-sm md:text-base transition-colors ${isOpen ? "text-[#1d4ed8]" : "text-slate-800"
           }`}
       >
         {item.question}
       </span>
       <div
-        className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${isOpen
-          ? "bg-[#102a5a] text-white rotate-180"
-          : "bg-slate-100 text-slate-500"
+        className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${isOpen
+            ? "bg-[#1d4ed8] text-white"
+            : "bg-slate-100 text-slate-500"
           }`}
       >
-        <ChevronDown size={16} />
+        <ChevronDown
+          size={16}
+          className={`transition-transform duration-300 ${isOpen ? "rotate-180" : ""
+            }`}
+        />
       </div>
     </button>
     <div
@@ -258,7 +262,18 @@ const Landing = () => {
       >
         <div className="max-w-6xl mx-auto">
           {/* Heading */}
-          <h2 className="text-2xl md:text-4xl font-bold text-[#102a5a] mb-12 text-center font-display">
+          <h2
+            className="text-2xl md:text-4xl font-display mb-12 text-center"
+            style={{
+              fontWeight: 800,
+              lineHeight: 1.15,
+              letterSpacing: "-0.03em",
+              background: "linear-gradient(135deg, #0f172a 0%, #1e3a8a 40%, #06b6d4 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
             Why Choose Sparvi Lab?
           </h2>
 
@@ -266,7 +281,7 @@ const Landing = () => {
           <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
 
             {/* Left — Lottie animation + CTA */}
-            <div className="flex flex-col items-center lg:items-start gap-8 lg:w-[300px] shrink-0">
+            <div className="flex flex-col items-center gap-6 lg:w-[300px] shrink-0">
               <div className="w-64 h-64 lg:w-72 lg:h-72">
                 <DotLottieReact
                   src="https://lottie.host/da2dc79c-aa3e-46dc-8bca-9aa5787b1625/7CWJv1tJxv.lottie"
@@ -274,7 +289,7 @@ const Landing = () => {
                   autoplay
                 />
               </div>
-              <Link to="/signup" className="w-full flex justify-center lg:justify-start">
+              <Link to="/signup">
                 <button className="inline-flex items-center gap-2 rounded-full bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 font-semibold px-8 py-3.5 shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 whitespace-nowrap">
                   Secure your Seat! ✨
                 </button>
@@ -335,11 +350,23 @@ const Landing = () => {
         transition={{ duration: 0.7 }}
       >
         <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-4xl font-bold text-[#102a5a] mb-3 font-display">
+          <div className="text-center mb-12">
+            <h2
+              className="text-2xl md:text-4xl font-display mb-4"
+              style={{
+                fontWeight: 800,
+                lineHeight: 1.15,
+                letterSpacing: "-0.03em",
+                background: "linear-gradient(135deg, #0f172a 0%, #1e3a8a 40%, #06b6d4 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
               Frequently Asked Questions
             </h2>
-            <div className="w-12 h-1 bg-[#2dd4bf] rounded-full mx-auto" />
+            {/* Gold underline */}
+            <div className="w-16 h-1.5 rounded-full mx-auto" style={{ background: "#FBBF24" }} />
           </div>
 
           <div className="space-y-4">
@@ -369,7 +396,7 @@ const Landing = () => {
         transition={{ duration: 0.6 }}
       >
         <div className="max-w-4xl mx-auto text-center text-slate-900">
-          <h2 className="text-2xl md:text-3xl font-bold mb-3 font-display">
+          <h2 className="text-2xl md:text-3xl font-bold mb-3 font-display text-slate-900">
             Book a Sparvi Lab session for your child
           </h2>
           <p className="text-sm md:text-base mb-6 text-slate-800/80 max-w-2xl mx-auto">
