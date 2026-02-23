@@ -11,6 +11,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
+import EgyptPhoneInput, { isValidEgyptPhone } from "../components/EgyptPhoneInput";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -58,14 +59,28 @@ const Contact = () => {
   });
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [phoneError, setPhoneError] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormState((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handlePhoneChange = (formatted) => {
+    setFormState((prev) => ({ ...prev, phone: formatted }));
+    if (formatted && !isValidEgyptPhone(formatted)) {
+      setPhoneError("Enter a valid Egyptian mobile (010 / 011 / 012 / 015)");
+    } else {
+      setPhoneError("");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formState.phone && !isValidEgyptPhone(formState.phone)) {
+      setPhoneError("Enter a valid Egyptian mobile (010 / 011 / 012 / 015)");
+      return;
+    }
     setSending(true);
     try {
       const res = await fetch(`${API_BASE_URL}/api/contact`, {
@@ -266,12 +281,11 @@ const Contact = () => {
                       <label className="block text-sm font-medium text-slate-700 mb-2">
                         Phone / WhatsApp
                       </label>
-                      <input
-                        name="phone"
+                      <EgyptPhoneInput
                         value={formState.phone}
-                        onChange={handleChange}
-                        className={inputClass}
-                        placeholder="+20 1xx xxxx xxx"
+                        onChange={handlePhoneChange}
+                        error={phoneError}
+                        name="phone"
                         required
                       />
                     </div>

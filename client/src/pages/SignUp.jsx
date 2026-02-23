@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import axios from "axios";
 import toast from "react-hot-toast";
+import EgyptPhoneInput, { isValidEgyptPhone } from "../components/EgyptPhoneInput";
 import {
   User,
   Mail,
@@ -24,11 +25,11 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const phoneSchema = yup
   .string()
   .required("Phone number is required")
-  .matches(/^\+?[0-9\s()-]+$/, "Enter a valid phone number")
-  .test("min-digits", "Phone number is too short", (value) => {
-    const digits = (value || "").replace(/\D/g, "");
-    return digits.length >= 8;
-  });
+  .test(
+    "egypt-mobile",
+    "Enter a valid Egyptian mobile (010 / 011 / 012 / 015)",
+    (v) => isValidEgyptPhone(v)
+  );
 
 const schema = yup.object().shape({
   parentName: yup.string().required("Full name is required"),
@@ -61,6 +62,7 @@ const SignUp = () => {
   const [serverError, setServerError] = useState("");
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm({ resolver: yupResolver(schema) });
@@ -272,24 +274,21 @@ const SignUp = () => {
               {/* Phone */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Phone Number
+                  Phone / WhatsApp
                 </label>
-                <div className="relative">
-                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type="tel"
-                    {...register("phone")}
-                    className={inputBase}
-                    placeholder="+20 10 1234 5678"
-                    autoComplete="tel"
-                    inputMode="tel"
-                  />
-                </div>
-                {errors.phone && (
-                  <p className="text-red-500 text-xs mt-1.5 ml-1">
-                    {errors.phone.message}
-                  </p>
-                )}
+                <Controller
+                  name="phone"
+                  control={control}
+                  defaultValue=""
+                  render={({ field }) => (
+                    <EgyptPhoneInput
+                      value={field.value}
+                      onChange={field.onChange}
+                      error={errors.phone?.message}
+                      name="phone"
+                    />
+                  )}
+                />
               </div>
 
               {/* Password */}
