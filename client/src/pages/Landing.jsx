@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion as Motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import {
   Monitor,
   Cpu,
@@ -65,38 +66,32 @@ const features = [
   {
     icon: Monitor,
     title: "Live Instructor-Led Missions",
-    text: "A Sparvi coach leads each session, explains every step, and answers questions in real time so no one gets lost.",
-    color: "bg-blue-100 text-blue-600",
+    text: "Kids don't learn alone. A Sparvi coach leads each online session, explains every step, and answers questions in real time so no one gets lost.",
   },
   {
     icon: Cpu,
     title: "Real Electronics Kit at Home",
-    text: "Every student receives a Sparvi Lab kit with safe low-voltage components to see how real circuits behave.",
-    color: "bg-teal-100 text-teal-600",
+    text: "Every student receives a Sparvi Lab kit with safe low-voltage components. They connect wires, LEDs, switches, sensors, and motors to see how real circuits behave.",
   },
   {
     icon: Users,
     title: "Designed for Ages 8–14",
-    text: "Lessons use clear language, big visuals, and age-appropriate challenges so both beginners and curious tinkerers can follow along.",
-    color: "bg-indigo-100 text-indigo-600",
+    text: "Lessons use clear language, big visuals, and age-appropriate challenges so both beginners and curious tinkerers can follow along and feel successful.",
   },
   {
     icon: BookOpen,
     title: "Screen Time With a Purpose",
-    text: "Sessions are online, but hands are always busy building. Kids look at the screen to follow the mentor, then look down to wire their own circuit.",
-    color: "bg-purple-100 text-purple-600",
+    text: "Sessions are online, but hands are always busy building. Kids look at the screen to follow the mentor, then look down to wire, test, and tweak their own circuit.",
   },
   {
     icon: BarChart3,
     title: "Structured Levels, Clear Progress",
-    text: "Level 1 is an 8-session foundation course. After finishing it, kids can unlock higher levels with more complex projects.",
-    color: "bg-emerald-100 text-emerald-600",
+    text: "Level 1 is an 8-session foundation course. After finishing it, kids can unlock higher levels with more advanced projects in sensors, robotics, and coding.",
   },
   {
     icon: ShieldCheck,
     title: "Parent Peace of Mind",
-    text: "Safe parts, guided sessions, and small groups. You'll know the schedule, what your child is building each session, and their progress.",
-    color: "bg-orange-100 text-orange-600",
+    text: "Safe parts, guided sessions, and small groups. You'll know the schedule, what your child is building each week, and get simple summaries after every session.",
   },
 ];
 
@@ -255,54 +250,76 @@ const Landing = () => {
           WHY CHOOSE SPARVI LAB?
          ============================ */}
       <Motion.section
-        className="py-16 md:py-20 px-6 bg-slate-50"
+        className="py-16 md:py-24 px-6 bg-[#f7f9fc]"
         initial={{ y: 40, opacity: 0 }}
         whileInView={{ y: 0, opacity: 1 }}
-        viewport={{ once: true, amount: 0.2 }}
+        viewport={{ once: true, amount: 0.15 }}
         transition={{ duration: 0.7 }}
       >
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-2xl md:text-4xl font-bold text-[#102a5a] mb-4 text-center font-display">
+          {/* Heading */}
+          <h2 className="text-2xl md:text-4xl font-bold text-[#102a5a] mb-12 text-center font-display">
             Why Choose Sparvi Lab?
           </h2>
-          <p className="text-slate-500 text-center max-w-2xl mx-auto mb-12 text-sm md:text-base">
-            We combine live instruction, real hardware, and structured learning
-            to give kids a hands-on STEM experience they'll actually love.
-          </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, i) => (
-              <Motion.div
-                key={i}
-                initial={{ y: 20, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.08 }}
-                className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group"
-              >
-                <div className="flex items-start gap-4">
-                  <div className={`shrink-0 w-12 h-12 rounded-xl flex items-center justify-center ${feature.color} transition-transform group-hover:scale-110`}>
-                    <feature.icon size={22} />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-[#102a5a] mb-1.5 text-base">
-                      {feature.title}
-                    </h3>
-                    <p className="text-slate-500 text-sm leading-relaxed">
-                      {feature.text}
-                    </p>
-                  </div>
-                </div>
-              </Motion.div>
-            ))}
-          </div>
+          {/* Two-column layout: Lottie left + features right */}
+          <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
 
-          <div className="text-center mt-10">
-            <Link to="/signup">
-              <button className="inline-flex items-center gap-2 rounded-full bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 font-semibold px-8 py-3.5 shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5">
-                Secure your Seat! ✨
-              </button>
-            </Link>
+            {/* Left — Lottie animation + CTA */}
+            <div className="flex flex-col items-center lg:items-start gap-8 lg:w-[300px] shrink-0">
+              <div className="w-64 h-64 lg:w-72 lg:h-72">
+                <DotLottieReact
+                  src="https://lottie.host/da2dc79c-aa3e-46dc-8bca-9aa5787b1625/7CWJv1tJxv.lottie"
+                  loop
+                  autoplay
+                />
+              </div>
+              <Link to="/signup" className="w-full flex justify-center lg:justify-start">
+                <button className="inline-flex items-center gap-2 rounded-full bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 font-semibold px-8 py-3.5 shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 whitespace-nowrap">
+                  Secure your Seat! ✨
+                </button>
+              </Link>
+            </div>
+
+            {/* Right — 2-column grid of feature cards */}
+            <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {features.map((feature, i) => (
+                <Motion.div
+                  key={i}
+                  initial={{ y: 20, opacity: 0 }}
+                  whileInView={{ y: 0, opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.45, delay: i * 0.07 }}
+                  className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 group"
+                >
+                  <div className="flex items-start gap-4">
+                    {/* Gradient icon box matching the screenshot */}
+                    <div
+                      className="shrink-0 flex items-center justify-center transition-transform group-hover:scale-110"
+                      style={{
+                        width: 50,
+                        height: 50,
+                        borderRadius: 16,
+                        background: "linear-gradient(135deg, #1d4ed8, #06b6d4)",
+                        color: "#ffffff",
+                        fontSize: "1.35rem",
+                      }}
+                    >
+                      <feature.icon size={22} color="white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-[#102a5a] mb-1 text-sm md:text-base leading-snug">
+                        {feature.title}
+                      </h3>
+                      <p className="text-slate-500 text-xs md:text-sm leading-relaxed">
+                        {feature.text}
+                      </p>
+                    </div>
+                  </div>
+                </Motion.div>
+              ))}
+            </div>
+
           </div>
         </div>
       </Motion.section>
