@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion as Motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
@@ -101,8 +101,8 @@ const features = [
 const FAQItem = ({ item, isOpen, onToggle }) => (
   <div
     className={`rounded-3xl border-2 transition-all duration-300 cursor-pointer ${isOpen
-        ? "border-[#1d4ed8] bg-white shadow-[0_4px_24px_rgba(29,78,216,0.1)]"
-        : "border-dashed border-slate-300 bg-white hover:border-slate-400"
+      ? "border-[#1d4ed8] bg-white shadow-[0_4px_24px_rgba(29,78,216,0.1)]"
+      : "border-dashed border-slate-300 bg-white hover:border-slate-400"
       }`}
   >
     <button
@@ -117,8 +117,8 @@ const FAQItem = ({ item, isOpen, onToggle }) => (
       </span>
       <div
         className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${isOpen
-            ? "bg-[#1d4ed8] text-white"
-            : "bg-slate-100 text-slate-500"
+          ? "bg-[#1d4ed8] text-white"
+          : "bg-slate-100 text-slate-500"
           }`}
       >
         <ChevronDown
@@ -140,8 +140,77 @@ const FAQItem = ({ item, isOpen, onToggle }) => (
 );
 
 /* ==============================
-   LANDING PAGE
+   VIDEO CONFIG
+   — Edit thumbnail, ytSrc, name, meta per student
    ============================== */
+const HERO_VIDEOS = [
+  {
+    thumbnail: "https://i.ibb.co/xRtsf8T/Screenshot-2026-01-12-043823.webp",
+    ytSrc: "https://www.youtube.com/embed/52GDwQBAY?autoplay=1&playsinline=1&rel=0&modestbranding=1",
+    name: "Mostafa Fouda",
+    meta: "Grade 5 | Egypt",
+  },
+];
+
+/* ==============================
+   VIDEO CARD COMPONENT
+   ============================== */
+const VideoCard = ({ thumbnail, ytSrc, name, meta }) => {
+  const [playing, setPlaying] = useState(false);
+
+  return (
+    <div className="sparvi-hero-video-wrapper">
+
+      {/* ── Thumbnail layer ── */}
+      <div
+        className="sparvi-hero-thumbnail"
+        style={{ display: playing ? "none" : undefined }}
+        onClick={() => setPlaying(true)}
+      >
+        <img
+          src={thumbnail}
+          alt={name}
+          loading="lazy"
+          className="sparvi-hero-thumb-img"
+        />
+
+        <div className="sparvi-hero-gradient" />
+
+        <button
+          className="sparvi-hero-play-btn"
+          type="button"
+          aria-label={`Play video for ${name}`}
+          onClick={(e) => { e.stopPropagation(); setPlaying(true); }}
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor" style={{ width: 28, height: 28, marginLeft: 4 }}>
+            <path d="M8 5v14l11-7z" />
+          </svg>
+        </button>
+
+        <div className="sparvi-hero-text-overlay">
+          <h3 className="sparvi-hero-name">{name}</h3>
+          {meta && <p className="sparvi-hero-meta">{meta}</p>}
+        </div>
+      </div>
+
+      {/* ── iframe layer (shown when playing) ── */}
+      <div className={`sparvi-hero-iframe${playing ? " active" : ""}`}>
+        {playing && (
+          <iframe
+            src={ytSrc}
+            className="sparvi-hero-iframe-el"
+            allow="autoplay; encrypted-media"
+            allowFullScreen
+            referrerPolicy="strict-origin-when-cross-origin"
+            title={name}
+          />
+        )}
+      </div>
+
+    </div>
+  );
+};
+
 const Landing = () => {
   const [openFAQ, setOpenFAQ] = useState(0);
 
@@ -230,22 +299,27 @@ const Landing = () => {
         transition={{ duration: 0.7 }}
       >
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl md:text-4xl font-bold text-[#102a5a] mb-10 font-display">
+          {/* Gradient heading */}
+          <h2
+            className="text-2xl md:text-4xl font-display mb-10 text-center"
+            style={{
+              fontWeight: 800,
+              lineHeight: 1.15,
+              letterSpacing: "-0.03em",
+              background: "linear-gradient(135deg, #0f172a 0%, #1e3a8a 40%, #06b6d4 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
             Hear from Our Heroes
           </h2>
 
-          {/* Video placeholder */}
-          <div className="relative mx-auto w-full max-w-lg aspect-video rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-navy-600 to-navy-800 group cursor-pointer">
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/30 transition-all duration-300 group-hover:scale-110">
-                <Play className="w-8 h-8 text-white ml-1" fill="white" />
-              </div>
-            </div>
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-              <span className="bg-[#FBBF24]/90 text-[#071228] text-xs font-semibold px-4 py-1.5 rounded-full">
-                Student Testimonial
-              </span>
-            </div>
+          {/* Video cards */}
+          <div className="flex flex-wrap justify-center gap-6 mt-2">
+            {HERO_VIDEOS.map((v) => (
+              <VideoCard key={v.name} thumbnail={v.thumbnail} ytSrc={v.ytSrc} name={v.name} meta={v.meta} />
+            ))}
           </div>
         </div>
       </Motion.section>
@@ -254,7 +328,7 @@ const Landing = () => {
           WHY CHOOSE SPARVI LAB?
          ============================ */}
       <Motion.section
-        className="py-16 md:py-24 px-6 bg-[#f7f9fc]"
+        className="py-16 md:py-24 px-6 bg-white"
         initial={{ y: 40, opacity: 0 }}
         whileInView={{ y: 0, opacity: 1 }}
         viewport={{ once: true, amount: 0.15 }}
