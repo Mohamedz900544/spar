@@ -11,9 +11,14 @@ import {
   ArrowRight,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
-import EgyptPhoneInput, { isValidEgyptPhone } from "../components/EgyptPhoneInput";
+import EgyptPhoneInput from "../components/EgyptPhoneInput";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+const isValidEgyptPhone = (v) => {
+  const d = (v || "").replace(/\D/g, "");
+  return /^(010|011|012|015)\d{8}$/.test(d);
+};
 
 const FloatingShape = ({ className, delay = 0, duration = 6 }) => (
   <motion.div

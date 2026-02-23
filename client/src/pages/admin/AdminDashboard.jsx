@@ -26,6 +26,7 @@ import { RoundsTab } from "./components/Tabs/RoundsTab";
 import { SessionsTab } from "./components/Tabs/SessionsTab";
 import { EnrollmentsTab } from "./components/Tabs/EnrollmentsTab";
 import { UsersTab } from "./components/Tabs/UsersTab";
+import EgyptPhoneInput from "../../components/EgyptPhoneInput";
 
 function generateRoundCode() {
   return `SPRV-${Math.floor(Math.random() * 1000)}-${Date.now()}`
@@ -248,13 +249,12 @@ const AdminDashboard = () => {
                       <label className="block text-xs font-semibold text-slate-600 mb-1">
                         Phone
                       </label>
-                      <input
-                        type="tel"
+                      <EgyptPhoneInput
                         value={newInstructor.phone}
                         onChange={(e) =>
-                          handleNewInstructorChange("phone", e.target.value)
+                          handleNewInstructorChange("phone", e)
                         }
-                        className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all"
+                        inputClass="py-2.5 rounded-r-xl bg-white"
                         required
                       />
                     </div>

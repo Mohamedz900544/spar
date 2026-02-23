@@ -26,7 +26,7 @@ const formatEgyptPhone = (raw) => {
 };
 
 /** True when the number is a valid Egyptian mobile */
-export const isValidEgyptPhone = (v) => {
+const isValidEgyptPhone = (v) => {
     const d = digitsOnly(v);
     return /^(010|011|012|015)\d{8}$/.test(d);
 };

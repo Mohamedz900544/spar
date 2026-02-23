@@ -6,7 +6,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import axios from "axios";
 import toast from "react-hot-toast";
-import EgyptPhoneInput, { isValidEgyptPhone } from "../components/EgyptPhoneInput";
+import EgyptPhoneInput from "../components/EgyptPhoneInput";
 import {
   User,
   Mail,
@@ -21,6 +21,11 @@ import {
 } from "lucide-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+const isValidEgyptPhone = (v) => {
+  const d = (v || "").replace(/\D/g, "");
+  return /^(010|011|012|015)\d{8}$/.test(d);
+};
 
 const phoneSchema = yup
   .string()
