@@ -20,7 +20,7 @@ const enrollmentSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["Pending", "Confirmed", "Waiting", "Pending Call"],
+      enum: ["Pending", "Confirmed", "Waiting", "Cancelled"],
       default: "Pending",
     },
 

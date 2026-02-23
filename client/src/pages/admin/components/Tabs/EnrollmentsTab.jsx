@@ -54,15 +54,15 @@ export const EnrollmentsTab = ({
                     Waiting
                 </button>
                 <button
-                    className={`px-2 py-1 rounded-full border text-[10px] ${enrollmentStatusFilter === "Pending Call"
+                    className={`px-2 py-1 rounded-full border text-[10px] ${enrollmentStatusFilter === "Cancelled"
                         ? "bg-[#102a5a] text-white border-[#102a5a]"
                         : "border-[#e2e8f0] text-slate-700"
                         }`}
                     onClick={() =>
-                        setEnrollmentStatusFilter("Pending Call")
+                        setEnrollmentStatusFilter("Cancelled")
                     }
                 >
-                    Pending Call
+                    Cancelled
                 </button>
             </div>
         </div>
@@ -156,18 +156,18 @@ export const EnrollmentsTab = ({
                                         }
                                         className="px-2 py-1 rounded-full border text-[10px] font-medium border-[#fef3c7] text-[#854d0e] hover:bg-[#fef9c3]"
                                     >
-                                        Wait list
+                                        Wait payment
                                     </button>
                                     <button
                                         onClick={() =>
                                             handleEnrollmentStatusChange(
                                                 e.id,
-                                                "Pending Call"
+                                                "Cancelled"
                                             )
                                         }
                                         className="px-2 py-1 rounded-full border text-[10px] font-medium border-[#e0f2fe] text-[#075985] hover:bg-[#e0f2fe]"
                                     >
-                                        Call back
+                                        Cancel
                                     </button>
                                 </div>
                             </td>

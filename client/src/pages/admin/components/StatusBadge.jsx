@@ -12,7 +12,7 @@ const STATUS_STYLES = {
   // Enrollments
   Confirmed: "bg-[#dcfce7] text-[#166534]",
   Waiting: "bg-[#fef9c3] text-[#854d0e]",
-  "Pending Call": "bg-[#e0f2fe] text-[#075985]",
+  "Cancelled": "bg-[#e0f2fe] text-[#075985]",
 
   // Gallery
   Published: "bg-[#dcfce7] text-[#166534]",

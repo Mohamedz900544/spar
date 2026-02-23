@@ -53,7 +53,7 @@ const EnrollmentsPage = () => {
               </h2>
               <div className="flex items-center gap-1 text-[11px]">
                 <Filter className="w-3.5 h-3.5 text-slate-500" />
-                {["All", "Confirmed", "Waiting", "Pending Call"].map(
+                {["All", "Confirmed", "Waiting", "Cancelled"].map(
                   (status) => (
                     <button
                       key={status}
@@ -152,15 +152,15 @@ const EnrollmentsPage = () => {
                             }
                             className="px-2 py-1 rounded-full border text-[10px] font-medium border-[#fef3c7] text-[#854d0e] hover:bg-[#fef9c3]"
                           >
-                            Wait list
+                            Wait payment
                           </button>
                           <button
                             onClick={() =>
-                              handleEnrollmentStatusChange(e.id, "Pending Call")
+                              handleEnrollmentStatusChange(e.id, "Cancelled")
                             }
                             className="px-2 py-1 rounded-full border text-[10px] font-medium border-[#e0f2fe] text-[#075985] hover:bg-[#e0f2fe]"
                           >
-                            Call back
+                            Cancel
                           </button>
                         </div>
                       </td>

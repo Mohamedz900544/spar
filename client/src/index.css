@@ -422,53 +422,82 @@ button {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 72px;
-  height: 72px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   border: none;
   background: #FBBF24;
   color: #071228;
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 28px rgba(251, 191, 36, 0.55);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   z-index: 3;
-  transition: transform 0.2s;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: pulse-soft 2s infinite;
 }
 
 .sparvi-hero-play-btn:hover {
-  transform: translate(-50%, -50%) scale(1.08);
+  background: #F59E0B;
+  transform: translate(-50%, -50%) scale(1.15);
+  animation: none;
 }
 
-/* Pulse rings — scale from center of the button, no translate */
-@keyframes sparvi-pulse {
+@keyframes pulse-soft {
   0% {
-    transform: scale(1);
-    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  50% {
+    transform: translate(-50%, -50%) scale(1.05);
   }
 
   100% {
-    transform: scale(2.6);
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.sparvi-hero-play-btn::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid rgba(251, 191, 36, 0.6);
+  opacity: 0;
+  animation: ripple 2s infinite;
+  pointer-events: none;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1.6);
     opacity: 0;
   }
 }
 
-.sparvi-hero-play-btn::before,
-.sparvi-hero-play-btn::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: #FBBF24;
-  animation: sparvi-pulse 4s ease-out infinite;
-  z-index: -1;
-  transform-origin: center center;
+.sparvi-hero-play-icon {
+  width: 32px;
+  height: 32px;
 }
 
-.sparvi-hero-play-btn::after {
-  animation-delay: 2s;
+@media (max-width: 640px) {
+  .sparvi-hero-play-btn {
+    width: 48px;
+    height: 48px;
+    font-size: 1rem;
+  }
+
+  .sparvi-hero-play-icon {
+    width: 24px;
+    height: 24px;
+  }
 }
 
 
