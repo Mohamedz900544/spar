@@ -33,8 +33,8 @@ const RatingStars = ({ value, onChange }) => (
       >
         <Star
           className={`w-5 h-5 transition-all duration-300 ${value && star <= value
-              ? "fill-[#FBBF24] text-[#FBBF24] drop-shadow-[0_2px_4px_rgba(251,191,36,0.4)]"
-              : "fill-slate-100 text-slate-200 hover:text-[#FBBF24]/50"
+            ? "fill-[#FBBF24] text-[#FBBF24] drop-shadow-[0_2px_4px_rgba(251,191,36,0.4)]"
+            : "fill-slate-100 text-slate-200 hover:text-[#FBBF24]/50"
             }`}
         />
       </button>
@@ -253,7 +253,7 @@ const ParentDashboard = ({ parent, setParent }) => {
 
         <div className="relative z-10 max-w-6xl mx-auto px-5 pt-8 pb-20">
           {/* Top bar */}
-          <div className="flex items-center justify-between mb-8">
+          {/* <div className="flex items-center justify-between mb-8">
             <Link to="/" className="inline-flex items-center gap-2">
               <div className="w-9 h-9 rounded-xl bg-[#FBBF24] flex items-center justify-center">
                 <Zap className="w-4 h-4 text-[#102a5a]" />
@@ -269,7 +269,7 @@ const ParentDashboard = ({ parent, setParent }) => {
               <LogOut className="w-4 h-4" />
               <span className="hidden sm:inline">Sign Out</span>
             </button>
-          </div>
+          </div> */}
 
           {/* Welcome text */}
           <Motion.div
@@ -467,8 +467,8 @@ const ParentDashboard = ({ parent, setParent }) => {
                     <div
                       key={round.id || round.code}
                       className={`bg-white/80 backdrop-blur-xl rounded-3xl border transition-all duration-300 overflow-hidden ${isSelected
-                          ? "border-[#FBBF24]/40 shadow-[0_12px_40px_rgba(251,191,36,0.08)]"
-                          : "border-white/60 shadow-sm hover:shadow-md"
+                        ? "border-[#FBBF24]/40 shadow-[0_12px_40px_rgba(251,191,36,0.08)]"
+                        : "border-white/60 shadow-sm hover:shadow-md"
                         }`}
                     >
                       {/* Round Toggle Header */}
@@ -488,8 +488,8 @@ const ParentDashboard = ({ parent, setParent }) => {
                             </h3>
                             <span
                               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${round.status === "Active"
-                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                  : "bg-slate-100 text-slate-700 border-slate-200"
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                : "bg-slate-100 text-slate-700 border-slate-200"
                                 }`}
                             >
                               {round.status}
@@ -507,8 +507,8 @@ const ParentDashboard = ({ parent, setParent }) => {
                         </div>
                         <div
                           className={`flex items-center justify-center w-10 h-10 rounded-2xl shrink-0 transition-all ${isSelected
-                              ? "bg-[#FBBF24]/10 text-[#FBBF24]"
-                              : "bg-slate-100 text-slate-400 group-hover:text-slate-600"
+                            ? "bg-[#FBBF24]/10 text-[#FBBF24]"
+                            : "bg-slate-100 text-slate-400 group-hover:text-slate-600"
                             }`}
                         >
                           <Motion.div
@@ -621,8 +621,8 @@ const ParentDashboard = ({ parent, setParent }) => {
                                       <div
                                         key={sessionId}
                                         className={`bg-white border rounded-2xl p-5 flex flex-col lg:flex-row gap-5 transition-colors ${isCompleted
-                                            ? "border-slate-100"
-                                            : "border-[#FBBF24]/20 bg-[#FBBF24]/5"
+                                          ? "border-slate-100"
+                                          : "border-[#FBBF24]/20 bg-[#FBBF24]/5"
                                           }`}
                                       >
                                         <div className="flex-1">

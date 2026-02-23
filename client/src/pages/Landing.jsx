@@ -325,6 +325,114 @@ const Landing = () => {
       </Motion.section>
 
       {/* ============================
+          STUDENT PROJECTS
+         ============================ */}
+      <Motion.section
+        className="py-16 md:py-20 px-6 bg-white"
+        initial={{ y: 40, opacity: 0 }}
+        whileInView={{ y: 0, opacity: 1 }}
+        viewport={{ once: true, amount: 0.15 }}
+        transition={{ duration: 0.7 }}
+      >
+        <div className="max-w-6xl mx-auto">
+
+          {/* Heading */}
+          <div className="text-center mb-3">
+            <h2
+              className="text-2xl md:text-4xl font-display"
+              style={{
+                fontWeight: 800,
+                lineHeight: 1.15,
+                letterSpacing: "-0.03em",
+                background: "linear-gradient(135deg, #0f172a 0%, #1e3a8a 40%, #06b6d4 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              Discover Our Students' Projects
+            </h2>
+            <p className="text-slate-500 text-sm md:text-base mt-3 max-w-xl mx-auto">
+              Real builds by real kids — electronics, circuits, and creative
+              engineering from our Sparvi Lab community.
+            </p>
+          </div>
+
+          {/* Project Cards — horizontal scroll on mobile, grid on desktop */}
+          <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              {
+                img: "https://images.unsplash.com/photo-1581092921461-eab62e97a780?w=600&q=80",
+                title: "LED Circuit Board",
+                desc: "Built a working LED matrix circuit using resistors, jumper wires, and a breadboard — fully hand-wired!",
+              },
+              {
+                img: "https://images.unsplash.com/photo-1624555130581-1d9cca783bc0?w=600&q=80",
+                title: "Traffic Light System",
+                desc: "Programmed a traffic light sequence with timing logic and low-voltage LEDs on a live circuit.",
+              },
+              {
+                img: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&q=80",
+                title: "Sound Sensor Alarm",
+                desc: "Wired a sound sensor to a buzzer — when noise exceeds the threshold, the alarm triggers!",
+              },
+            ].map((proj, i) => (
+              <Motion.div
+                key={i}
+                initial={{ y: 20, opacity: 0 }}
+                whileInView={{ y: 0, opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.45, delay: i * 0.1 }}
+                className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 overflow-hidden group"
+              >
+                {/* Thumbnail */}
+                <div className="relative overflow-hidden h-44">
+                  <img
+                    src={proj.img}
+                    alt={proj.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                </div>
+
+                {/* Content */}
+                <div className="p-5">
+                  <h3
+                    className="font-bold text-base mb-2"
+                    style={{ color: "#1d4ed8" }}
+                  >
+                    {proj.title}
+                  </h3>
+                  <p className="text-slate-500 text-sm leading-relaxed">
+                    {proj.desc}
+                  </p>
+                </div>
+              </Motion.div>
+            ))}
+          </div>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-12">
+            <Link to="/contact">
+              <button
+                className="inline-flex items-center gap-2 rounded-full font-semibold px-8 py-3.5 text-white shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5"
+                style={{ background: "linear-gradient(135deg, #0f172a, #1e3a8a)" }}
+              >
+                Contact Us
+              </button>
+            </Link>
+            <Link to="/courses">
+              <button className="inline-flex items-center gap-2 rounded-full bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 font-semibold px-8 py-3.5 shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5">
+                See More Projects ✨
+              </button>
+            </Link>
+          </div>
+
+        </div>
+      </Motion.section>
+
+
+      {/* ============================
           WHY CHOOSE SPARVI LAB?
          ============================ */}
       <Motion.section

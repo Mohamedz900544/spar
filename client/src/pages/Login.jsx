@@ -144,12 +144,8 @@ const Login = () => {
             transition={{ delay: 0.3, duration: 0.6 }}
           >
             <Link to="/" className="inline-flex items-center gap-2 mb-12">
-              <div className="w-10 h-10 rounded-xl bg-[#FBBF24] flex items-center justify-center">
-                <Zap className="w-5 h-5 text-[#102a5a]" />
-              </div>
-              <span className="text-white font-bold text-lg tracking-tight">
-                Sparvi Lab
-              </span>
+
+              <img src="/logo-white.png" alt="Sparvi Lab" className="h-12" />
             </Link>
           </motion.div>
 
