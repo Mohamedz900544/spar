@@ -254,7 +254,7 @@ const Landing = () => {
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <Link to="/signup">
                 <button className="inline-flex items-center justify-center gap-2 rounded-full px-8 py-3.5 text-base font-semibold shadow-[0_8px_25px_rgba(251,191,36,0.4)] hover:shadow-[0_12px_35px_rgba(251,191,36,0.5)] bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 transition-all duration-200 hover:-translate-y-0.5">
-                  Secure your seat! ✨
+                  Secure your seat!
                 </button>
               </Link>
 
@@ -473,7 +473,7 @@ const Landing = () => {
               </div>
               <Link to="/signup">
                 <button className="inline-flex items-center gap-2 rounded-full bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 font-semibold px-8 py-3.5 shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 whitespace-nowrap">
-                  Secure your Seat! ✨
+                  Secure your Seat!
                 </button>
               </Link>
             </div>
