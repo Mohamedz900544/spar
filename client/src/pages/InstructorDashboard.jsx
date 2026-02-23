@@ -262,11 +262,15 @@ const InstructorDashboard = () => {
         <div className="relative z-10 max-w-7xl mx-auto px-5 pt-8 pb-20">
           {/* Top bar */}
           <div className="flex items-center justify-between mb-8">
-            <Link to="/" className="inline-flex items-center gap-2">
-              <div className="w-9 h-9 rounded-xl bg-[#FBBF24] flex items-center justify-center">
-                <Zap className="w-4 h-4 text-[#102a5a]" />
-              </div>
-              <span className="text-white font-bold text-lg tracking-tight">Sparvi Lab</span>
+            <Link to="/" className="inline-flex items-center gap-3">
+              <img src="/logo-white.png" alt="Sparvi Lab" className="h-8" />
+              <span
+                className="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border border-[#FBBF24]/30 text-[#FBBF24]"
+                style={{ background: "rgba(251,191,36,0.08)" }}
+              >
+                <ClipboardList className="w-3 h-3" />
+                Instructor Portal
+              </span>
             </Link>
             <div className="flex items-center gap-3">
               <button
@@ -427,15 +431,15 @@ const InstructorDashboard = () => {
                           type="button"
                           onClick={() => setSelectedRoundId(round.id || round._id)}
                           className={`w-full text-left rounded-2xl p-4 transition-all duration-200 border ${isSelected
-                              ? "border-[#FBBF24] bg-[#FBBF24]/5 shadow-sm"
-                              : "border-transparent bg-slate-50/50 hover:bg-slate-100/60"
+                            ? "border-[#FBBF24] bg-[#FBBF24]/5 shadow-sm"
+                            : "border-transparent bg-slate-50/50 hover:bg-slate-100/60"
                             }`}
                         >
                           <div className="flex items-center gap-3">
                             <div
                               className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${isSelected
-                                  ? "bg-[#FBBF24] text-[#102a5a]"
-                                  : "bg-slate-200/60 text-slate-500"
+                                ? "bg-[#FBBF24] text-[#102a5a]"
+                                : "bg-slate-200/60 text-slate-500"
                                 }`}
                             >
                               <BookOpen className="w-3.5 h-3.5" />

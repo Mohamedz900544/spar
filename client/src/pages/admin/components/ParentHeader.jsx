@@ -6,35 +6,42 @@ import { LucideLayoutDashboard } from "lucide-react"
 const ParentHeader = ({ data }) => {
 
     return <div className="min-h-screen flex flex-col bg-gradient-to-b from-slate-50 via-white to-white">
-        <header className="flex items-center justify-between px-6 py-3 bg-white/90 backdrop-blur-xl border-b border-slate-200/80 sticky top-0 z-50 shadow-sm">
-            {/* Logo Area */}
-            <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-gradient-to-br from-[#102a5a] to-[#1a3a6b] rounded-xl flex items-center justify-center text-white shadow-md">
-                    <Sparkles className="w-5 h-5 text-[#FBBF24]" />
-                </div>
-                <span className="font-bold text-[#102a5a] text-lg hidden md:block tracking-tight">Sparvi Lab</span>
-            </div>
+        <header
+            className="flex items-center justify-between px-6 py-3 sticky top-0 z-50 shadow-lg border-b border-[#FBBF24]/20"
+            style={{ background: "linear-gradient(135deg, #071228 0%, #102a5a 55%, #1a3a6b 100%)" }}
+        >
+            {/* Logo */}
+            <Link to="/" className="inline-flex items-center gap-3">
+                <img src="/logo-white.png" alt="Sparvi Lab" className="h-8" />
+                <span
+                    className="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border border-[#FBBF24]/30 text-[#FBBF24]"
+                    style={{ background: "rgba(251,191,36,0.08)" }}
+                >
+                    <Sparkles className="w-3 h-3" />
+                    Parent Portal
+                </span>
+            </Link>
 
             {/* Profile Area */}
             <div className="flex items-center gap-3">
                 <div className="text-right hidden md:block">
-                    <p className="text-sm font-bold text-slate-800">{data.name}</p>
-                    <p className="text-[10px] text-[#FBBF24] font-semibold uppercase tracking-widest">Parent Portal</p>
+                    <p className="text-sm font-bold text-white">{data.name}</p>
+                    <p className="text-[10px] text-[#FBBF24] font-semibold uppercase tracking-widest">Parent</p>
                 </div>
 
                 <div className="relative group cursor-pointer">
-                    {/* The Avatar */}
-                    <div className="w-10 h-10 rounded-full border-2 border-[#FBBF24]/30 shadow-md overflow-hidden bg-slate-100 ring-2 ring-white">
+                    {/* Avatar */}
+                    <div className="w-10 h-10 rounded-full border-2 border-[#FBBF24]/40 shadow-md overflow-hidden bg-white/10 ring-2 ring-white/10">
                         {data.photoUrl ? (
                             <img src={data.photoUrl} alt="Profile" className="w-full h-full object-cover" />
                         ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#102a5a] to-[#1a3a6b] text-white">
+                            <div className="w-full h-full flex items-center justify-center bg-white/10 text-white">
                                 <User size={20} />
                             </div>
                         )}
                     </div>
 
-                    {/* Simple Dropdown on Hover/Click */}
+                    {/* Dropdown */}
                     <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-xl border border-slate-100 p-2 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all transform origin-top-right z-50">
                         <Link to="/parent/" className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50 rounded-lg font-medium transition-colors">
                             <LucideLayoutDashboard size={16} className="text-[#102a5a]" /> Dashboard

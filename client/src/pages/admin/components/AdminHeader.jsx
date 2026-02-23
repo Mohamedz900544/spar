@@ -1,4 +1,4 @@
-import { LogOut, Search, Settings, Shield } from "lucide-react"
+import { Search, Shield } from "lucide-react"
 import { LogoutLogic } from "./LogoutLogic"
 import { Link, Outlet, useLocation } from "react-router-dom"
 import { useState } from "react"
@@ -10,24 +10,23 @@ const AdminHeader = ({ isLoading, searchValue, setSearchValue }) => {
     const isStudentsPage = !!pathname.match(/\/admin\/round\/.{24}\/students/);
 
     return <div className="min-h-screen relative bg-gradient-to-b from-slate-50 via-white to-white flex flex-col">
-        <header className="bg-gradient-to-r from-[#102a5a] to-[#1a3a6b] relative text-white px-5 md:px-8 py-4 flex items-center justify-between shadow-lg border-b border-[#FBBF24]/20">
-            <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-[#FBBF24] flex items-center justify-center shadow-md">
-                    <Shield className="w-5 h-5 text-[#102a5a]" />
-                </div>
-                <div>
-                    <h1 className="text-lg md:text-xl font-bold leading-tight tracking-tight">
-                        Admin Control Panel
-                    </h1>
-                    {isLoading && (
-                        <p className="text-[11px] text-blue-200/80 mt-0.5 animate-pulse">
-                            Loading data from server…
-                        </p>
-                    )}
-                </div>
-            </div>
+        <header
+            className="relative text-white px-5 md:px-8 py-3.5 flex items-center justify-between shadow-lg border-b border-[#FBBF24]/20"
+            style={{ background: "linear-gradient(135deg, #071228 0%, #102a5a 55%, #1a3a6b 100%)" }}
+        >
+            {/* Logo + role badge */}
+            <Link to="/" className="inline-flex items-center gap-3">
+                <img src="/logo-white.png" alt="Sparvi Lab" className="h-8" />
+                <span
+                    className="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border border-[#FBBF24]/30 text-[#FBBF24]"
+                    style={{ background: "rgba(251,191,36,0.08)" }}
+                >
+                    <Shield className="w-3 h-3" />
+                    Admin Panel
+                </span>
+            </Link>
 
-            {/* search Input */}
+            {/* Search dropdown (students page only) */}
             {isStudentsPage && <>
                 <div tabIndex={-1} className={`absolute left-1/2 top-full -translate-x-1/2 w-64 transition-all duration-300 ease-in-out z-20
                 ${searchAppear
