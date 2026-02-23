@@ -7,7 +7,7 @@ const ParentHeader = ({ data }) => {
 
     return <div className="min-h-screen flex flex-col bg-gradient-to-b from-slate-50 via-white to-white">
         <header
-            className="flex items-center justify-between px-6 py-3 sticky top-0 z-50 shadow-lg border-b border-[#FBBF24]/20"
+            className="flex items-center justify-between px-6 py-3 sticky top-0 z-50 shadow-lg"
             style={{ background: "linear-gradient(135deg, #071228 0%, #102a5a 55%, #1a3a6b 100%)" }}
         >
             {/* Logo */}
@@ -17,7 +17,7 @@ const ParentHeader = ({ data }) => {
                     className="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border border-[#FBBF24]/30 text-[#FBBF24]"
                     style={{ background: "rgba(251,191,36,0.08)" }}
                 >
-                    <Sparkles className="w-3 h-3" />
+                    {/* <Sparkles className="w-3 h-3" /> */}
                     Parent Portal
                 </span>
             </Link>

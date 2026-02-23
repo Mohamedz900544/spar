@@ -268,7 +268,7 @@ const InstructorDashboard = () => {
                 className="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border border-[#FBBF24]/30 text-[#FBBF24]"
                 style={{ background: "rgba(251,191,36,0.08)" }}
               >
-                <ClipboardList className="w-3 h-3" />
+                {/* <ClipboardList className="w-3 h-3" /> */}
                 Instructor Portal
               </span>
             </Link>
@@ -297,12 +297,7 @@ const InstructorDashboard = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="inline-flex items-center gap-2 bg-white/10 rounded-full px-4 py-1.5 mb-5 backdrop-blur-sm border border-white/10">
-              <ClipboardList className="w-3.5 h-3.5 text-[#FBBF24]" />
-              <span className="text-xs font-medium text-slate-300 tracking-wide uppercase">
-                Instructor Portal
-              </span>
-            </div>
+
             <h1 className="text-3xl md:text-4xl font-extrabold text-white leading-tight mb-3">
               Instructor <span className="text-[#FBBF24]">Dashboard</span>
             </h1>
