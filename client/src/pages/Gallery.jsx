@@ -98,8 +98,8 @@ const Gallery = () => {
         </div>
 
         {/* Wave separator */}
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg viewBox="0 0 1440 60" fill="none" className="w-full">
+        <div className="absolute -bottom-px left-0 right-0">
+          <svg viewBox="0 0 1440 60" fill="none" className="w-full block">
             <path
               d="M0 60V20C240 50 480 0 720 20C960 40 1200 10 1440 30V60H0Z"
               fill="#f8fafc"

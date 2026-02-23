@@ -281,8 +281,8 @@ const Landing = () => {
         </div>
 
         {/* Bottom wave */}
-        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none">
-          <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto">
+        <div className="absolute -bottom-px left-0 w-full overflow-hidden leading-none">
+          <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto block">
             <path d="M0 60V30C240 0 480 0 720 30C960 60 1200 60 1440 30V60H0Z" fill="white" />
           </svg>
         </div>
