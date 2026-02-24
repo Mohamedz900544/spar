@@ -81,10 +81,10 @@ export default function TestimonialsSection() {
   };
 
   return (
-    <section id="parents-reviews" className="py-12 sm:py-20 bg-slate-50">
+      <section id="parents-reviews" className="py-8 sm:py-8 bg-white">
       <div
         className="
-          relative min-h-[520px] md:min-h-[600px]
+          relative min-h-[640px] md:min-h-[760px] lg:min-h-[820px]
           flex flex-col items-center justify-center
           rounded-[40px] overflow-hidden
           bg-gradient-to-br from-blue-600 to-indigo-900
@@ -101,7 +101,7 @@ export default function TestimonialsSection() {
             bg-[url('https://innova-platform.com/images/testimonialbg.png')]
             bg-center bg-cover
             mix-blend-overlay
-            opacity-60
+            
           "
         />
 
@@ -139,47 +139,42 @@ export default function TestimonialsSection() {
                     className="shrink-0 px-3 sm:px-4"
                     style={{ width: `${100 / itemsPerView}%` }}
                   >
-                    <article
-                      className="
-                        group
-                        bg-white/95 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.08)]
-                        border border-white/60
-                        p-6 sm:p-8
-                        flex flex-col justify-between h-[320px]
-                        transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:bg-white relative overflow-hidden
-                      "
-                    >
-                      {/* Decorative watermark quote */}
-                      <Quote className="absolute top-6 right-6 w-16 h-16 text-slate-100 -rotate-6 transition-transform group-hover:rotate-0 duration-500" />
+                   <article
+  className="
+    group
+    bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.08)]
+    border border-white/60
+    p-6 sm:p-8
+    flex flex-col h-[220px]
+    transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:bg-white
+    relative overflow-hidden
+  "
+>
+  {/* Quote top-right */}
+  <Quote className="absolute top-6 right-6 w-12 h-12 text-slate-100" />
 
-                      <div className="relative z-10 flex flex-col h-full">
-                        <div className="flex justify-between items-start gap-3">
-                          <div className="flex items-center gap-3.5">
-                            {/* Avatar */}
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
-                              {getInitials(t.name)}
-                            </div>
-                            <div>
-                              <h3 className="font-bold text-slate-900 text-base sm:text-lg">
-                                {t.name}
-                              </h3>
-                              <div className="flex mt-0.5">
-                                {[...Array(5)].map((_, i) => (
-                                  <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+  {/* Name */}
+  <h3 className="font-bold text-slate-900 text-base sm:text-lg">
+    {t.name}
+  </h3>
 
-                        {/* Text Content */}
-                        <div className="mt-5 flex-1 overflow-hidden relative">
-                          <p className="text-slate-600 text-sm sm:text-[15px] leading-relaxed line-clamp-5">
-                            "{t.text}"
-                          </p>
-                        </div>
-                      </div>
-                    </article>
+  {/* Text */}
+  <p className="mt-4 text-slate-600 text-sm sm:text-[15px] leading-relaxed line-clamp-3">
+    {t.text}
+  </p>
+
+  {/* Stars bottom-right */}
+  <div className="mt-auto flex justify-end pt-4">
+    <div className="flex">
+      {[...Array(5)].map((_, i) => (
+        <Star
+          key={i}
+          className="w-4 h-4 fill-amber-400 text-amber-400"
+        />
+      ))}
+    </div>
+  </div>
+</article>
                   </div>
                 ))}
               </div>

@@ -424,7 +424,7 @@ const Landing = () => {
             </Link>
             <Link to="/courses">
               <button className="inline-flex items-center gap-2 rounded-full bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 font-semibold px-8 py-3.5 shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5">
-                See More Projects ✨
+                See More Projects
               </button>
             </Link>
           </div>
@@ -570,7 +570,7 @@ const Landing = () => {
       {/* ============================
           CTA BANNER
          ============================ */}
-      <Motion.section
+      {/* <Motion.section
         className="py-12 px-6"
         style={{
           background: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #fb923c 100%)"
@@ -596,7 +596,7 @@ const Landing = () => {
             </button>
           </Link>
         </div>
-      </Motion.section>
+      </Motion.section> */}
 
       {/* ============================
           FOOTER
