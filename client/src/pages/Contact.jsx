@@ -168,16 +168,16 @@ const Contact = () => {
       </div>
 
       {/* ===== Main Content ===== */}
-      <main className="flex-1 max-w-6xl mx-auto w-full px-5 -mt-4 pb-16 relative z-10">
-        <div className="grid lg:grid-cols-5 gap-8 items-start">
+      <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-5 -mt-2 md:-mt-4 pb-16 relative z-10">
+        <div className="grid lg:grid-cols-5 gap-6 md:gap-8 items-start">
           {/* Contact Info Cards — left */}
           <motion.div
-            className="lg:col-span-2 space-y-4"
+            className="lg:col-span-2 space-y-4 order-2 lg:order-none"
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <h2 className="text-lg font-bold text-[#102a5a] mb-2">
+            <h2 className="text-lg font-bold text-[#102a5a] mb-2 text-center lg:text-left">
               Contact info
             </h2>
             {contactMethods.map((m, i) => (
@@ -226,12 +226,12 @@ const Contact = () => {
 
           {/* Form Card — right */}
           <motion.div
-            className="lg:col-span-3"
+            className="lg:col-span-3 order-1 lg:order-none"
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.35 }}
           >
-            <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-[0_20px_60px_rgba(16,42,90,0.06)] border border-white/60 p-8 md:p-10">
+            <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-[0_20px_60px_rgba(16,42,90,0.06)] border border-white/60 p-6 sm:p-8 md:p-10">
               <div className="mb-7">
                 <h2 className="text-xl font-bold text-[#102a5a] font-display">
                   Send us a message
