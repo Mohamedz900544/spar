@@ -137,12 +137,7 @@ export default function Courses() {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.7 }}
           >
-            <div className="inline-flex items-center gap-2 bg-white/10 rounded-full px-4 py-1.5 mb-6 backdrop-blur-sm border border-white/10">
-              <BookOpen className="w-3.5 h-3.5 text-[#FBBF24]" />
-              <span className="text-xs font-medium text-slate-300 tracking-wide uppercase">
-                Explore Our Programs
-              </span>
-            </div>
+          
             <h1 className="text-3xl md:text-5xl font-extrabold text-white leading-tight mb-4 font-display">
               Your Learning <span className="text-[#FBBF24]">Path</span>
             </h1>

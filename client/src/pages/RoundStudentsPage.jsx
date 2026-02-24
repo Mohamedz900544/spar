@@ -274,28 +274,39 @@ export const RoundStudentsPage = ({ searchValue }) => {
                                 {student.ratings?.length > 0 ? (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                                         {student.ratings.map((rate) => (
-                                            <div key={rate._id} className="bg-white p-3 rounded-lg border border-slate-200 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] flex justify-between items-center group hover:border-blue-200 transition-colors">
-                                                <div className="overflow-hidden pr-2">
-                                                    <p className="text-sm font-bold text-slate-700 truncate group-hover:text-blue-700 transition-colors" title={rate.sessionId?.title}>
-                                                        {rate.sessionId?.title || "Unknown Session"}
-                                                    </p>
-                                                    <p className="text-[10px] text-slate-400 font-medium">
-                                                        {rate.sessionId?.date
-                                                            ? new Date(rate.sessionId.date).toLocaleDateString()
-                                                            : 'No Date'}
-                                                    </p>
+                                            <div key={rate._id} className="bg-white p-3 rounded-lg border border-slate-200 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] flex flex-col gap-2 group hover:border-blue-200 transition-colors">
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <div className="min-w-0">
+                                                        <p className="text-sm font-bold text-slate-700 truncate group-hover:text-blue-700 transition-colors" title={rate.sessionId?.title}>
+                                                            {rate.sessionId?.title || "Unknown Session"}
+                                                        </p>
+                                                        <p className="text-[10px] text-slate-400 font-medium">
+                                                            {rate.sessionId?.date
+                                                                ? new Date(rate.sessionId.date).toLocaleDateString()
+                                                                : "No Date"}
+                                                        </p>
+                                                    </div>
+                                                    <div className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-bold ${rate.rating >= 4 ? "bg-green-50 text-green-700 border border-green-100" :
+                                                        rate.rating >= 3 ? "bg-yellow-50 text-yellow-700 border border-yellow-100" :
+                                                            "bg-red-50 text-red-700 border border-red-100"
+                                                        }`}>
+                                                        {rate.rating}
+                                                        <Star size={10} className={
+                                                            rate.rating >= 4 ? "fill-green-600 text-green-600" :
+                                                                rate.rating >= 3 ? "fill-yellow-500 text-yellow-500" :
+                                                                    "fill-red-500 text-red-500"
+                                                        } />
+                                                    </div>
                                                 </div>
-                                                <div className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-bold ${rate.rating >= 4 ? 'bg-green-50 text-green-700 border border-green-100' :
-                                                    rate.rating >= 3 ? 'bg-yellow-50 text-yellow-700 border border-yellow-100' :
-                                                        'bg-red-50 text-red-700 border border-red-100'
-                                                    }`}>
-                                                    {rate.rating}
-                                                    <Star size={10} className={
-                                                        rate.rating >= 4 ? 'fill-green-600 text-green-600' :
-                                                            rate.rating >= 3 ? 'fill-yellow-500 text-yellow-500' :
-                                                                'fill-red-500 text-red-500'
-                                                    } />
-                                                </div>
+                                                {rate.description ? (
+                                                    <p className="text-xs text-slate-600 leading-relaxed">
+                                                        {rate.description}
+                                                    </p>
+                                                ) : (
+                                                    <p className="text-[11px] text-slate-400 italic">
+                                                        No comment provided.
+                                                    </p>
+                                                )}
                                             </div>
                                         ))}
                                     </div>

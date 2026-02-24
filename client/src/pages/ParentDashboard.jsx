@@ -23,18 +23,18 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 /* ====== RATING STARS ====== */
 const RatingStars = ({ value, onChange }) => (
-  <div className="flex items-center gap-1.5">
+  <div className="flex items-center -space-x-1 max-w-full">
     {[1, 2, 3, 4, 5].map((star) => (
       <button
         key={star}
         type="button"
         onClick={() => onChange(star)}
-        className="focus:outline-none transform transition-all duration-200 hover:scale-110 active:scale-90"
+        className="focus:outline-none transform transition-all duration-200 p-1 hover:scale-110 active:scale-90 flex-shrink-0"
       >
         <Star
-          className={`w-5 h-5 transition-all duration-300 ${value && star <= value
+          className={`w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 transition-all duration-300 ${value && star <= value
             ? "fill-[#FBBF24] text-[#FBBF24] drop-shadow-[0_2px_4px_rgba(251,191,36,0.4)]"
-            : "fill-slate-100 text-slate-200 hover:text-[#FBBF24]/50"
+            : "fill-slate-200 text-slate-300 hover:text-[#FBBF24]/60"
             }`}
         />
       </button>
@@ -642,11 +642,11 @@ const ParentDashboard = ({ parent, setParent }) => {
                                           </div>
                                         </div>
 
-                                        <div className="lg:w-[300px] flex-shrink-0 bg-slate-50/80 rounded-2xl p-4 border border-slate-100">
+                                        <div className="lg:w-[300px] flex-shrink-0 bg-slate-50/80 rounded-2xl p-3 sm:p-4 border border-slate-100">
                                           {isCompleted ? (
                                             <div className="flex flex-col gap-3">
-                                              <div className="flex items-center justify-between">
-                                                <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                                              <div className="flex items-center justify-between gap-3 w-full">
+                                                <p className="text-[10px] sm:text-[11px] font-bold text-slate-600 uppercase tracking-wider min-w-0 truncate">
                                                   Rate Session
                                                 </p>
                                                 <RatingStars
