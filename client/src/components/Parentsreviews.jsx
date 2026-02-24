@@ -228,6 +228,7 @@ export default function TestimonialsSection() {
                 key={i}
                 onClick={() => setCurrentIndex(i)}
                 className={`
+                  p-0 m-0 border-none min-h-0 min-w-0
                   h-2 rounded-full transition-all duration-500 ease-out focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-indigo-900
                   ${currentIndex === i ? "w-10 bg-blue-400 shadow-[0_0_10px_rgba(96,165,250,0.5)]" : "w-2.5 bg-white/30 hover:bg-white/60"}
                 `}
