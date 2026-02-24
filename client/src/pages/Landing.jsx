@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { motion as Motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import Parentsreviews from "../components/Parentsreviews";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import {
   Monitor,
@@ -520,6 +521,8 @@ const Landing = () => {
           </div>
         </div>
       </Motion.section>
+
+      <Parentsreviews />
 
       {/* ============================
           FAQ SECTION
