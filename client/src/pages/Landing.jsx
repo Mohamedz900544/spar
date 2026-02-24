@@ -651,13 +651,13 @@ const Landing = () => {
                 Get the latest robot kits news and exclusive discounts for young
                 inventors.
               </p>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="email"
                   placeholder="Enter your email"
-                  className="flex-1 rounded-lg bg-white/10 border border-white/20 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#FBBF24]"
+                  className="w-full sm:flex-1 rounded-lg bg-white/10 border border-white/20 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#FBBF24]"
                 />
-                <button className="rounded-lg bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 font-semibold px-5 py-2.5 text-sm flex items-center gap-1.5 transition-colors">
+                <button className="w-full sm:w-auto rounded-lg bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 font-semibold px-5 py-2.5 text-sm flex items-center justify-center gap-1.5 transition-colors">
                   Subscribe <Send size={14} />
                 </button>
               </div>
@@ -674,7 +674,7 @@ const Landing = () => {
                 Designed for future innovators.
               </span>
             </p>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center justify-center md:justify-end gap-3">
               <div className="bg-white/10 rounded px-2 py-1 text-xs">
                 🍎 Pay
               </div>
