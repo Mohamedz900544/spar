@@ -22,14 +22,17 @@ import PropTypes from "prop-types";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 /* ====== RATING STARS ====== */
-const RatingStars = ({ value, onChange }) => (
+const RatingStars = ({ value, onChange, disabled }) => (
   <div className="flex items-center -space-x-1 max-w-full">
     {[1, 2, 3, 4, 5].map((star) => (
       <button
         key={star}
         type="button"
-        onClick={() => onChange(star)}
-        className="focus:outline-none transform transition-all duration-200 p-1 hover:scale-110 active:scale-90 flex-shrink-0"
+        onClick={() => {
+          if (!disabled) onChange(star);
+        }}
+        disabled={disabled}
+        className={`focus:outline-none transform transition-all duration-200 p-1 hover:scale-110 active:scale-90 flex-shrink-0 ${disabled ? "opacity-70 cursor-not-allowed hover:scale-100 active:scale-100" : ""}`}
       >
         <Star
           className={`w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 transition-all duration-300 ${value && star <= value
@@ -41,6 +44,54 @@ const RatingStars = ({ value, onChange }) => (
     ))}
   </div>
 );
+
+const getSessionDateTime = (session) => {
+  if (!session?.date) return null;
+  const time = session?.time ? session.time : "00:00";
+  const dateTime = new Date(`${session.date}T${time}`);
+  if (Number.isNaN(dateTime.getTime())) return null;
+  return dateTime;
+};
+
+const getUpcomingSessionId = (sessions, now) => {
+  if (!sessions?.length) return null;
+  const upcoming = sessions
+    .map((session) => {
+      const dateTime = getSessionDateTime(session);
+      if (!dateTime) return null;
+      if (session.status === "Completed") return null;
+      return { id: session.id || session._id, time: dateTime.getTime() };
+    })
+    .filter(Boolean)
+    .filter((s) => s.time >= now.getTime())
+    .sort((a, b) => a.time - b.time);
+  return upcoming[0]?.id || null;
+};
+
+const getCountdownLabel = (diffMs) => {
+  if (diffMs <= 0) return "Active";
+  const minute = 60 * 1000;
+  const hour = 60 * minute;
+  const day = 24 * hour;
+  const week = 7 * day;
+  if (diffMs <= 30 * minute) return "in 30 minutes";
+  if (diffMs <= hour) return "in 1 hour";
+  if (diffMs <= day) return "in 1 day";
+  if (diffMs <= week) return "in 1 week";
+  return "in 1 week";
+};
+
+const formatCountdown = (diffMs) => {
+  const totalMinutes = Math.max(0, Math.floor(diffMs / 60000));
+  const days = Math.floor(totalMinutes / (60 * 24));
+  const hours = Math.floor((totalMinutes - days * 24 * 60) / 60);
+  const minutes = totalMinutes % 60;
+  const parts = [];
+  if (days) parts.push(`${days}d`);
+  if (hours) parts.push(`${hours}h`);
+  if (!days && minutes) parts.push(`${minutes}m`);
+  return parts.join(" ");
+};
 
 /* ====== STAT CARD ====== */
 const StatCard = ({ icon: Icon, label, value, accent, subtext }) => (
@@ -83,6 +134,7 @@ const ParentDashboard = ({ parent, setParent }) => {
   const [sessionRatings, setSessionRatings] = useState({});
   const [sessionFeedback, setSessionFeedback] = useState({});
   const [ratingSubmitted, setRatingSubmitted] = useState({});
+  const [now, setNow] = useState(() => new Date());
 
   const [selectedChildId, setSelectedChildId] = useState("");
   const [isEnrollingChild, setIsEnrollingChild] = useState(false);
@@ -100,6 +152,11 @@ const ParentDashboard = ({ parent, setParent }) => {
     const firstChild = user?.children?.[0];
     return Boolean(firstChild?.name?.trim()) && Number(firstChild?.age) > 0;
   };
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const token = getToken();
@@ -457,6 +514,7 @@ const ParentDashboard = ({ parent, setParent }) => {
                 {visibleRounds.map((round) => {
                   const children = getChildrenForRound(round.code);
                   const isSelected = selectedRoundCode === round.code;
+                  const upcomingSessionId = getUpcomingSessionId(round.sessions, now);
 
                   return (
                     <div
@@ -607,9 +665,15 @@ const ParentDashboard = ({ parent, setParent }) => {
                                   {round?.sessions?.map((session) => {
                                     const sessionId = session.id || session._id;
                                     const key = `${round.code}-${sessionId}`;
+                                    const isUpcoming = upcomingSessionId === sessionId;
+                                    const sessionDateTime = isUpcoming ? getSessionDateTime(session) : null;
+                                    const diffMs = sessionDateTime ? sessionDateTime.getTime() - now.getTime() : null;
+                                    const countdownLabel = diffMs != null ? getCountdownLabel(diffMs) : null;
+                                    const countdownText = diffMs != null ? formatCountdown(diffMs) : "";
                                     const rating = sessionRatings[key] || session.userRating || 0;
                                     const feedbackText = sessionFeedback[key] || session.feedback || "";
-                                    const submitted = ratingSubmitted[key];
+                                    const submitted = ratingSubmitted[key] || Boolean(session.userRating);
+                                    const isLocked = submitted;
                                     const isCompleted = session.status === "Completed";
 
                                     return (
@@ -637,8 +701,15 @@ const ParentDashboard = ({ parent, setParent }) => {
                                           <div className="mt-3">
                                             <span className="inline-flex items-center gap-1.5 bg-slate-100/80 px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-medium text-slate-500">
                                               <CalendarClock className="w-3.5 h-3.5 text-slate-400" />
-                                              {session.date || "Date TBA"}
+                                              {session.date || "Date TBA"}{session.time ? ` • ${session.time}` : ""}
                                             </span>
+                                            {isUpcoming && countdownLabel && (
+                                              <span className="ml-2 inline-flex items-center gap-1.5 bg-[#FBBF24]/15 text-[#92400e] px-2.5 py-1 rounded-lg text-xs font-semibold">
+                                                <Zap className="w-3.5 h-3.5" />
+                                                {countdownLabel}
+                                                {countdownText ? ` · ${countdownText}` : ""}
+                                              </span>
+                                            )}
                                           </div>
                                         </div>
 
@@ -651,6 +722,7 @@ const ParentDashboard = ({ parent, setParent }) => {
                                                 </p>
                                                 <RatingStars
                                                   value={rating}
+                                                  disabled={isLocked}
                                                   onChange={(stars) =>
                                                     handleSessionRatingChange(round.code, sessionId, stars)
                                                   }
@@ -662,26 +734,34 @@ const ParentDashboard = ({ parent, setParent }) => {
                                                   handleSessionFeedbackChange(round.code, sessionId, e.target.value)
                                                 }
                                                 placeholder="Leave feedback…"
-                                                className="w-full min-h-[60px] rounded-xl border border-slate-200 bg-white p-2.5 text-sm text-slate-700 outline-none focus:border-[#FBBF24] focus:ring-2 focus:ring-[#FBBF24]/20 resize-none transition-all placeholder:text-slate-400"
+                                                disabled={isLocked}
+                                                className={`w-full min-h-[60px] rounded-xl border border-slate-200 bg-white p-2.5 text-sm text-slate-700 outline-none focus:border-[#FBBF24] focus:ring-2 focus:ring-[#FBBF24]/20 resize-none transition-all placeholder:text-slate-400 ${isLocked ? "bg-slate-100/70 text-slate-600" : ""}`}
                                               />
                                               <div className="flex items-center justify-between pt-1">
                                                 {submitted ? (
-                                                  <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100">
-                                                    <CheckCircle2 className="w-4 h-4" /> Received
-                                                  </span>
+                                                  <div className="flex flex-col gap-1">
+                                                    <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100">
+                                                      <CheckCircle2 className="w-4 h-4" /> Received
+                                                    </span>
+                                                    <span className="text-[11px] text-slate-500">
+                                                      تقييمك: {rating || session.userRating}/5
+                                                    </span>
+                                                  </div>
                                                 ) : (
                                                   <span className="text-xs text-slate-400 italic">
                                                     Not sent yet
                                                   </span>
                                                 )}
-                                                <button
-                                                  type="button"
-                                                  disabled={!rating}
-                                                  onClick={() => handleSubmitRating(round.code, session)}
-                                                  className="rounded-xl bg-[#102a5a] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#1a3a6b] transition-all active:scale-[0.98] disabled:opacity-50"
-                                                >
-                                                  Submit
-                                                </button>
+                                                {!submitted && (
+                                                  <button
+                                                    type="button"
+                                                    disabled={!rating}
+                                                    onClick={() => handleSubmitRating(round.code, session)}
+                                                    className="rounded-xl bg-[#102a5a] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#1a3a6b] transition-all active:scale-[0.98] disabled:opacity-50"
+                                                  >
+                                                    Submit
+                                                  </button>
+                                                )}
                                               </div>
                                             </div>
                                           ) : (
