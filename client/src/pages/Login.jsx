@@ -214,11 +214,8 @@ const Login = () => {
         >
           {/* Mobile-only brand */}
           <div className="lg:hidden text-center mb-8">
-            <Link to="/" className="inline-flex items-center gap-2">
-              <div className="w-9 h-9 rounded-xl bg-[#FBBF24] flex items-center justify-center">
-                <Zap className="w-4 h-4 text-[#102a5a]" />
-              </div>
-              <span className="text-[#102a5a] font-bold text-lg">Sparvi Lab</span>
+            <Link to="/" className="inline-flex items-center">
+              <img src="/logo.png" alt="Sparvi Lab" className="h-10" />
             </Link>
           </div>
 
