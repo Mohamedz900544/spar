@@ -270,7 +270,7 @@ const Landing = () => {
             initial={{ x: -60, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.9 }}
-            className="text-center md:text-left"
+            className="order-2 md:order-none text-center md:text-left"
           >
             <h1 className="text-3xl md:text-5xl lg:text-[3.4rem] font-extrabold tracking-tight mb-5 leading-[1.15] text-white font-display">
               <span className="block">
@@ -308,7 +308,7 @@ const Landing = () => {
             initial={{ x: 60, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.9, delay: 0.1 }}
-            className="flex justify-center"
+            className="order-1 md:order-none flex justify-center"
           >
             <img
               src="/Robot.png"
@@ -487,7 +487,7 @@ const Landing = () => {
           <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
 
             {/* Left — Lottie animation + CTA */}
-            <div className="flex flex-col items-center gap-6 lg:w-[300px] shrink-0">
+            <div className="flex flex-col items-center gap-6 lg:w-[300px] shrink-0 order-2 lg:order-none">
               <div className="w-64 h-64 lg:w-72 lg:h-72">
                 <DotLottieReact
                   src="https://lottie.host/da2dc79c-aa3e-46dc-8bca-9aa5787b1625/7CWJv1tJxv.lottie"
@@ -503,7 +503,7 @@ const Landing = () => {
             </div>
 
             {/* Right — 2-column grid of feature cards */}
-            <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-5 order-1 lg:order-none">
               {features.map((feature, i) => (
                 <Motion.div
                   key={i}
