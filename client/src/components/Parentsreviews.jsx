@@ -48,6 +48,7 @@ export default function TestimonialsSection() {
   }, []);
 
   const maxIndex = Math.max(0, testimonials.length - itemsPerView);
+  const safeIndex = Math.min(currentIndex, maxIndex);
 
   // Auto-play logic
   useEffect(() => {
@@ -59,13 +60,6 @@ export default function TestimonialsSection() {
 
     return () => clearInterval(timer);
   }, [maxIndex, isHovered]);
-
-  // Ensure index stays within bounds if resizing changes itemsPerView
-  useEffect(() => {
-    if (currentIndex > maxIndex) {
-      setCurrentIndex(maxIndex);
-    }
-  }, [maxIndex, currentIndex]);
 
   const handleNext = useCallback(() => {
     setCurrentIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
@@ -87,7 +81,7 @@ export default function TestimonialsSection() {
   };
 
   return (
-    <section id="feedback" className="py-12 sm:py-20 bg-slate-50">
+    <section id="parents-reviews" className="py-12 sm:py-20 bg-slate-50">
       <div
         className="
           relative min-h-[520px] md:min-h-[600px]
@@ -136,7 +130,7 @@ export default function TestimonialsSection() {
               <div
                 className="flex transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]"
                 style={{
-                  transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)`,
+                  transform: `translateX(-${safeIndex * (100 / itemsPerView)}%)`,
                 }}
               >
                 {testimonials.map((t, idx) => (
@@ -199,7 +193,7 @@ export default function TestimonialsSection() {
                 w-12 h-12 rounded-full bg-white/90 shadow-lg border border-slate-200
                 flex items-center justify-center text-blue-600
                 transition-all duration-300 hover:scale-110 hover:bg-white z-20
-                ${currentIndex === 0 ? "opacity-0 pointer-events-none" : "opacity-100"}
+                ${safeIndex === 0 ? "opacity-0 pointer-events-none" : "opacity-100"}
               `}
               aria-label="Previous testimonial"
             >
@@ -213,7 +207,7 @@ export default function TestimonialsSection() {
                 w-12 h-12 rounded-full bg-white/90 shadow-lg border border-slate-200
                 flex items-center justify-center text-blue-600
                 transition-all duration-300 hover:scale-110 hover:bg-white z-20
-                ${currentIndex >= maxIndex ? "opacity-0 pointer-events-none" : "opacity-100"}
+                ${safeIndex >= maxIndex ? "opacity-0 pointer-events-none" : "opacity-100"}
               `}
               aria-label="Next testimonial"
             >
@@ -230,7 +224,7 @@ export default function TestimonialsSection() {
                 className={`
                   p-0 m-0 border-none min-h-0 min-w-0
                   h-2 rounded-full transition-all duration-500 ease-out focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-indigo-900
-                  ${currentIndex === i ? "w-10 bg-blue-400 shadow-[0_0_10px_rgba(96,165,250,0.5)]" : "w-2.5 bg-white/30 hover:bg-white/60"}
+                  ${safeIndex === i ? "w-10 bg-blue-400 shadow-[0_0_10px_rgba(96,165,250,0.5)]" : "w-2.5 bg-white/30 hover:bg-white/60"}
                 `}
                 aria-label={`Go to slide ${i + 1}`}
               />

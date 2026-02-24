@@ -15,6 +15,7 @@ const Navbar = () => {
 
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [hideNavbar, setHideNavbar] = useState(false);
 
   const logoScrolled = "/logo.png";
   const logoTransparent = "/logo-white.png";
@@ -32,6 +33,24 @@ const Navbar = () => {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    if (!isLanding) return;
+    const section = document.getElementById("parents-reviews");
+    if (!section) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const shouldHide = entry.isIntersecting;
+        setHideNavbar(shouldHide);
+        if (shouldHide) setOpen(false);
+      },
+      { threshold: 0.2 }
+    );
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, [isLanding]);
+
+  const shouldHideNavbar = isLanding ? hideNavbar : false;
 
   /* ================= CORE STYLE LOGIC ================= */
   const forceWhiteNavbar = open && scrolled;
@@ -59,6 +78,9 @@ const Navbar = () => {
       className={[
         "fixed top-0 left-0 w-full z-40",
         "transition-all duration-500 ease-[cubic-bezier(0.22,0.61,0.36,1)]",
+        shouldHideNavbar
+          ? "opacity-0 -translate-y-full pointer-events-none"
+          : "opacity-100 translate-y-0",
         effectiveScrolled
           ? "bg-white/95 backdrop-blur-md shadow-[0_2px_20px_rgba(0,0,0,0.08)]"
           : "bg-transparent shadow-none",

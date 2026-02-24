@@ -25,7 +25,11 @@ a {
   width: 8px;
 }
 
+::-webkit-scrollbar-track {
+  background: #102a5a;
+}
+
 ::-webkit-scrollbar-thumb {
-  background-color: #102a5a;
+  background-color: #ffffff;
   border-radius: 4px;
 }
