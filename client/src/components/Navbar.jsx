@@ -168,7 +168,7 @@ const Navbar = () => {
             open ? "translate-x-0" : "translate-x-full",
           ].join(" ")}
         >
-          <div className="flex items-center justify-between p-5">
+          <div className="flex items-center justify-between p-5 bg-white">
             <img src={logoScrolled} alt="Sparvi Lab" className="h-8" />
             <button
               onClick={() => setOpen(false)}
@@ -178,7 +178,7 @@ const Navbar = () => {
             </button>
           </div>
 
-          <div className="px-6">
+          <div className="px-6 bg-white h-screen">
             <nav className="divide-y divide-slate-100">
               {navLinks.map((item) => (
                 <NavLink
