@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { ChevronLeft, ChevronRight, Quote, Star } from "lucide-react";
-
+import { Quote, Star } from "lucide-react";
 // Expanded testimonials array to demonstrate the sliding capability
 const testimonials = [
   {
@@ -181,7 +180,7 @@ export default function TestimonialsSection() {
             </div>
 
             {/* Navigation Arrows (Hidden on mobile, appear on hover for larger screens) */}
-            <button
+            {/* <button
               onClick={handlePrev}
               className={`
                 absolute top-1/2 -translate-y-1/2 -left-3 sm:-left-6
@@ -207,7 +206,7 @@ export default function TestimonialsSection() {
               aria-label="Next testimonial"
             >
               <ChevronRight className="w-6 h-6 ml-0.5" />
-            </button>
+            </button> */}
           </div>
 
           {/* Interactive Pagination Dots */}
