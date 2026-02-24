@@ -178,6 +178,15 @@ button {
   background-color: #f8fafc;
 }
 
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* ============================
    SPARKLE EFFECT (CSS-only)
    ============================ */

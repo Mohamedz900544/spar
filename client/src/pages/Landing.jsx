@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion as Motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
@@ -153,6 +153,24 @@ const HERO_VIDEOS = [
   },
 ];
 
+const studentProjects = [
+  {
+    img: "https://images.unsplash.com/photo-1581092921461-eab62e97a780?w=600&q=80",
+    title: "LED Circuit Board",
+    desc: "Built a working LED matrix circuit using resistors, jumper wires, and a breadboard — fully hand-wired!",
+  },
+  {
+    img: "https://images.unsplash.com/photo-1624555130581-1d9cca783bc0?w=600&q=80",
+    title: "Traffic Light System",
+    desc: "Programmed a traffic light sequence with timing logic and low-voltage LEDs on a live circuit.",
+  },
+  {
+    img: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&q=80",
+    title: "Sound Sensor Alarm",
+    desc: "Wired a sound sensor to a buzzer — when noise exceeds the threshold, the alarm triggers!",
+  },
+];
+
 /* ==============================
    VIDEO CARD COMPONENT
    ============================== */
@@ -214,6 +232,26 @@ const VideoCard = ({ thumbnail, ytSrc, name, meta }) => {
 
 const Landing = () => {
   const [openFAQ, setOpenFAQ] = useState(0);
+  const [projectIndex, setProjectIndex] = useState(0);
+  const projectTrackRef = useRef(null);
+  const projectCount = studentProjects.length;
+
+  useEffect(() => {
+    if (projectCount <= 1) return;
+    const timer = setInterval(() => {
+      setProjectIndex((prev) => (prev + 1) % projectCount);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [projectCount]);
+
+  useEffect(() => {
+    const track = projectTrackRef.current;
+    if (!track) return;
+    const card = track.querySelector(`[data-project-index="${projectIndex}"]`);
+    if (!card) return;
+    const left = card.offsetLeft - track.offsetLeft;
+    track.scrollTo({ left, behavior: "smooth" });
+  }, [projectIndex]);
 
   return (
     <div className="min-h-screen bg-white text-slate-800 font-sans flex flex-col">
@@ -359,32 +397,20 @@ const Landing = () => {
             </p>
           </div>
 
-          {/* Project Cards — horizontal scroll on mobile, grid on desktop */}
-          <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                img: "https://images.unsplash.com/photo-1581092921461-eab62e97a780?w=600&q=80",
-                title: "LED Circuit Board",
-                desc: "Built a working LED matrix circuit using resistors, jumper wires, and a breadboard — fully hand-wired!",
-              },
-              {
-                img: "https://images.unsplash.com/photo-1624555130581-1d9cca783bc0?w=600&q=80",
-                title: "Traffic Light System",
-                desc: "Programmed a traffic light sequence with timing logic and low-voltage LEDs on a live circuit.",
-              },
-              {
-                img: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&q=80",
-                title: "Sound Sensor Alarm",
-                desc: "Wired a sound sensor to a buzzer — when noise exceeds the threshold, the alarm triggers!",
-              },
-            ].map((proj, i) => (
+          {/* Project Cards — horizontal swiper */}
+          <div
+            ref={projectTrackRef}
+            className="mt-10 flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth hide-scrollbar"
+          >
+            {studentProjects.map((proj, i) => (
               <Motion.div
                 key={i}
                 initial={{ y: 20, opacity: 0 }}
                 whileInView={{ y: 0, opacity: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.45, delay: i * 0.1 }}
-                className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 overflow-hidden group"
+                className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 overflow-hidden group shrink-0 basis-[85%] sm:basis-[48%] lg:basis-[32%] snap-start"
+                data-project-index={i}
               >
                 {/* Thumbnail */}
                 <div className="relative overflow-hidden h-44">
@@ -411,22 +437,19 @@ const Landing = () => {
               </Motion.div>
             ))}
           </div>
-
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-12">
-            <Link to="/contact">
+          <div className="mt-8 flex justify-center items-center gap-2.5">
+            {[...Array(projectCount)].map((_, i) => (
               <button
-                className="inline-flex items-center gap-2 rounded-full font-semibold px-8 py-3.5 text-white shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5"
-                style={{ background: "linear-gradient(135deg, #0f172a, #1e3a8a)" }}
-              >
-                Contact Us
-              </button>
-            </Link>
-            <Link to="/courses">
-              <button className="inline-flex items-center gap-2 rounded-full bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 font-semibold px-8 py-3.5 shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5">
-                See More Projects
-              </button>
-            </Link>
+                key={i}
+                onClick={() => setProjectIndex(i)}
+                className={`
+                  p-0 m-0 border-none min-h-0 min-w-0
+                  h-2 rounded-full transition-all duration-500 ease-out focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-indigo-900
+                  ${projectIndex === i ? "w-10 bg-blue-400 shadow-[0_0_10px_rgba(96,165,250,0.5)]" : "w-2.5 bg-white/30 hover:bg-white/60"}
+                `}
+                aria-label={`Go to project ${i + 1}`}
+              />
+            ))}
           </div>
 
         </div>
