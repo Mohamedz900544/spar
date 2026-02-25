@@ -274,13 +274,13 @@ const Landing = () => {
           >
             <h1 className="text-3xl md:text-5xl lg:text-[3.4rem] font-extrabold tracking-tight mb-5 leading-[1.15] text-white font-display">
               <span className="block">
-                Engaging live sessions and
+                Building the
               </span>
               <span className="block">
-                kits to Learn Electronics
+                Next Generation’s
               </span>
               <span className="inline-block mt-2 bg-[#FBBF24] text-[#071228] px-4 py-1 rounded-md text-2xl md:text-3xl font-bold transform -rotate-1">
-                For kids
+                Minds
               </span>
             </h1>
 
@@ -313,8 +313,7 @@ const Landing = () => {
             <img
               src="/Robot.png"
               alt="Sparvi Lab Robot"
-              className="w-full max-w-md drop-shadow-[0_20px_40px_rgba(0,0,0,0.3)] animate-float-up"
-              style={{ animationDuration: "5s" }}
+              className="w-[140%] max-w-none drop-shadow-[0_20px_40px_rgba(0,0,0,0.3)]"
             />
           </Motion.div>
         </div>
