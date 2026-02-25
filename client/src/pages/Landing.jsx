@@ -264,7 +264,7 @@ const Landing = () => {
         background: "linear-gradient(135deg, #0a1628 0%, #102a5a 40%, #1a4a8a 70%, #1565c0 100%)"
       }}>
         <Sparkles />
-        <div className="max-w-7xl mx-auto px-6 pt-20 pb-0 md:pt-28 md:pb-0 grid md:grid-cols-2 gap-10 items-center relative z-10">
+        <div className="max-w-7xl mx-auto px-6 pt-20 pb-0 md:pt-28 md:pb-0 grid md:grid-cols-2 items-center relative z-10">
           {/* Left: Text */}
           <Motion.div
             initial={{ x: -60, opacity: 0 }}
@@ -272,32 +272,32 @@ const Landing = () => {
             transition={{ duration: 0.9 }}
             className="order-1 md:order-none text-center md:text-left"
           >
-            <h1 className="text-3xl md:text-5xl lg:text-[3.4rem] font-extrabold tracking-tight mb-5 leading-[1.15] text-white font-display">
+            <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-[3.4rem] font-extrabold tracking-tight mb-4 md:mb-5 leading-[1.15] text-white font-display">
               <span className="block">
                 Building the
               </span>
               <span className="block">
                 Next Generation’s
               </span>
-              <span className="inline-block mt-2 bg-[#FBBF24] text-[#071228] px-4 py-1 rounded-md text-2xl md:text-3xl font-bold transform -rotate-1">
+              <span className="inline-block mt-2 bg-[#FBBF24] text-[#071228] px-3 py-1 rounded-md text-xl sm:text-2xl md:text-3xl font-bold transform -rotate-1">
                 Minds
               </span>
             </h1>
 
-            <p className="max-w-xl mx-auto md:mx-0 text-sm md:text-base text-slate-300 mb-8 leading-relaxed">
+            <p className="max-w-xl mx-auto md:mx-0 text-xs sm:text-sm md:text-base text-slate-300 mb-6 md:mb-8 leading-relaxed">
               Hands-on learning that sparks creativity. Build robots, learn
               circuits, and code your future with Sparvi Lab.
             </p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex flex-row flex-wrap justify-center md:justify-start items-center gap-3 sm:gap-4">
               <Link to="/signup">
-                <button className="inline-flex items-center justify-center gap-2 rounded-full px-8 py-3.5 text-base font-semibold shadow-[0_8px_25px_rgba(251,191,36,0.4)] hover:shadow-[0_12px_35px_rgba(251,191,36,0.5)] bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 transition-all duration-200 hover:-translate-y-0.5">
+                <button className="inline-flex items-center justify-center gap-2 rounded-full px-6 sm:px-8 py-3 text-sm sm:text-base font-semibold shadow-[0_8px_25px_rgba(251,191,36,0.4)] hover:shadow-[0_12px_35px_rgba(251,191,36,0.5)] bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 transition-all duration-200 hover:-translate-y-0.5">
                   Secure your seat!
                 </button>
               </Link>
 
-              <button className="inline-flex items-center justify-center gap-2 rounded-full px-8 py-3.5 text-base font-semibold border-2 border-white/30 text-white hover:bg-white/10 transition-all duration-200">
+              <button className="inline-flex items-center justify-center gap-2 rounded-full px-6 sm:px-8 py-3 text-sm sm:text-base font-semibold border-2 border-white/30 text-white hover:bg-white/10 transition-all duration-200">
                 Our Story ➤
               </button>
             </div>
