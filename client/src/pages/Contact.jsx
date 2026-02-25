@@ -119,7 +119,7 @@ const Contact = () => {
     "w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-3.5 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all placeholder:text-slate-400";
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#f8fafc] to-white">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#f8fafc] to-white overflow-x-hidden">
       <Navbar />
 
       {/* ===== Hero Banner ===== */}
@@ -226,12 +226,12 @@ const Contact = () => {
 
           {/* Form Card — right */}
           <motion.div
-            className="lg:col-span-3 order-1 lg:order-none min-w-0"
+            className="lg:col-span-3 order-1 lg:order-none min-w-0 w-full"
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.35 }}
           >
-            <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-[0_20px_60px_rgba(16,42,90,0.06)] border border-white/60 p-6 sm:p-8 md:p-10">
+            <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-[0_20px_60px_rgba(16,42,90,0.06)] border border-white/60 p-6 sm:p-8 md:p-10 w-full">
               <div className="mb-7">
                 <h2 className="text-xl font-bold text-[#102a5a] font-display">
                   Send us a message
