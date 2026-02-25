@@ -56,7 +56,7 @@ const EgyptPhoneInput = ({
 
     return (
         <div className="w-full">
-            <div className="relative flex items-stretch">
+        <div className="relative flex items-stretch min-w-0">
                 {/* ── Flag + code badge ── */}
                 <div className="flex items-center gap-1.5 px-3.5 bg-slate-50 border border-r-0 border-slate-200 rounded-l-2xl text-slate-600 shrink-0 select-none">
                     <span className="text-xl leading-none" role="img" aria-label="Egypt">🇪🇬</span>
@@ -72,7 +72,7 @@ const EgyptPhoneInput = ({
                     placeholder="0100 123 4567"
                     autoComplete="tel"
                     className={[
-                        "flex-1 py-3.5 px-4 rounded-r-2xl border bg-slate-50/50 text-sm text-slate-800",
+                        "flex-1 min-w-0 py-3.5 px-4 rounded-r-2xl border bg-slate-50/50 text-sm text-slate-800",
                         "outline-none focus:ring-2 transition-all placeholder:text-slate-400",
                         borderClass,
                         inputClass,

@@ -230,7 +230,7 @@ const VideoCard = ({ thumbnail, ytSrc, name, meta }) => {
 };
 
 const Landing = () => {
-  const [openFAQ, setOpenFAQ] = useState(0);
+  const [openFAQ, setOpenFAQ] = useState(-1);
   const [projectIndex, setProjectIndex] = useState(0);
   const projectTrackRef = useRef(null);
   const projectCount = studentProjects.length;

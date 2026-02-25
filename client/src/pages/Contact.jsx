@@ -226,7 +226,7 @@ const Contact = () => {
 
           {/* Form Card — right */}
           <motion.div
-            className="lg:col-span-3 order-1 lg:order-none"
+            className="lg:col-span-3 order-1 lg:order-none min-w-0"
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.35 }}
