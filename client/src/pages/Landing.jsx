@@ -290,14 +290,14 @@ const Landing = () => {
             </p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-row flex-wrap justify-center md:justify-start items-center gap-3 sm:gap-4">
+            <div className="flex flex-row flex-nowrap justify-center md:justify-start items-center gap-2 sm:gap-4">
               <Link to="/signup">
-                <button className="inline-flex items-center justify-center gap-2 rounded-full px-6 sm:px-8 py-3 text-sm sm:text-base font-semibold shadow-[0_8px_25px_rgba(251,191,36,0.4)] hover:shadow-[0_12px_35px_rgba(251,191,36,0.5)] bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 transition-all duration-200 hover:-translate-y-0.5">
+                <button className="inline-flex items-center justify-center gap-2 rounded-full px-4 sm:px-8 py-2.5 sm:py-3 text-xs sm:text-base font-semibold shadow-[0_8px_25px_rgba(251,191,36,0.4)] hover:shadow-[0_12px_35px_rgba(251,191,36,0.5)] bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 transition-all duration-200 hover:-translate-y-0.5 whitespace-nowrap min-w-0">
                   Secure your seat!
                 </button>
               </Link>
 
-              <button className="inline-flex items-center justify-center gap-2 rounded-full px-6 sm:px-8 py-3 text-sm sm:text-base font-semibold border-2 border-white/30 text-white hover:bg-white/10 transition-all duration-200">
+              <button className="inline-flex items-center justify-center gap-2 rounded-full px-4 sm:px-8 py-2.5 sm:py-3 text-xs sm:text-base font-semibold border-2 border-white/30 text-white hover:bg-white/10 transition-all duration-200 whitespace-nowrap min-w-0">
                 Our Story ➤
               </button>
             </div>
