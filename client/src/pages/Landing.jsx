@@ -3,7 +3,6 @@ import { motion as Motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Parentsreviews from "../components/Parentsreviews";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import {
   Monitor,
   Cpu,
@@ -366,7 +365,7 @@ const Landing = () => {
         viewport={{ once: true, amount: 0.15 }}
         transition={{ duration: 0.7 }}
       >
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-7xl mx-auto">
 
           {/* Heading */}
           <div className="text-center mb-3">
@@ -459,7 +458,7 @@ const Landing = () => {
         viewport={{ once: true, amount: 0.15 }}
         transition={{ duration: 0.7 }}
       >
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           {/* Heading */}
           <h2
             className="text-2xl md:text-4xl font-display mb-12 text-center"
@@ -477,18 +476,18 @@ const Landing = () => {
           </h2>
 
           {/* Two-column layout: Lottie left + features right */}
-          <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
+          <div className="flex flex-col lg:flex-row items-stretch gap-10 lg:gap-16">
 
             {/* Left — Lottie animation + CTA */}
-            <div className="flex flex-col items-center gap-6 lg:w-[300px] shrink-0 order-2 lg:order-none">
-              <div className="w-64 h-64 lg:w-72 lg:h-72">
-                <DotLottieReact
-                  src="https://lottie.host/da2dc79c-aa3e-46dc-8bca-9aa5787b1625/7CWJv1tJxv.lottie"
-                  loop
-                  autoplay
+            <div className="flex flex-col items-center gap-4 lg:w-[340px] shrink-0 order-2 lg:order-none h-full">
+              <div className="w-64 h-64 lg:w-full lg:flex-1 lg:max-w-[340px] mx-auto">
+                <img
+                  src="https://i.ibb.co/SDsjY4tc/7858397b-9602-4cbe-bedd-79e2d5875817.png"
+                  alt="Student holding money"
+                  className="w-full h-full object-cover rounded-3xl"
                 />
               </div>
-              <Link to="/signup">
+              <Link to="/signup" className=" mx-auto">
                 <button className="inline-flex items-center gap-2 rounded-full bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 font-semibold px-8 py-3.5 shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 whitespace-nowrap">
                   Secure your Seat!
                 </button>
@@ -586,34 +585,7 @@ const Landing = () => {
       {/* ============================
           CTA BANNER
          ============================ */}
-      {/* <Motion.section
-        className="py-12 px-6"
-        style={{
-          background: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #fb923c 100%)"
-        }}
-        initial={{ scale: 0.95, opacity: 0 }}
-        whileInView={{ scale: 1, opacity: 1 }}
-        viewport={{ once: true, amount: 0.4 }}
-        transition={{ duration: 0.6 }}
-      >
-        <div className="max-w-4xl mx-auto text-center text-slate-900">
-          <h2 className="text-2xl md:text-3xl font-bold mb-3 font-display text-slate-900">
-            Book a Sparvi Lab session for your child
-          </h2>
-          <p className="text-sm md:text-base mb-6 text-slate-800/80 max-w-2xl mx-auto">
-            Reserve a spot in our next group and let your child discover
-            how real electronics work — with guidance, friends and lots of
-            excitement.
-          </p>
-
-          <Link to="/signup">
-            <button className="bg-[#102a5a] hover:bg-[#0d2248] text-white font-semibold px-8 py-3.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5">
-              Sign up for a session
-            </button>
-          </Link>
-        </div>
-      </Motion.section> */}
-
+         
       {/* ============================
           FOOTER
          ============================ */}
@@ -709,3 +681,4 @@ const Landing = () => {
 };
 
 export default Landing;
+ 
