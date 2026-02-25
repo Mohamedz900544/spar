@@ -384,8 +384,7 @@ const Landing = () => {
               Discover Our Students' Projects
             </h2>
             <p className="text-slate-500 text-sm md:text-base mt-3 max-w-xl mx-auto">
-              Real builds by real kids — electronics, circuits, and creative
-              engineering from our Sparvi Lab community.
+              Explore out these projects by Sparvi Lab makers
             </p>
           </div>
 
@@ -401,7 +400,7 @@ const Landing = () => {
                 whileInView={{ y: 0, opacity: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.45, delay: i * 0.1 }}
-                className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 overflow-hidden group shrink-0 basis-[42%] sm:basis-[24%] lg:basis-[16%] snap-start"
+                className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 overflow-hidden group shrink-0 basis-[100%] sm:basis-[29%] lg:basis-[20%] snap-start"
                 data-project-index={i}
               >
                 {/* Thumbnail */}
