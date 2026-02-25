@@ -401,7 +401,7 @@ const Landing = () => {
                 whileInView={{ y: 0, opacity: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.45, delay: i * 0.1 }}
-                className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 overflow-hidden group shrink-0 basis-[85%] sm:basis-[48%] lg:basis-[32%] snap-start"
+                className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 overflow-hidden group shrink-0 basis-[42%] sm:basis-[24%] lg:basis-[16%] snap-start"
                 data-project-index={i}
               >
                 {/* Thumbnail */}
