@@ -156,17 +156,17 @@ const studentProjects = [
   {
     img: "https://images.unsplash.com/photo-1581092921461-eab62e97a780?w=600&q=80",
     title: "LED Circuit Board",
-    desc: "Built a working LED matrix circuit using resistors, jumper wires, and a breadboard — fully hand-wired!",
+    desc: "Built a working LED matrix circuit using resistor",
   },
   {
     img: "https://images.unsplash.com/photo-1624555130581-1d9cca783bc0?w=600&q=80",
     title: "Traffic Light System",
-    desc: "Programmed a traffic light sequence with timing logic and low-voltage LEDs on a live circuit.",
+    desc: "Programmed a traffic light sequence with timing",
   },
   {
     img: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&q=80",
-    title: "Sound Sensor Alarm",
-    desc: "Wired a sound sensor to a buzzer — when noise exceeds the threshold, the alarm triggers!",
+    title: "Sound Alarm",
+    desc: "Wired a sound sensor to a buzzer — when noise",
   },
 ];
 
