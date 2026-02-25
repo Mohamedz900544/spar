@@ -480,11 +480,11 @@ const Landing = () => {
 
             {/* Left — Lottie animation + CTA */}
             <div className="flex flex-col items-center gap-4 lg:w-[340px] shrink-0 order-2 lg:order-none h-full">
-              <div className="w-64 h-64 lg:w-full lg:flex-1 lg:max-w-[340px] mx-auto">
+              <div className="w-64 h-64 sm:w-72 sm:h-72 lg:w-full lg:flex-1 lg:max-w-[340px] mx-auto">
                 <img
                   src="https://i.ibb.co/GvPJYPXt/its.png"
                   alt="Student holding money"
-                  className="w-full h-full object-cover rounded-3xl"
+                  className="w-full h-full object-contain lg:object-cover rounded-3xl"
                 />
               </div>
               <Link to="/signup" className=" mx-auto">
