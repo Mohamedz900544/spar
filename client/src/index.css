@@ -497,6 +497,25 @@ button {
 }
 
 @media (max-width: 640px) {
+  .sparvi-hero-video-wrapper {
+    width: 120px !important;
+  }
+
+  .sparvi-hero-name {
+    font-size: 0.62rem;
+  }
+
+  .sparvi-hero-meta {
+    font-size: 0.48rem;
+  }
+
+  .sparvi-hero-text-overlay {
+    bottom: 12px;
+  }
+  .sparvi-hero-name{
+    font-size: 13px!important;
+  }
+
   .sparvi-hero-play-btn {
     width: 48px;
     height: 48px;
