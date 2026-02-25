@@ -264,13 +264,13 @@ const Landing = () => {
         background: "linear-gradient(135deg, #0a1628 0%, #102a5a 40%, #1a4a8a 70%, #1565c0 100%)"
       }}>
         <Sparkles />
-        <div className="max-w-7xl mx-auto px-6 py-20 md:py-28 grid md:grid-cols-2 gap-10 items-center relative z-10">
+        <div className="max-w-7xl mx-auto px-6 pt-20 pb-0 md:pt-28 md:pb-0 grid md:grid-cols-2 gap-10 items-center relative z-10">
           {/* Left: Text */}
           <Motion.div
             initial={{ x: -60, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.9 }}
-            className="order-2 md:order-none text-center md:text-left"
+            className="order-1 md:order-none text-center md:text-left"
           >
             <h1 className="text-3xl md:text-5xl lg:text-[3.4rem] font-extrabold tracking-tight mb-5 leading-[1.15] text-white font-display">
               <span className="block">
@@ -308,7 +308,7 @@ const Landing = () => {
             initial={{ x: 60, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.9, delay: 0.1 }}
-            className="order-1 md:order-none flex justify-center"
+            className="order-2 md:order-none flex justify-center"
           >
             <img
               src="/Robot.png"
@@ -318,12 +318,6 @@ const Landing = () => {
           </Motion.div>
         </div>
 
-        {/* Bottom wave */}
-        <div className="absolute -bottom-px left-0 w-full overflow-hidden leading-none">
-          <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto block">
-            <path d="M0 60V30C240 0 480 0 720 30C960 60 1200 60 1440 30V60H0Z" fill="white" />
-          </svg>
-        </div>
       </section>
 
       {/* ============================
