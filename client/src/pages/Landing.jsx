@@ -278,7 +278,7 @@ const Landing = () => {
               <span className="block">
                 Next Generation’s
               </span>
-              <span className="inline-block mt-2 bg-[#FBBF24] text-[#071228] px-3 py-1 rounded-md text-xl sm:text-2xl md:text-3xl font-bold transform -rotate-1">
+              <span className="inline-block mt-2 bg-[#FBBF24] text-[#024f63] border-2 border-white px-3 py-1 rounded-md text-xl sm:text-2xl md:text-3xl font-bold transform -rotate-1">
                 Minds
               </span>
             </h1>
@@ -482,7 +482,7 @@ const Landing = () => {
             <div className="flex flex-col items-center gap-4 lg:w-[340px] shrink-0 order-2 lg:order-none h-full">
               <div className="w-64 h-64 lg:w-full lg:flex-1 lg:max-w-[340px] mx-auto">
                 <img
-                  src="https://i.ibb.co/SDsjY4tc/7858397b-9602-4cbe-bedd-79e2d5875817.png"
+                  src="https://i.ibb.co/GvPJYPXt/its.png"
                   alt="Student holding money"
                   className="w-full h-full object-cover rounded-3xl"
                 />
