@@ -145,7 +145,7 @@ const Contact = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.7 }}
           >
-     
+      
             <h1 className="text-3xl md:text-5xl font-extrabold text-white leading-tight mb-4 font-display">
               Get in <span className="text-[#FBBF24]">Touch</span>
             </h1>
@@ -262,33 +262,34 @@ const Contact = () => {
                   </button>
                 </motion.div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Parent name
-                      </label>
-                      <input
-                        name="parentName"
-                        value={formState.parentName}
-                        onChange={handleChange}
-                        className={inputClass}
-                        placeholder="Your name"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Phone / WhatsApp
-                      </label>
-                      <EgyptPhoneInput
-                        value={formState.phone}
-                        onChange={handlePhoneChange}
-                        error={phoneError}
-                        name="phone"
-                        required
-                      />
-                    </div>
+                <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto w-full">
+                  
+                  {/* Flattened structure here so everything scales uniformly */}
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Parent name
+                    </label>
+                    <input
+                      name="parentName"
+                      value={formState.parentName}
+                      onChange={handleChange}
+                      className={inputClass}
+                      placeholder="Your name"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Phone / WhatsApp
+                    </label>
+                    <EgyptPhoneInput
+                      value={formState.phone}
+                      onChange={handlePhoneChange}
+                      error={phoneError}
+                      name="phone"
+                      required
+                    />
                   </div>
 
                   <div>
