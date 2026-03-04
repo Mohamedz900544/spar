@@ -14,14 +14,10 @@ import roundRoutes from "./routes/round.routes.js";
 import sessionRoutes from "./routes/session.routes.js";
 import galleryRoutes from "./routes/gallery.routes.js";
 import instructorRoutes from "./routes/instructor.routes.js";
-import conversationsRoutes from "./routes/conversations.js";
-import whatsappWebhookRoutes from "./routes/webhook.js";
 // import "./config/cloudinary.js";
 import "./automatingUpdatingStatusOfSession.js"
 import enrollmentRoutes from "./routes/enrollment.routes.js";
 import fractionsRoutes from "./routes/fractions.js";
-import webhookRoutes from "./routes/webhook.js";
-import conversationRoutes from "./routes/conversations.js";
 // import fractionsRoutes from './routes/fractions'
 
 
@@ -84,10 +80,7 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/blocks", publicBlocksRoutes); // <-- share is public
 app.use("/api/blocks", blocksRoutes);
 app.use("/api/fractions", fractionsRoutes);
-app.use("/webhook", webhookRoutes);
-app.use("/api/conversations", conversationRoutes);
-app.use("/api/conversations", conversationsRoutes);
-app.use("/webhook/whatsapp", whatsappWebhookRoutes);
+
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   console.log(err)

@@ -1,10 +1,8 @@
 import { motion } from "framer-motion";
-import { CalendarClock, ImageIcon, Inbox, MessageSquare, Users, BarChart3, GraduationCap } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { CalendarClock, ImageIcon, Inbox, Users, BarChart3, GraduationCap } from "lucide-react";
 
 const Tabs = ({ activeTab, setActiveTab, tabButtonBase, newMessagesCount }) => {
     const MotionContainer = motion.div
-    const navigate = useNavigate();
 
     const activeStyle = `${tabButtonBase} bg-[#102a5a] text-white shadow-md`;
     const inactiveStyle = `${tabButtonBase} bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-[#102a5a]/20`;
@@ -83,14 +81,6 @@ const Tabs = ({ activeTab, setActiveTab, tabButtonBase, newMessagesCount }) => {
                         {newMessagesCount}
                     </span>
                 )}
-            </button>
-
-            <button
-                onClick={() => navigate("/admin/inbox")}
-                className={inactiveStyle}
-            >
-                <MessageSquare className="w-4 h-4" />
-                WhatsApp Inbox
             </button>
         </MotionContainer>
     )
