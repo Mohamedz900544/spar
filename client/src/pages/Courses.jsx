@@ -501,29 +501,43 @@ export default function Courses() {
                         style={{ background: `linear-gradient(90deg, ${phase.color}, ${phase.color}88)` }}
                       />
 
-                      <div className="p-6">
-                        <div className="flex justify-between items-start mb-5">
-                          <div className="flex items-center gap-4">
+                      <div className="p-4 sm:p-6">
+                        {/* Duration badge — top on mobile */}
+                        <div className="flex items-center justify-between mb-3 sm:mb-0 sm:hidden">
+                          <span
+                            className="text-xs font-bold px-3 py-1.5 rounded-lg"
+                            style={{
+                              backgroundColor: `${phase.color}15`,
+                              color: phase.color,
+                            }}
+                          >
+                            {phase.duration}
+                          </span>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-4 mb-4 sm:mb-5">
+                          <div className="flex items-start gap-3 sm:gap-4">
                             <div
-                              className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm"
+                              className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-sm shrink-0"
                               style={{
                                 background: `linear-gradient(135deg, ${phase.color}25, ${phase.color}10)`,
                                 border: `1px solid ${phase.color}30`,
                               }}
                             >
-                              <phase.icon className="w-6 h-6" style={{ color: phase.color }} />
+                              <phase.icon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: phase.color }} />
                             </div>
-                            <div>
-                              <h3 className="text-lg font-bold text-[#102a5a]">
+                            <div className="min-w-0">
+                              <h3 className="text-base sm:text-lg font-bold text-[#102a5a] leading-snug">
                                 {phase.name}
                               </h3>
-                              <p className="text-sm text-slate-500 mt-0.5 leading-relaxed">
+                              <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
                                 {phase.description}
                               </p>
                             </div>
                           </div>
+                          {/* Duration badge — inline on desktop */}
                           <span
-                            className="text-xs font-bold px-3 py-1.5 rounded-lg whitespace-nowrap ml-3"
+                            className="hidden sm:inline-block text-xs font-bold px-3 py-1.5 rounded-lg whitespace-nowrap shrink-0"
                             style={{
                               backgroundColor: `${phase.color}15`,
                               color: phase.color,
