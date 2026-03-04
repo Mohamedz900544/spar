@@ -481,7 +481,7 @@ const Landing = () => {
             <div className="flex flex-col items-center gap-4 lg:w-[340px] shrink-0 order-2 lg:order-none h-full">
               <div className="w-90 h-90 sm:w-80 sm:h-80 lg:w-full lg:flex-1 lg:max-w-[340px] mx-auto">
                 <img
-                  src="https://i.ibb.co/GvPJYPXt/its.png"
+                  src="/its.webp"
                   alt="Student holding money"
                   className="w-full h-full object-contain lg:object-cover rounded-3xl"
                 />
