@@ -13,6 +13,13 @@ import {
   Blocks,
   Activity,
   ShieldCheck,
+  Sparkles,
+  Rocket,
+  GraduationCap,
+  Lightbulb,
+  MonitorSmartphone,
+  BrainCircuit,
+  Zap,
 } from "lucide-react";
 
 /* -------------------------------------------------------
@@ -20,10 +27,10 @@ import {
 --------------------------------------------------------*/
 
 const ageGroups = [
-  { id: "6-8", label: "Ages 6-8" },
-  { id: "9-11", label: "Ages 9-11" },
-  { id: "12-14", label: "Ages 12-14" },
-  { id: "15-17", label: "Ages 15-17" },
+  { id: "6-8", label: "Ages 6-8", icon: Sparkles, color: "#2dd4bf" },
+  { id: "9-11", label: "Ages 9-11", icon: Rocket, color: "#FBBF24" },
+  { id: "12-14", label: "Ages 12-14", icon: Lightbulb, color: "#a78bfa" },
+  { id: "15-17", label: "Ages 15-17", icon: GraduationCap, color: "#f472b6" },
 ];
 
 const foundationCourses = [
@@ -55,18 +62,18 @@ const foundationCourses = [
 
 // detailed list of courses for 6–8
 const courses6to8 = [
-  "Technology Around Us",
-  "Creative Computing",
-  "STEM Projects",
-  "Coding With Minecraft",
-  "Space Exploration with Minecraft",
-  "Computational Thinking",
-  "Visual Algebra",
-  "Arithmetic Thinking",
-  "Coordinate Plane",
-  "Proportional Reasoning",
-  "Introduction to Functions",
-  "Foundations for Algebra",
+  { name: "Technology Around Us", icon: MonitorSmartphone, color: "#2dd4bf" },
+  { name: "Creative Computing", icon: BrainCircuit, color: "#a78bfa" },
+  { name: "STEM Projects", icon: Rocket, color: "#FBBF24" },
+  { name: "Coding With Minecraft", icon: Gamepad, color: "#f472b6" },
+  { name: "Space Exploration with Minecraft", icon: Compass, color: "#60a5fa" },
+  { name: "Computational Thinking", icon: BrainCircuit, color: "#2dd4bf" },
+  { name: "Visual Algebra", icon: Blocks, color: "#a78bfa" },
+  { name: "Arithmetic Thinking", icon: Lightbulb, color: "#FBBF24" },
+  { name: "Coordinate Plane", icon: Target, color: "#f472b6" },
+  { name: "Proportional Reasoning", icon: Activity, color: "#60a5fa" },
+  { name: "Introduction to Functions", icon: Code, color: "#2dd4bf" },
+  { name: "Foundations for Algebra", icon: Zap, color: "#FBBF24" },
 ];
 
 // tracks per age-range for the specialization phase
@@ -204,8 +211,8 @@ const FloatingShape = ({ className, delay = 0, duration = 6 }) => (
 --------------------------------------------------------*/
 export default function Courses() {
   const [selectedAge, setSelectedAge] = useState(null);
-  const [openPhase, setOpenPhase] = useState(0);
-  const [openFoundation, setOpenFoundation] = useState(0);
+  const [openPhase, setOpenPhase] = useState(null);
+  const [openFoundation, setOpenFoundation] = useState(null);
 
   const tracksForSelectedAge =
     selectedAge && selectedAge !== "6-8" ? ageTracks[selectedAge] || [] : [];
@@ -286,15 +293,16 @@ export default function Courses() {
                   key={age.id}
                   onClick={() => {
                     setSelectedAge(age.id);
-                    setOpenPhase(0);
-                    setOpenFoundation(0);
+                    setOpenPhase(null);
+                    setOpenFoundation(null);
                   }}
-                  className={`px-8 py-3 rounded-full font-bold border-2 transition-all duration-300 text-sm md:text-base ${
-                    selectedAge === age.id
-                      ? "bg-[#102a5a] text-white border-[#102a5a] shadow-[0_8px_20px_rgba(16,42,90,0.25)] scale-105"
-                      : "bg-white border-slate-200 text-slate-600 hover:border-[#102a5a]/30 hover:bg-slate-50"
-                  }`}
+                  className={`group flex items-center gap-2.5 px-6 py-3.5 rounded-2xl font-bold border-2 transition-all duration-300 text-sm md:text-base ${selectedAge === age.id
+                    ? "bg-[#102a5a] text-white border-[#102a5a] shadow-[0_8px_20px_rgba(16,42,90,0.25)] scale-105"
+                    : "bg-white border-slate-200 text-slate-600 hover:border-[#102a5a]/30 hover:bg-slate-50"
+                    }`}
                 >
+                  <age.icon className={`w-4 h-4 transition-colors ${selectedAge === age.id ? "text-[#FBBF24]" : "text-slate-400 group-hover:text-slate-600"
+                    }`} />
                   {age.label}
                 </button>
               ))}
@@ -343,62 +351,76 @@ export default function Courses() {
                     <Motion.div
                       key={course.name}
                       whileHover={{ y: -4 }}
-                      className={`relative bg-white rounded-3xl p-6 shadow-sm border transition-all duration-300 cursor-pointer ${
-                        openFoundation === idx
-                          ? "border-[#2dd4bf] shadow-md"
-                          : "border-slate-100"
-                      }`}
+                      className={`relative bg-white rounded-3xl overflow-hidden shadow-sm border transition-all duration-300 cursor-pointer ${openFoundation === idx
+                        ? "border-[#2dd4bf] shadow-[0_8px_30px_rgba(45,212,191,0.12)]"
+                        : "border-slate-100 hover:shadow-md"
+                        }`}
                       onClick={() =>
                         setOpenFoundation(
                           openFoundation === idx ? null : idx
                         )
                       }
                     >
+                      {/* Gradient top strip */}
                       <div
-                        className="w-12 h-1.5 rounded-full mb-5"
-                        style={{ backgroundColor: course.color }}
+                        className="h-1.5"
+                        style={{ background: `linear-gradient(90deg, ${course.color}, ${course.color}88)` }}
                       />
 
-                      <div className="flex items-center gap-3 mb-3">
-                        <div
-                          className="p-2 rounded-lg"
-                          style={{
-                            backgroundColor: `${course.color}15`,
-                            color: course.color,
-                          }}
-                        >
-                          <course.icon className="w-5 h-5" />
-                        </div>
-                        <h3 className="text-xl font-bold text-[#102a5a]">
-                          {course.name}
-                        </h3>
-                      </div>
-
-                      <p className="text-xs font-semibold text-slate-400 mb-5">
-                        {course.duration}
-                      </p>
-
-                      <ul className="space-y-3 mb-4">
-                        {course.highlights.map((h, i) => (
-                          <li
-                            key={i}
-                            className="flex gap-2.5 items-start text-sm text-slate-600"
+                      <div className="p-6">
+                        <div className="flex items-center gap-4 mb-4">
+                          <div
+                            className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm"
+                            style={{
+                              background: `linear-gradient(135deg, ${course.color}20, ${course.color}08)`,
+                              border: `1px solid ${course.color}30`,
+                            }}
                           >
-                            <CheckCircle2
-                              className="w-4 h-4 shrink-0 mt-0.5"
-                              style={{ color: course.color }}
-                            />
-                            {h}
-                          </li>
-                        ))}
-                      </ul>
+                            <course.icon className="w-6 h-6" style={{ color: course.color }} />
+                          </div>
+                          <div>
+                            <h3 className="text-xl font-bold text-[#102a5a]">
+                              {course.name}
+                            </h3>
+                            <p className="text-xs font-semibold text-slate-400 mt-0.5">
+                              {course.duration}
+                            </p>
+                          </div>
+                        </div>
 
-                      <div className="flex justify-end mt-4">
-                        {openFoundation === idx ? (
-                          <ChevronUp className="w-5 h-5 text-slate-400" />
-                        ) : (
-                          <ChevronDown className="w-5 h-5 text-slate-300" />
-                        )}
+                        {/* Expandable content */}
+                        <div
+                          className={`overflow-hidden transition-all duration-300 ${openFoundation === idx
+                            ? "max-h-60 opacity-100"
+                            : "max-h-0 opacity-0"
+                            }`}
+                        >
+                          <div className="pt-2 pb-1 border-t border-slate-100">
+                            <ul className="space-y-3 mt-3">
+                              {course.highlights.map((h, i) => (
+                                <li
+                                  key={i}
+                                  className="flex gap-2.5 items-start text-sm text-slate-600"
+                                >
+                                  <CheckCircle2
+                                    className="w-4 h-4 shrink-0 mt-0.5"
+                                    style={{ color: course.color }}
+                                  />
+                                  {h}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+
+                        <div className="flex justify-center mt-3">
+                          <Motion.div
+                            animate={{ rotate: openFoundation === idx ? 180 : 0 }}
+                            transition={{ duration: 0.25 }}
+                          >
+                            <ChevronDown className="w-5 h-5 text-slate-300" />
+                          </Motion.div>
+                        </div>
                       </div>
                     </Motion.div>
                   ))}
@@ -416,10 +438,16 @@ export default function Courses() {
                   <div className="flex flex-wrap justify-center gap-3">
                     {courses6to8.map((course) => (
                       <span
-                        key={course}
-                        className="text-xs md:text-sm px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200"
+                        key={course.name}
+                        className="inline-flex items-center gap-1.5 text-xs md:text-sm px-3.5 py-2 rounded-full border shadow-sm transition-all hover:shadow-md hover:-translate-y-px"
+                        style={{
+                          backgroundColor: `${course.color}08`,
+                          borderColor: `${course.color}30`,
+                          color: "#334155",
+                        }}
                       >
-                        {course}
+                        <course.icon className="w-3.5 h-3.5" style={{ color: course.color }} />
+                        {course.name}
                       </span>
                     ))}
                   </div>
@@ -456,11 +484,10 @@ export default function Courses() {
                     <Motion.div
                       key={phase.id}
                       whileHover={{ y: -4 }}
-                      className={`relative bg-white rounded-3xl p-6 shadow-sm border transition-all duration-300 cursor-pointer ${
-                        openPhase === idx
-                          ? `border-[${phase.color}] shadow-md`
-                          : "border-slate-100"
-                      }`}
+                      className={`relative bg-white rounded-3xl overflow-hidden shadow-sm border transition-all duration-300 cursor-pointer ${openPhase === idx
+                        ? "shadow-md"
+                        : "border-slate-100 hover:shadow-md"
+                        }`}
                       style={{
                         borderColor: openPhase === idx ? phase.color : "",
                       }}
@@ -468,70 +495,80 @@ export default function Courses() {
                         setOpenPhase(openPhase === idx ? null : idx)
                       }
                     >
-                      <div className="flex justify-between items-start mb-4">
-                        <div
-                          className="w-12 h-1.5 rounded-full"
-                          style={{ backgroundColor: phase.color }}
-                        />
-                        <span
-                          className="text-xs font-bold px-2.5 py-1 rounded-md"
-                          style={{
-                            backgroundColor: `${phase.color}15`,
-                            color: phase.color,
-                          }}
-                        >
-                          {phase.duration}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-3 mb-2">
-                        <phase.icon
-                          className="w-5 h-5"
-                          style={{ color: phase.color }}
-                        />
-                        <h3 className="text-lg font-bold text-[#102a5a]">
-                          {phase.name}
-                        </h3>
-                      </div>
-
-                      <p className="text-sm text-slate-500 mb-6 leading-relaxed">
-                        {phase.description}
-                      </p>
-
+                      {/* Gradient top strip */}
                       <div
-                        className={`overflow-hidden transition-all duration-300 ${
-                          openPhase === idx
+                        className="h-1.5"
+                        style={{ background: `linear-gradient(90deg, ${phase.color}, ${phase.color}88)` }}
+                      />
+
+                      <div className="p-6">
+                        <div className="flex justify-between items-start mb-5">
+                          <div className="flex items-center gap-4">
+                            <div
+                              className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm"
+                              style={{
+                                background: `linear-gradient(135deg, ${phase.color}25, ${phase.color}10)`,
+                                border: `1px solid ${phase.color}30`,
+                              }}
+                            >
+                              <phase.icon className="w-6 h-6" style={{ color: phase.color }} />
+                            </div>
+                            <div>
+                              <h3 className="text-lg font-bold text-[#102a5a]">
+                                {phase.name}
+                              </h3>
+                              <p className="text-sm text-slate-500 mt-0.5 leading-relaxed">
+                                {phase.description}
+                              </p>
+                            </div>
+                          </div>
+                          <span
+                            className="text-xs font-bold px-3 py-1.5 rounded-lg whitespace-nowrap ml-3"
+                            style={{
+                              backgroundColor: `${phase.color}15`,
+                              color: phase.color,
+                            }}
+                          >
+                            {phase.duration}
+                          </span>
+                        </div>
+
+                        {/* Expandable content */}
+                        <div
+                          className={`overflow-hidden transition-all duration-300 ${openPhase === idx
                             ? "max-h-64 opacity-100"
                             : "max-h-0 opacity-0"
-                        }`}
-                      >
-                        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 mb-2">
-                          <h4 className="text-xs font-bold text-[#102a5a] mb-3 uppercase tracking-wider">
-                            What to Expect
-                          </h4>
-                          <ul className="space-y-2.5">
-                            {phase.highlights.map((h, i) => (
-                              <li
-                                key={i}
-                                className="flex gap-2 items-start text-sm text-slate-600"
-                              >
-                                <CheckCircle2
-                                  className="w-4 h-4 shrink-0 mt-0.5"
-                                  style={{ color: phase.color }}
-                                />
-                                {h}
-                              </li>
-                            ))}
-                          </ul>
+                            }`}
+                        >
+                          <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-100 mb-2">
+                            <h4 className="text-xs font-bold text-[#102a5a] mb-3 uppercase tracking-wider">
+                              What to Expect
+                            </h4>
+                            <ul className="space-y-2.5">
+                              {phase.highlights.map((h, i) => (
+                                <li
+                                  key={i}
+                                  className="flex gap-2 items-start text-sm text-slate-600"
+                                >
+                                  <CheckCircle2
+                                    className="w-4 h-4 shrink-0 mt-0.5"
+                                    style={{ color: phase.color }}
+                                  />
+                                  {h}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="flex justify-center mt-2">
-                        {openPhase === idx ? (
-                          <ChevronUp className="w-5 h-5 text-slate-300" />
-                        ) : (
-                          <ChevronDown className="w-5 h-5 text-slate-300" />
-                        )}
+                        <div className="flex justify-center mt-2">
+                          <Motion.div
+                            animate={{ rotate: openPhase === idx ? 180 : 0 }}
+                            transition={{ duration: 0.25 }}
+                          >
+                            <ChevronDown className="w-5 h-5 text-slate-300" />
+                          </Motion.div>
+                        </div>
                       </div>
                     </Motion.div>
                   ))}
@@ -550,24 +587,27 @@ export default function Courses() {
                   </div>
 
                   <div className="flex flex-wrap justify-center gap-6">
-                    {tracksForSelectedAge.map((track) => (
+                    {tracksForSelectedAge.map((track, i) => (
                       <Motion.div
                         key={track.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4, delay: i * 0.1 }}
                         whileHover={{ y: -6 }}
-                        className="w-80 bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100 hover:shadow-lg transition-all duration-300 group"
+                        className="w-80 bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100 hover:shadow-[0_12px_40px_rgba(16,42,90,0.1)] hover:border-[#FBBF24]/30 transition-all duration-300 group"
                       >
-                        <div className="relative h-44 overflow-hidden bg-slate-100">
+                        <div className="relative h-48 overflow-hidden bg-slate-100">
                           <img
                             src={track.image}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                             alt={track.name}
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-[#071228]/80 via-[#071228]/20 to-transparent" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-[#071228]/90 via-[#071228]/30 to-transparent" />
                           <div className="absolute bottom-4 left-4 flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-md flex items-center justify-center">
-                              <track.icon className="w-4 h-4 text-white" />
+                            <div className="w-9 h-9 rounded-xl bg-[#FBBF24]/90 backdrop-blur-md flex items-center justify-center shadow-lg">
+                              <track.icon className="w-4.5 h-4.5 text-[#102a5a]" />
                             </div>
-                            <span className="text-white font-bold text-sm tracking-wide">
+                            <span className="text-white font-bold text-sm tracking-wide drop-shadow-md">
                               {track.name}
                             </span>
                           </div>
