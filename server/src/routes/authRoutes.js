@@ -50,8 +50,7 @@ router.post("/signup", upload2.single('profilePhoto'), [
     .notEmpty().withMessage('Password is required')
     .isLength({ min: 8 }),
   body('phone')
-    .notEmpty().withMessage('phone is required')
-    .isMobilePhone().withMessage('Phone is not valid'),
+    .notEmpty().withMessage('phone is required'),
 ], async (req, res) => {
   try {
     const { name, email, password, phone, role, child, campusCode } = req.body;
