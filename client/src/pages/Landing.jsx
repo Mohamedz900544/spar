@@ -154,9 +154,9 @@ const HERO_VIDEOS = [
 
 const studentProjects = [
   {
-    img: "https://images.unsplash.com/photo-1581092921461-eab62e97a780?w=600&q=80",
-    title: "LED Circuit Board",
-    desc: "Built a working LED matrix circuit using resistor",
+    img: "/planetsaver.gif",
+    title: "Planet Saver",
+    desc: "Save the earth from the aliens",
   },
   {
     img: "https://images.unsplash.com/photo-1624555130581-1d9cca783bc0?w=600&q=80",
