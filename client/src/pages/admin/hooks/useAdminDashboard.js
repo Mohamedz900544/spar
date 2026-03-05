@@ -1,5 +1,5 @@
 // src/pages/admin/hooks/useAdminDashboard.js
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from 'react-hot-toast'
 import axios from "axios";
@@ -650,38 +650,36 @@ export const useAdminDashboard = () => {
 
   /* ========== DERIVED STATS ========== */
 
-  const activeSessionsCount = sessions.filter(
-    (s) => s.status === "Active"
-  ).length;
+  const activeSessionsCount = useMemo(
+    () => sessions.filter((s) => s.status === "Active").length,
+    [sessions]
+  );
 
-  const publishedPhotos = galleryItems.filter(
-    (g) => g.status === "Published"
-  ).length;
+  const publishedPhotos = useMemo(
+    () => galleryItems.filter((g) => g.status === "Published").length,
+    [galleryItems]
+  );
 
-  const newMessagesCount = messages.filter(
-    (m) => m.status === "New"
-  ).length;
+  const newMessagesCount = useMemo(
+    () => messages.filter((m) => m.status === "New").length,
+    [messages]
+  );
 
-  const activeRoundsCount = rounds.filter(
-    (r) => r.status === "Active"
-  ).length;
+  const activeRoundsCount = useMemo(
+    () => rounds.filter((r) => r.status === "Active").length,
+    [rounds]
+  );
 
-  const averageOccupancy = (() => {
+  const averageOccupancy = useMemo(() => {
     if (!sessions.length) return 0;
-    const totalSlots = sessions.reduce(
-      (sum, s) => sum + s.capacity,
-      0
-    );
-    const totalEnrolled = sessions.reduce(
-      (sum, s) => sum + s.enrolled,
-      0
-    );
+    const totalSlots = sessions.reduce((sum, s) => sum + s.capacity, 0);
+    const totalEnrolled = sessions.reduce((sum, s) => sum + s.enrolled, 0);
     return Math.round((totalEnrolled / totalSlots) * 100);
-  })();
+  }, [sessions]);
 
   /* ========== FILTERED LISTS ========== */
 
-  const filteredSessions = sessions.filter((s) => {
+  const filteredSessions = useMemo(() => sessions.filter((s) => {
     const q = sessionSearch.toLowerCase();
 
     const matchesSearch =
@@ -695,23 +693,22 @@ export const useAdminDashboard = () => {
       return (s.date === today) && matchesSearch;
     }
 
-
     const matchesStatus =
       sessionStatusFilter === "All" ||
       s.status === sessionStatusFilter;
 
     return matchesStatus && matchesSearch;
-  });
+  }), [sessions, sessionSearch, sessionStatusFilter]);
 
-  const filteredEnrollments = enrollments.filter((e) => {
-    if (enrollmentStatusFilter === "All") return true;
-    return e.status === enrollmentStatusFilter;
-  });
+  const filteredEnrollments = useMemo(
+    () => enrollments.filter((e) => enrollmentStatusFilter === "All" || e.status === enrollmentStatusFilter),
+    [enrollments, enrollmentStatusFilter]
+  );
 
-  const filteredMessages = messages.filter((m) => {
-    if (messageStatusFilter === "All") return true;
-    return m.status === messageStatusFilter;
-  });
+  const filteredMessages = useMemo(
+    () => messages.filter((m) => messageStatusFilter === "All" || m.status === messageStatusFilter),
+    [messages, messageStatusFilter]
+  );
 
   /* ========== ROUNDS HANDLERS ========== */
 

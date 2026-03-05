@@ -1,29 +1,29 @@
 // src/App.jsx
+import { lazy, Suspense, useState } from "react";
 import { Routes, Route } from "react-router-dom";
-import Landing from "./pages/Landing";
-import SignUp from "./pages/SignUp";
-import Login from "./pages/Login";
-import ParentDashboard from "./pages/ParentDashboard";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import NotFound from "./pages/NotFound";
-import Gallery from "./pages/Gallery";
-import Contact from "./pages/Contact";
-import Courses from "./pages/Courses";
-import BlocksHome from "./pages/blocks/BlocksHome";
-import BlocksPlayground from "./pages/blocks/BlocksPlayground";
-import PublicPreview from "./pages/blocks/PublicPreview";
-import FractionLevelsPage from "./pages/fractions/FractionLevelsPage";
-import FractionPlayPage from "./pages/fractions/FractionPlayPage";
-import RoundSessionsPage from "./pages/RoundSessionsPage";
-import { RoundStudentsPage } from "./pages/RoundStudentsPage";
-import ParentProfile from "./pages/ProfileSettings";
 import ParentHeader from "./pages/admin/components/ParentHeader";
-import { useState } from "react";
 import AdminHeader from "./pages/admin/components/AdminHeader";
 import ProtectedRoute from "./routes/ProtectedRoute";
-import { BlockHeader } from "./components/blocks/BlockHeader";
-import InstructorDashboard from "./pages/InstructorDashboard";
 import FloatingWhatsApp from "./components/FloatingWhatsApp";
+
+const Landing = lazy(() => import("./pages/Landing"));
+const SignUp = lazy(() => import("./pages/SignUp"));
+const Login = lazy(() => import("./pages/Login"));
+const ParentDashboard = lazy(() => import("./pages/ParentDashboard"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Gallery = lazy(() => import("./pages/Gallery"));
+const Contact = lazy(() => import("./pages/Contact"));
+const Courses = lazy(() => import("./pages/Courses"));
+const BlocksHome = lazy(() => import("./pages/blocks/BlocksHome"));
+const BlocksPlayground = lazy(() => import("./pages/blocks/BlocksPlayground"));
+const PublicPreview = lazy(() => import("./pages/blocks/PublicPreview"));
+const FractionLevelsPage = lazy(() => import("./pages/fractions/FractionLevelsPage"));
+const FractionPlayPage = lazy(() => import("./pages/fractions/FractionPlayPage"));
+const RoundSessionsPage = lazy(() => import("./pages/RoundSessionsPage"));
+const RoundStudentsPage = lazy(() => import("./pages/RoundStudentsPage").then(m => ({ default: m.RoundStudentsPage })));
+const ParentProfile = lazy(() => import("./pages/ProfileSettings"));
+const InstructorDashboard = lazy(() => import("./pages/InstructorDashboard"));
 // import { EmailVerificationPage } from "./pages/EmailVerification";
 
 function App() {
@@ -41,6 +41,7 @@ function App() {
   });
   return (
     <>
+      <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-[#FBBF24] border-t-transparent rounded-full animate-spin" /></div>}>
       <Routes>
         <Route path="/" element={<Landing />} />
         {/* <Route path="/verify-email" element={<EmailVerificationPage />} /> */}
@@ -75,6 +76,7 @@ function App() {
         <Route path="/fractions/:levelId" element={<FractionPlayPage />} />
 
       </Routes>
+      </Suspense>
       <FloatingWhatsApp />
     </>
   );

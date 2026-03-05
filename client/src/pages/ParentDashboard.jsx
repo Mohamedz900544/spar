@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import {
@@ -239,7 +239,10 @@ const ParentDashboard = ({ parent, setParent }) => {
     }
   };
 
-  const visibleRounds = linkedRounds.map((code) => rounds.find((r) => r.code === code)).filter(Boolean);
+  const visibleRounds = useMemo(
+    () => linkedRounds.map((code) => rounds.find((r) => r.code === code)).filter(Boolean),
+    [linkedRounds, rounds]
+  );
   const getChildrenForRound = (roundCode) => enrollments.filter((e) => e.roundCode === roundCode);
 
   const handleSessionRatingChange = (roundCode, sessionId, rating) => {
