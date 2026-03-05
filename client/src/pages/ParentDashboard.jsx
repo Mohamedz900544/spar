@@ -337,7 +337,7 @@ const ParentDashboard = ({ parent, setParent }) => {
 
             <h1 className="text-3xl md:text-4xl font-extrabold text-white leading-tight mb-3">
               Welcome back
-              {parent?.name ? `, ${parent.name.split(" ")[0]}` : ""}
+              {parent?.name ? <>, <span className="text-[#FBBF24]">{parent.name.split(" ")[0]}</span></> : ""}
               <span className="text-[#FBBF24]">!</span>
             </h1>
             <p className="text-slate-300 text-base max-w-lg">

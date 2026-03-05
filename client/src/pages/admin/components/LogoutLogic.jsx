@@ -9,6 +9,9 @@ export const LogoutLogic = ({ style }) => {
         localStorage.removeItem("sparvi_user")
         localStorage.removeItem("sparvi_user_email")
         localStorage.removeItem("sparvi_user_name")
+        localStorage.removeItem("token")
+        localStorage.removeItem("role")
+        localStorage.removeItem("user")
         navigate('/login')
     }
     return <button

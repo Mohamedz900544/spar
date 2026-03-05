@@ -1,5 +1,5 @@
 // src/pages/Login.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -34,6 +34,15 @@ const FloatingShape = ({ className, delay = 0, duration = 6 }) => (
 const Login = () => {
   const navigate = useNavigate();
   const [serverError, setServerError] = useState("");
+
+  useEffect(() => {
+    const token = localStorage.getItem("sparvi_token");
+    const role = localStorage.getItem("sparvi_role");
+    if (!token || !role) return;
+    if (role === "admin") navigate("/admin");
+    else if (role === "instructor") navigate("/instructor");
+    else navigate("/parent");
+  }, [navigate]);
 
   const hasCompletedProfile = (user) => {
     const firstChild = user?.children?.[0];
