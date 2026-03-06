@@ -170,10 +170,20 @@ const studentProjects = [
     title: "Pacman",
     desc: "Pacman Escaping is an arcade style maze",
   },
+    {
+    img: "/Emoji.webp",
+    title: "Emoji",
+    desc: "Click the emoji and see what happens!",
+  },
   {
     img: "/Realworld.gif",
     title: "Real world simulation",
     desc: "Real-world simulation of living organisms growing from food",
+  },
+  {
+    img: "/Emoji.webp",
+    title: "Emoji",
+    desc: "Click the emoji and see what happens!",
   },
   {
     img: "/ball.gif",
