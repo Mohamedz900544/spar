@@ -181,11 +181,6 @@ const studentProjects = [
     desc: "Real-world simulation of living organisms growing from food",
   },
   {
-    img: "/Emoji.webp",
-    title: "Emoji",
-    desc: "Click the emoji and see what happens!",
-  },
-  {
     img: "/ball.gif",
     title: "Bouncing Ball",
     desc: "A ball that moves around the screen and bounces when it hits the edges",
