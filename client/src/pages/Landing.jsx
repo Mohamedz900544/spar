@@ -141,7 +141,6 @@ const FAQItem = ({ item, isOpen, onToggle }) => (
 
 /* ==============================
    VIDEO CONFIG
-   — Edit thumbnail, ytSrc, name, meta per student
    ============================== */
 const HERO_VIDEOS = [
   {
@@ -157,20 +156,18 @@ const studentProjects = [
     img: "/handgenerator.gif",
     title: "Hand Generator",
     desc: "Building a generator to power a LED and electronic components",
-
   },
-    {
+  {
     img: "/walkingrobot.gif",
     title: "Walking Robot",
     desc: "Kids build a walking robot and learn new concepts like equilibrium and motor mechanics",
-
   },
   {
     img: "/pacman.gif",
     title: "Pacman",
     desc: "Pacman Escaping is an arcade style maze",
   },
-    {
+  {
     img: "/Emoji.webp",
     title: "Emoji",
     desc: "Click the emoji and see what happens!",
@@ -200,7 +197,6 @@ const VideoCard = ({ thumbnail, ytSrc, name, meta }) => {
 
   return (
     <div className="sparvi-hero-video-wrapper">
-
       {/* ── Thumbnail layer ── */}
       <div
         className="sparvi-hero-thumbnail"
@@ -246,7 +242,6 @@ const VideoCard = ({ thumbnail, ytSrc, name, meta }) => {
           />
         )}
       </div>
-
     </div>
   );
 };
@@ -338,7 +333,6 @@ const Landing = () => {
             />
           </Motion.div>
         </div>
-
       </section>
 
       {/* ============================
@@ -381,7 +375,7 @@ const Landing = () => {
           STUDENT PROJECTS
          ============================ */}
       <Motion.section
-        className="py-16 md:py-20 px-6 bg-white"
+        className="py-16 md:py-20 px-6 bg-slate-50/50"
         initial={{ y: 40, opacity: 0 }}
         whileInView={{ y: 0, opacity: 1 }}
         viewport={{ once: true, amount: 0.15 }}
@@ -390,7 +384,7 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto">
 
           {/* Heading */}
-          <div className="text-center mb-3">
+          <div className="text-center mb-6">
             <h2
               className="text-2xl md:text-4xl font-display"
               style={{
@@ -405,60 +399,91 @@ const Landing = () => {
             >
               Discover Our Students' Projects
             </h2>
-            <p className="text-slate-500 text-sm md:text-base mt-3 max-w-xl mx-auto">
-              Explore out these projects by Sparvi Lab makers
+            <p className="text-slate-500 text-sm md:text-base mt-4 max-w-xl mx-auto">
+              Explore out these incredible hands-on creations by Sparvi Lab makers.
             </p>
           </div>
 
           {/* Project Cards — horizontal swiper */}
           <div
             ref={projectTrackRef}
-            className="mt-10 flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth hide-scrollbar"
+            className="mt-10 flex gap-6 md:gap-8 overflow-x-auto pb-8 snap-x snap-mandatory scroll-smooth hide-scrollbar px-4"
           >
-            {studentProjects.map((proj, i) => (
+            {studentProjects.map((proj, i) => {
+              const cardAccents = [
+                { from: "#1d4ed8", to: "#06b6d4" },
+                { from: "#7c3aed", to: "#06b6d4" },
+                { from: "#0891b2", to: "#10b981" },
+                { from: "#db2777", to: "#f59e0b" },
+                { from: "#1d4ed8", to: "#7c3aed" },
+                { from: "#059669", to: "#06b6d4" },
+                { from: "#dc2626", to: "#f59e0b" },
+              ];
+              const accent = cardAccents[i % cardAccents.length];
+              return (
               <Motion.div
                 key={i}
                 initial={{ y: 20, opacity: 0 }}
                 whileInView={{ y: 0, opacity: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.45, delay: i * 0.1 }}
-                className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 overflow-hidden group shrink-0 basis-[100%] sm:basis-[29%] lg:basis-[20%] snap-start"
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="relative rounded-3xl transition-all duration-500 hover:-translate-y-2 overflow-hidden group shrink-0 basis-[85%] sm:basis-[45%] lg:basis-[30%] snap-start"
+                style={{
+                  background: "#ffffff",
+                  border: "1.5px solid rgba(148,163,184,0.15)",
+                  boxShadow: "0 2px 16px rgba(0,0,0,0.05)",
+                }}
+                onMouseEnter={e => e.currentTarget.style.boxShadow = `0 20px 40px rgba(0,0,0,0.1), 0 0 0 2px ${accent.from}30`}
+                onMouseLeave={e => e.currentTarget.style.boxShadow = "0 2px 16px rgba(0,0,0,0.05)"}
                 data-project-index={i}
               >
+                {/* Top accent bar */}
+                <div
+                  className="absolute top-0 left-0 right-0 h-1 z-20"
+                  style={{ background: `linear-gradient(90deg, ${accent.from}, ${accent.to})` }}
+                />
+
                 {/* Thumbnail */}
-                <div className="relative overflow-hidden h-44">
+                <div className="relative overflow-hidden h-48 sm:h-52">
                   <img
                     src={proj.img}
                     alt={proj.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-slate-900/15 to-transparent z-10" />
                 </div>
 
                 {/* Content */}
-                <div className="p-5">
+                <div className="p-6 relative">
                   <h3
-                    className="font-bold text-base mb-2"
-                    style={{ color: "#1d4ed8" }}
+                    className="font-extrabold text-lg mb-2 leading-snug"
+                    style={{
+                      background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text",
+                    }}
                   >
                     {proj.title}
                   </h3>
-                  <p className="text-slate-500 text-sm leading-relaxed">
+                  <p className="text-slate-500 text-sm leading-relaxed group-hover:text-slate-700 transition-colors duration-300">
                     {proj.desc}
                   </p>
                 </div>
               </Motion.div>
-            ))}
+              );
+            })}
           </div>
-          <div className="mt-8 flex justify-center items-center gap-2.5">
+
+          <div className="mt-4 flex justify-center items-center gap-2.5">
             {[...Array(projectCount)].map((_, i) => (
               <button
                 key={i}
                 onClick={() => setProjectIndex(i)}
                 className={`
                   p-0 m-0 border-none min-h-0 min-w-0
-                  h-2 rounded-full transition-all duration-500 ease-out focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-indigo-900
-                  ${projectIndex === i ? "w-10 bg-blue-400 shadow-[0_0_10px_rgba(96,165,250,0.5)]" : "w-2.5 bg-white/30 hover:bg-white/60"}
+                  h-2 rounded-full transition-all duration-500 ease-out focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2
+                  ${projectIndex === i ? "w-10 bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" : "w-2.5 bg-slate-300 hover:bg-blue-300"}
                 `}
                 aria-label={`Go to project ${i + 1}`}
               />
@@ -508,7 +533,7 @@ const Landing = () => {
                   className="w-full h-full object-contain lg:object-cover rounded-3xl"
                 />
               </div>
-              <Link to="/signup" className=" mx-auto">
+              <Link to="/signup" className="mx-auto">
                 <button className="inline-flex items-center gap-2 rounded-full bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 font-semibold px-8 py-3.5 shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 whitespace-nowrap">
                   Secure your Seat!
                 </button>
@@ -517,41 +542,70 @@ const Landing = () => {
 
             {/* Right — 2-column grid of feature cards */}
             <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-5 order-1 lg:order-none">
-              {features.map((feature, i) => (
+              {features.map((feature, i) => {
+                const featureAccents = [
+                  { icon: "linear-gradient(135deg, #1d4ed8, #06b6d4)", border: "#1d4ed820", glow: "rgba(29,78,216,0.12)" },
+                  { icon: "linear-gradient(135deg, #7c3aed, #06b6d4)", border: "#7c3aed20", glow: "rgba(124,58,237,0.12)" },
+                  { icon: "linear-gradient(135deg, #0891b2, #10b981)", border: "#0891b220", glow: "rgba(8,145,178,0.12)" },
+                  { icon: "linear-gradient(135deg, #db2777, #f59e0b)", border: "#db277720", glow: "rgba(219,39,119,0.12)" },
+                  { icon: "linear-gradient(135deg, #1d4ed8, #7c3aed)", border: "#1d4ed820", glow: "rgba(29,78,216,0.12)" },
+                  { icon: "linear-gradient(135deg, #059669, #06b6d4)", border: "#05966920", glow: "rgba(5,150,105,0.12)" },
+                ];
+                const fa = featureAccents[i % featureAccents.length];
+                return (
                 <Motion.div
                   key={i}
                   initial={{ y: 20, opacity: 0 }}
                   whileInView={{ y: 0, opacity: 1 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.45, delay: i * 0.07 }}
-                  className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 group"
+                  transition={{ duration: 0.5, delay: i * 0.08 }}
+                  className="relative rounded-3xl p-6 transition-all duration-500 hover:-translate-y-1.5 group overflow-hidden cursor-default"
+                  style={{
+                    background: "linear-gradient(145deg, #ffffff 0%, #f8faff 100%)",
+                    border: `1.5px solid ${fa.border}`,
+                    boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.boxShadow = `0 16px 40px ${fa.glow}, 0 2px 12px rgba(0,0,0,0.04)`;
+                    e.currentTarget.style.border = `1.5px solid ${fa.border.replace("20", "50")}`;
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.boxShadow = "0 2px 12px rgba(0,0,0,0.04)";
+                    e.currentTarget.style.border = `1.5px solid ${fa.border}`;
+                  }}
                 >
-                  <div className="flex items-start gap-4">
-                    {/* Gradient icon box matching the screenshot */}
+                  {/* Decorative corner glow */}
+                  <div
+                    className="absolute -top-6 -right-6 w-24 h-24 rounded-full opacity-10 group-hover:opacity-20 transition-opacity duration-500 pointer-events-none"
+                    style={{ background: fa.icon }}
+                  />
+
+                  <div className="relative flex items-start gap-4 z-10">
+                    {/* Gradient icon box */}
                     <div
-                      className="shrink-0 flex items-center justify-center transition-transform group-hover:scale-110"
+                      className="shrink-0 flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:-rotate-6"
                       style={{
-                        width: 50,
-                        height: 50,
+                        width: 54,
+                        height: 54,
                         borderRadius: 16,
-                        background: "linear-gradient(135deg, #1d4ed8, #06b6d4)",
-                        color: "#ffffff",
-                        fontSize: "1.35rem",
+                        background: fa.icon,
+                        boxShadow: `0 8px 20px ${fa.glow}`,
                       }}
                     >
-                      <feature.icon size={22} color="white" />
+                      <feature.icon size={24} color="white" strokeWidth={2.2} />
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-[#102a5a] mb-1 text-sm md:text-base leading-snug">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-slate-800 mb-1.5 text-sm md:text-base leading-snug group-hover:text-slate-900 transition-colors duration-300">
                         {feature.title}
                       </h3>
-                      <p className="text-slate-500 text-xs md:text-sm leading-relaxed">
+                      <p className="text-slate-500 text-xs md:text-sm leading-relaxed group-hover:text-slate-600 transition-colors duration-300">
                         {feature.text}
                       </p>
                     </div>
                   </div>
                 </Motion.div>
-              ))}
+                );
+              })}
             </div>
 
           </div>
@@ -602,10 +656,6 @@ const Landing = () => {
           </div>
         </div>
       </Motion.section>
-
-      {/* ============================
-          CTA BANNER
-         ============================ */}
 
       {/* ============================
           FOOTER
@@ -715,4 +765,3 @@ const Landing = () => {
 };
 
 export default Landing;
-
