@@ -159,9 +159,9 @@ const studentProjects = [
     desc: "Save the earth from the aliens",
   },
   {
-    img: "https://images.unsplash.com/photo-1624555130581-1d9cca783bc0?w=600&q=80",
-    title: "Traffic Light System",
-    desc: "Programmed a traffic light sequence with timing",
+    img: "/pacman.gif",
+    title: "Pacman",
+    desc: "Pacman Escaping is an arcade style maze",
   },
   {
     img: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&q=80",
