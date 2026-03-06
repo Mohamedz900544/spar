@@ -166,7 +166,12 @@ const studentProjects = [
   {
     img: "/Realworld.gif",
     title: "Real world simulation",
-    desc: "Wired a sound sensor to a buzzer — when noise",
+    desc: "Real-world simulation of living organisms growing from food",
+  },
+  {
+    img: "/ball.gif",
+    title: "Bouncing Ball",
+    desc: "A ball that moves around the screen and bounces when it hits the edges",
   },
 ];
 
