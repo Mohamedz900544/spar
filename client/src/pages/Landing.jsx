@@ -427,7 +427,7 @@ const Landing = () => {
                 whileInView={{ y: 0, opacity: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="relative rounded-3xl transition-all duration-500 hover:-translate-y-2 overflow-hidden group shrink-0 basis-[85%] sm:basis-[45%] lg:basis-[30%] snap-start"
+                className="relative rounded-3xl transition-all duration-500 hover:-translate-y-2 overflow-hidden group shrink-0 basis-[100%] sm:basis-[29%] lg:basis-[20%] snap-start"
                 style={{
                   background: "#ffffff",
                   border: "1.5px solid rgba(148,163,184,0.15)",
