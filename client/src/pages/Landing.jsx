@@ -246,6 +246,17 @@ const VideoCard = ({ thumbnail, ytSrc, name, meta }) => {
   );
 };
 
+const cardAccents = [
+  { from: "#7c3aed", to: "#06b6d4" },
+  { from: "#db2777", to: "#f59e0b" },
+  { from: "#7c3aed", to: "#06b6d4" },
+  { from: "#0891b2", to: "#10b981" },
+  { from: "#1d4ed8", to: "#7c3aed" },
+  { from: "#059669", to: "#06b6d4" },
+  { from: "#dc2626", to: "#f59e0b" },
+  { from: "#1d4ed8", to: "#06b6d4" },
+];
+
 const Landing = () => {
   const [openFAQ, setOpenFAQ] = useState(-1);
   const [projectIndex, setProjectIndex] = useState(0);
@@ -410,18 +421,9 @@ const Landing = () => {
             className="mt-10 flex gap-6 md:gap-8 overflow-x-auto pb-8 snap-x snap-mandatory scroll-smooth hide-scrollbar px-4"
           >
             {studentProjects.map((proj, i) => {
-              const cardAccents = [
-                { from: "#7c3aed", to: "#06b6d4" },
-                { from: "#db2777", to: "#f59e0b" },
-                { from: "#7c3aed", to: "#06b6d4" },
-                { from: "#0891b2", to: "#10b981" },
-                { from: "#1d4ed8", to: "#7c3aed" },
-                { from: "#059669", to: "#06b6d4" },
-                { from: "#dc2626", to: "#f59e0b" },
-                { from: "#1d4ed8", to: "#06b6d4" },
-              ];
               const accent = cardAccents[i % cardAccents.length];
               return (
+
               <Motion.div
                 key={i}
                 initial={{ y: 20, opacity: 0 }}
@@ -477,18 +479,26 @@ const Landing = () => {
           </div>
 
           <div className="mt-4 flex justify-center items-center gap-2.5">
-            {[...Array(projectCount)].map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setProjectIndex(i)}
-                className={`
-                  p-0 m-0 border-none min-h-0 min-w-0
-                  h-2 rounded-full transition-all duration-500 ease-out focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2
-                  ${projectIndex === i ? "w-10 bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" : "w-2.5 bg-slate-300 hover:bg-blue-300"}
-                `}
-                aria-label={`Go to project ${i + 1}`}
-              />
-            ))}
+            {[...Array(projectCount)].map((_, i) => {
+              const dotAccent = cardAccents[i % cardAccents.length];
+              const isActive = projectIndex === i;
+              return (
+                <button
+                  key={i}
+                  onClick={() => setProjectIndex(i)}
+                  className="p-0 m-0 border-none min-h-0 min-w-0 h-2 rounded-full transition-all duration-500 ease-out focus:outline-none"
+                  style={isActive ? {
+                    width: 40,
+                    background: `linear-gradient(90deg, ${dotAccent.from}, ${dotAccent.to})`,
+                    boxShadow: `0 0 10px ${dotAccent.from}80`,
+                  } : {
+                    width: 10,
+                    background: "#cbd5e1",
+                  }}
+                  aria-label={`Go to project ${i + 1}`}
+                />
+              );
+            })}
           </div>
 
         </div>
