@@ -411,13 +411,14 @@ const Landing = () => {
           >
             {studentProjects.map((proj, i) => {
               const cardAccents = [
-                { from: "#1d4ed8", to: "#06b6d4" },
+                { from: "#7c3aed", to: "#06b6d4" },
+                { from: "#db2777", to: "#f59e0b" },
                 { from: "#7c3aed", to: "#06b6d4" },
                 { from: "#0891b2", to: "#10b981" },
-                { from: "#db2777", to: "#f59e0b" },
                 { from: "#1d4ed8", to: "#7c3aed" },
                 { from: "#059669", to: "#06b6d4" },
                 { from: "#dc2626", to: "#f59e0b" },
+                { from: "#1d4ed8", to: "#06b6d4" },
               ];
               const accent = cardAccents[i % cardAccents.length];
               return (
