@@ -1,10 +1,43 @@
 // src/App.jsx
-import { lazy, Suspense, useState } from "react";
-import { Routes, Route } from "react-router-dom";
+import { lazy, Suspense, useState, useEffect, useRef } from "react";
+import { Routes, Route, useLocation } from "react-router-dom";
 import ParentHeader from "./pages/admin/components/ParentHeader";
 import AdminHeader from "./pages/admin/components/AdminHeader";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import FloatingWhatsApp from "./components/FloatingWhatsApp";
+
+/* ── Full-page loader shown on every route change ── */
+function PageTransitionLoader() {
+  const location = useLocation();
+  const [visible, setVisible] = useState(false);
+  const prevPath = useRef(location.pathname);
+
+  useEffect(() => {
+    if (prevPath.current === location.pathname) return;
+    prevPath.current = location.pathname;
+
+    setVisible(true);
+    const t = setTimeout(() => setVisible(false), 600);
+    return () => clearTimeout(t);
+  }, [location.pathname]);
+
+  if (!visible) return null;
+
+  return (
+    <div className="fixed inset-0 z-[9999] min-h-screen flex items-center justify-center bg-white">
+      <div className="w-8 h-8 border-4 border-[#FBBF24] border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+}
+
+/* ── Fallback for Suspense lazy loads ── */
+function SuspenseFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-8 h-8 border-4 border-[#FBBF24] border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+}
 
 const Landing = lazy(() => import("./pages/Landing"));
 const SignUp = lazy(() => import("./pages/SignUp"));
@@ -41,7 +74,8 @@ function App() {
   });
   return (
     <>
-      <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-[#FBBF24] border-t-transparent rounded-full animate-spin" /></div>}>
+      <PageTransitionLoader />
+      <Suspense fallback={<SuspenseFallback />}>
       <Routes>
         <Route path="/" element={<Landing />} />
         {/* <Route path="/verify-email" element={<EmailVerificationPage />} /> */}
