@@ -164,8 +164,8 @@ const studentProjects = [
     desc: "Pacman Escaping is an arcade style maze",
   },
   {
-    img: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&q=80",
-    title: "Sound Alarm",
+    img: "/Realworld.gif",
+    title: "Real world simulation",
     desc: "Wired a sound sensor to a buzzer — when noise",
   },
 ];
@@ -239,7 +239,7 @@ const Landing = () => {
     if (projectCount <= 1) return;
     const timer = setInterval(() => {
       setProjectIndex((prev) => (prev + 1) % projectCount);
-    }, 3000);
+    }, 4000);
     return () => clearInterval(timer);
   }, [projectCount]);
 
