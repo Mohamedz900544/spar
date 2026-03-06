@@ -80,7 +80,7 @@ export default function TestimonialsSection() {
   };
 
   return (
-      <section id="parents-reviews" className="py-8 sm:py-8 bg-white">
+      <section id="parents-reviews" className="py-8 sm:py-8 bg-slate-50/50">
       <div
         className="
           relative min-h-[640px] md:min-h-[760px] lg:min-h-[820px]

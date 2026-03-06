@@ -98,41 +98,69 @@ const features = [
 /* ==============================
    FAQ ACCORDION ITEM
    ============================== */
-const FAQItem = ({ item, isOpen, onToggle }) => (
+const FAQItem = ({ item, isOpen, onToggle, index }) => (
   <div
-    className={`rounded-3xl border-2 transition-all duration-300 cursor-pointer ${isOpen
-      ? "border-[#1d4ed8] bg-white shadow-[0_4px_24px_rgba(29,78,216,0.1)]"
-      : "border-dashed border-slate-300 bg-white hover:border-slate-400"
-      }`}
+    onClick={onToggle}
+    className="cursor-pointer transition-all duration-300"
+    style={{
+      borderRadius: 20,
+      border: isOpen
+        ? "1.5px solid rgba(29,78,216,0.3)"
+        : "1.5px solid rgba(148,163,184,0.2)",
+      background: isOpen
+        ? "linear-gradient(145deg, #ffffff 0%, #f0f5ff 100%)"
+        : "#ffffff",
+      boxShadow: isOpen
+        ? "0 8px 32px rgba(29,78,216,0.1)"
+        : "0 2px 8px rgba(0,0,0,0.04)",
+    }}
   >
     <button
       onClick={onToggle}
-      className="w-full flex items-center justify-between p-5 md:p-6 text-left gap-4"
+      className="w-full flex items-center gap-4 p-5 md:p-6 text-left"
     >
+      {/* Number badge */}
+      <div
+        className="shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black transition-all duration-300"
+        style={{
+          background: isOpen
+            ? "linear-gradient(135deg, #1d4ed8, #06b6d4)"
+            : "rgba(148,163,184,0.15)",
+          color: isOpen ? "#ffffff" : "#94a3b8",
+        }}
+      >
+        {index + 1}
+      </div>
+
       <span
-        className={`font-bold text-sm md:text-base transition-colors ${isOpen ? "text-[#1d4ed8]" : "text-slate-800"
-          }`}
+        className="flex-1 font-bold text-sm md:text-base transition-colors duration-300"
+        style={{ color: isOpen ? "#1d4ed8" : "#1e293b" }}
       >
         {item.question}
       </span>
+
+      {/* Toggle icon */}
       <div
-        className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${isOpen
-          ? "bg-[#1d4ed8] text-white"
-          : "bg-slate-100 text-slate-500"
-          }`}
+        className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300"
+        style={{
+          background: isOpen
+            ? "linear-gradient(135deg, #1d4ed8, #06b6d4)"
+            : "rgba(148,163,184,0.12)",
+          color: isOpen ? "#ffffff" : "#94a3b8",
+          transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+        }}
       >
-        <ChevronDown
-          size={16}
-          className={`transition-transform duration-300 ${isOpen ? "rotate-180" : ""
-            }`}
-        />
+        <ChevronDown size={15} />
       </div>
     </button>
+
     <div
-      className={`overflow-hidden transition-all duration-300 ${isOpen ? "max-h-60 opacity-100" : "max-h-0 opacity-0"
-        }`}
+      className="overflow-hidden transition-all duration-300"
+      style={{ maxHeight: isOpen ? 240 : 0, opacity: isOpen ? 1 : 0 }}
     >
-      <p className="px-5 md:px-6 pb-5 md:pb-6 text-sm text-slate-600 leading-relaxed">
+      {/* Divider */}
+      <div className="mx-5 md:mx-6 h-px" style={{ background: "rgba(29,78,216,0.1)" }} />
+      <p className="px-5 md:px-6 py-5 text-sm text-slate-600 leading-relaxed pl-[4.5rem]">
         {item.answer}
       </p>
     </div>
@@ -281,7 +309,7 @@ const Landing = () => {
   }, [projectIndex]);
 
   return (
-    <div className="min-h-screen bg-white text-slate-800 font-sans flex flex-col">
+    <div className="min-h-screen bg-slate-50/50 text-slate-800 font-sans flex flex-col">
       <Navbar />
 
       {/* ============================
@@ -350,7 +378,7 @@ const Landing = () => {
           HEAR FROM OUR HEROES
          ============================ */}
       <Motion.section
-        className="py-16 md:py-20 px-6 bg-white"
+        className="py-16 md:py-20 px-6 bg-slate-50/50"
         initial={{ y: 40, opacity: 0 }}
         whileInView={{ y: 0, opacity: 1 }}
         viewport={{ once: true, amount: 0.3 }}
@@ -509,7 +537,7 @@ const Landing = () => {
           WHY CHOOSE SPARVI LAB?
          ============================ */}
       <Motion.section
-        className="py-16 md:py-24 px-6 bg-white"
+        className="py-16 md:py-24 px-6 bg-slate-50/50"
         initial={{ y: 40, opacity: 0 }}
         whileInView={{ y: 0, opacity: 1 }}
         viewport={{ once: true, amount: 0.15 }}
@@ -629,16 +657,19 @@ const Landing = () => {
           FAQ SECTION
          ============================ */}
       <Motion.section
-        className="py-16 md:py-20 px-6 bg-white"
+        className="py-16 md:py-24 px-6"
+        style={{ background: "rgba(248,250,252,0.5)" }}
         initial={{ y: 40, opacity: 0 }}
         whileInView={{ y: 0, opacity: 1 }}
         viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 0.7 }}
       >
         <div className="max-w-3xl mx-auto">
+          {/* Heading */}
           <div className="text-center mb-12">
+           
             <h2
-              className="text-2xl md:text-4xl font-display mb-4"
+              className="text-2xl md:text-4xl font-display"
               style={{
                 fontWeight: 800,
                 lineHeight: 1.15,
@@ -651,19 +682,36 @@ const Landing = () => {
             >
               Frequently Asked Questions
             </h2>
-            {/* Gold underline */}
-            <div className="w-16 h-1.5 rounded-full mx-auto" style={{ background: "#FBBF24" }} />
+            <p className="text-slate-500 text-sm md:text-base mt-4 max-w-lg mx-auto leading-relaxed">
+              Everything you need to know about Sparvi Lab before getting started.
+            </p>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             {faqItems.map((item, i) => (
               <FAQItem
                 key={i}
+                index={i}
                 item={item}
                 isOpen={openFAQ === i}
                 onToggle={() => setOpenFAQ(openFAQ === i ? -1 : i)}
               />
             ))}
+          </div>
+
+          {/* Bottom CTA */}
+          <div className="mt-12 text-center p-8 rounded-3xl"
+            style={{
+              background: "linear-gradient(135deg, #0a1628, #1d4ed8)",
+              boxShadow: "0 20px 50px rgba(29,78,216,0.2)",
+            }}>
+            <p className="text-white font-semibold text-lg mb-1">Still have questions?</p>
+            <p className="text-white/60 text-sm mb-5">Our team is happy to help you out.</p>
+            <a href="/contact">
+              <button className="inline-flex items-center gap-2 rounded-full bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 font-bold px-7 py-3 transition-all duration-200 hover:-translate-y-0.5 shadow-lg text-sm">
+                Contact Us
+              </button>
+            </a>
           </div>
         </div>
       </Motion.section>
