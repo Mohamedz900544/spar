@@ -154,9 +154,16 @@ const HERO_VIDEOS = [
 
 const studentProjects = [
   {
-    img: "/planetsaver.gif",
-    title: "Planet Saver",
-    desc: "Save the earth from the aliens",
+    img: "/handgenerator.gif",
+    title: "Hand Generator",
+    desc: "Building a generator to power an LED and electronic components",
+
+  },
+    {
+    img: "/walkingrobot.gif",
+    title: "Hand Generator",
+    desc: "Building a generator to power an LED and electronic components",
+
   },
   {
     img: "/pacman.gif",
@@ -172,6 +179,11 @@ const studentProjects = [
     img: "/ball.gif",
     title: "Bouncing Ball",
     desc: "A ball that moves around the screen and bounces when it hits the edges",
+  },
+  {
+    img: "/planetsaver.gif",
+    title: "Planet Saver",
+    desc: "Save the earth from the aliens",
   },
 ];
 
