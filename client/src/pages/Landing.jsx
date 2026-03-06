@@ -181,37 +181,37 @@ const HERO_VIDEOS = [
 
 const studentProjects = [
   {
-    img: "/handgenerator.gif",
+    img: "https://res.cloudinary.com/dipzvlfnt/image/upload/v1772832886/handgenerator_idc4mj.gif",
     title: "Hand Generator",
     desc: "Building a generator to power a LED and electronic components",
   },
   {
-    img: "/walkingrobot.gif",
+    img: "https://res.cloudinary.com/dipzvlfnt/image/upload/v1772832885/walkingrobot_mmouu1.gif",
     title: "Walking Robot",
     desc: "Kids build a walking robot and learn new concepts like equilibrium and motor mechanics",
   },
   {
-    img: "/pacman.gif",
+    img: "https://res.cloudinary.com/dipzvlfnt/image/upload/v1772832875/pacman_yt9wps.gif",
     title: "Pacman",
     desc: "Pacman Escaping is an arcade style maze",
   },
   {
-    img: "/Emoji.webp",
+    img: "https://res.cloudinary.com/dipzvlfnt/image/upload/v1772832875/Emoji_cqtbat.webp",
     title: "Emoji",
     desc: "Click the emoji and see what happens!",
   },
   {
-    img: "/Realworld.gif",
+    img: "https://res.cloudinary.com/dipzvlfnt/image/upload/v1772832877/Realworld_zn0ts5.gif",
     title: "Real world simulation",
     desc: "Real-world simulation of living organisms growing from food",
   },
   {
-    img: "/ball.gif",
+    img: "https://res.cloudinary.com/dipzvlfnt/image/upload/v1772832872/ball_tfsqbv.gif",
     title: "Bouncing Ball",
     desc: "A ball that moves around the screen and bounces when it hits the edges",
   },
   {
-    img: "/planetsaver.gif",
+    img: "https://res.cloudinary.com/dipzvlfnt/image/upload/v1772832886/planetsaver_ha0emh.gif",
     title: "Planet Saver",
     desc: "Save the earth from the aliens",
   },
@@ -366,7 +366,7 @@ const Landing = () => {
             className="order-2 md:order-none flex justify-center"
           >
             <img
-              src="/Robot.webp"
+              src="https://res.cloudinary.com/dipzvlfnt/image/upload/v1772832876/Robot_l1b0pg.webp"
               alt="Sparvi Lab Robot"
               className="w-[140%] max-w-none drop-shadow-[0_20px_40px_rgba(0,0,0,0.3)]"
             />
@@ -567,7 +567,7 @@ const Landing = () => {
             <div className="flex flex-col items-center gap-4 lg:w-[340px] shrink-0 order-2 lg:order-none h-full">
               <div className="w-90 h-90 sm:w-80 sm:h-80 lg:w-full lg:flex-1 lg:max-w-[340px] mx-auto">
                 <img
-                  src="/its.webp"
+                  src="https://res.cloudinary.com/dipzvlfnt/image/upload/v1772832874/its_bqxp1i.webp"
                   alt="Student holding money"
                   className="w-full h-full object-contain lg:object-cover rounded-3xl"
                 />
