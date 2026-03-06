@@ -156,13 +156,13 @@ const studentProjects = [
   {
     img: "/handgenerator.gif",
     title: "Hand Generator",
-    desc: "Building a generator to power an LED and electronic components",
+    desc: "Building a generator to power a LED and electronic components",
 
   },
     {
     img: "/walkingrobot.gif",
-    title: "Hand Generator",
-    desc: "Building a generator to power an LED and electronic components",
+    title: "Walking Robot",
+    desc: "Kids build a walking robot and learn new concepts like equilibrium and motor mechanics",
 
   },
   {
