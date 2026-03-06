@@ -27,10 +27,10 @@ import {
 --------------------------------------------------------*/
 
 const ageGroups = [
-  { id: "6-8", label: "Ages 6-8", icon: Sparkles, color: "#2dd4bf" },
-  { id: "9-11", label: "Ages 9-11", icon: Rocket, color: "#FBBF24" },
-  { id: "12-14", label: "Ages 12-14", icon: Lightbulb, color: "#a78bfa" },
-  { id: "15-17", label: "Ages 15-17", icon: GraduationCap, color: "#f472b6" },
+  { id: "6-8", label: "Ages 6-7-8", icon: Sparkles, color: "#2dd4bf" },
+  { id: "9-11", label: "Ages 9-10-11", icon: Rocket, color: "#FBBF24" },
+  { id: "12-14", label: "Ages 12-13-14", icon: Lightbulb, color: "#a78bfa" },
+  { id: "15-17", label: "Ages 15-16-17", icon: GraduationCap, color: "#f472b6" },
 ];
 
 const foundationCourses = [

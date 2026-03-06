@@ -45,7 +45,7 @@ const Login = lazy(() => import("./pages/Login"));
 const ParentDashboard = lazy(() => import("./pages/ParentDashboard"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const Gallery = lazy(() => import("./pages/Gallery"));
+const OurStory = lazy(() => import("./pages/OurStory"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Courses = lazy(() => import("./pages/Courses"));
 const BlocksHome = lazy(() => import("./pages/blocks/BlocksHome"));
@@ -92,7 +92,7 @@ function App() {
           <Route path="/admin/round/:roundId" element={<RoundSessionsPage />} />
           <Route path="/admin/round/:roundId/students" element={<RoundStudentsPage searchValue={searchValue} />} />
         </Route>
-        <Route path="/gallery" element={<Gallery />} />
+        <Route path="/our-story" element={<OurStory />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/courses" element={<Courses />} />
         <Route path="*" element={<NotFound />} />

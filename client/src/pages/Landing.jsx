@@ -352,9 +352,9 @@ const Landing = () => {
                 </button>
               </Link>
 
-              <button className="inline-flex items-center justify-center gap-2 rounded-full px-4 sm:px-8 py-2.5 sm:py-3 text-xs sm:text-base font-semibold border-2 border-white/30 text-white hover:bg-white/10 transition-all duration-200 whitespace-nowrap min-w-0">
+              <Link to="/our-story" className="inline-flex items-center justify-center gap-2 rounded-full px-4 sm:px-8 py-2.5 sm:py-3 text-xs sm:text-base font-semibold border-2 border-white/30 text-white hover:bg-white/10 transition-all duration-200 whitespace-nowrap min-w-0">
                 Our Story ➤
-              </button>
+              </Link>
             </div>
           </Motion.div>
 
