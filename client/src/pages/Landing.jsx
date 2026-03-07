@@ -196,11 +196,6 @@ const studentProjects = [
     desc: "Pacman Escaping is an arcade style maze",
   },
   {
-    img: "https://res.cloudinary.com/dipzvlfnt/image/upload/v1772832875/Emoji_cqtbat.webp",
-    title: "Emoji",
-    desc: "Click the emoji and see what happens!",
-  },
-  {
     img: "https://res.cloudinary.com/dipzvlfnt/image/upload/v1772832877/Realworld_zn0ts5.gif",
     title: "Real world simulation",
     desc: "Real-world simulation of living organisms growing from food",
