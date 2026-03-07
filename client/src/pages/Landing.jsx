@@ -300,10 +300,9 @@ const Landing = () => {
   useEffect(() => {
     const track = projectTrackRef.current;
     if (!track) return;
-    const card = track.querySelector(`[data-project-index="${projectIndex}"]`);
-    if (!card) return;
-    card.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
-  }, [projectIndex]);
+    const scrollPerCard = track.scrollWidth / projectCount;
+    track.scrollTo({ left: projectIndex * scrollPerCard, behavior: "smooth" });
+  }, [projectIndex, projectCount]);
 
   return (
     <div className="min-h-screen bg-slate-50/50 text-slate-800 font-sans flex flex-col">
