@@ -110,33 +110,33 @@ const faqItems = [
 const features = [
   {
     icon: Monitor,
-    title: "Live Instructor-Led Missions",
-    text: "Kids don't learn alone. A Sparvi coach leads each online session, explains every step, and answers questions in real time so no one gets lost.",
+    title: "Live, Instructor-Led Missions",
+    text: "A Sparvi coach leads every session step by step and answers questions in real time, so no one gets stuck.",
   },
   {
-    icon: Cpu,
-    title: "Real Electronics Kit at Home",
-    text: "Every student receives a Sparvi Lab kit with safe low-voltage components. They connect wires, LEDs, switches, sensors, and motors to see how real circuits behave.",
+    icon: BarChart3,
+    title: "A Full Learning Journey",
+    text: "A structured curriculum for ages 6–17 that grows with your child, with clear levels and long-term progress, not random short courses.",
   },
   {
     icon: Users,
-    title: "Designed for Ages 8–14",
-    text: "Lessons use clear language, big visuals, and age-appropriate challenges so both beginners and curious tinkerers can follow along and feel successful.",
+    title: "Built for Ages 6–17",
+    text: "Age-appropriate lessons that support beginners and still challenge advanced students.",
   },
   {
     icon: BookOpen,
     title: "Screen Time With a Purpose",
-    text: "Sessions are online, but hands are always busy building. Kids look at the screen to follow the mentor, then look down to wire, test, and tweak their own circuit.",
+    text: "Kids watch, then build, test, and improve hands-on projects, turning screen time into real creation.",
   },
   {
-    icon: BarChart3,
+    icon: Cpu,
     title: "Structured Levels, Clear Progress",
-    text: "Level 1 is an 8-session foundation course. After finishing it, kids can unlock higher levels with more advanced projects in sensors, robotics, and coding.",
+    text: "Students follow clear levels with measurable outcomes and unlock more advanced projects over time.",
   },
   {
     icon: ShieldCheck,
     title: "Parent Peace of Mind",
-    text: "Safe parts, guided sessions, and small groups. You'll know the schedule, what your child is building each week, and get simple summaries after every session.",
+    text: "Small groups, clear weekly goals, and simple updates so you always know what your child is learning.",
   },
 ];
 
