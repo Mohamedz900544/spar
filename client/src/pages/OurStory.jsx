@@ -1,457 +1,382 @@
-import React, { useEffect } from "react";
-import { motion } from "framer-motion";
+import React, { useEffect, useRef } from "react";
+import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import Navbar from "../components/Navbar";
 import {
-  Globe2,
-  Cpu,
-  Target,
-  Compass,
-  BookOpen,
-  Layers,
-  TrendingUp,
-  Brain,
-  Code,
-  Wrench,
-  MessageSquare,
-  Zap,
-  HeartHandshake,
-  Rocket,
-  X,
-  Users,
-  Star,
+  Globe2, Target, Compass, BookOpen, Layers, 
+  TrendingUp, Brain, Code, Wrench, MessageSquare, Zap, 
+  HeartHandshake, Rocket, Users, Star, ArrowRight,
+  Sparkles, CheckCircle2, ChevronDown
 } from "lucide-react";
 
-/* ── Helpers ── */
-const FloatingShape = ({ className, delay = 0, duration = 6 }) => (
-  <motion.div
-    className={className}
-    animate={{ y: [0, -12, 0], opacity: [0.4, 0.9, 0.4] }}
-    transition={{ duration, delay, repeat: Infinity, ease: "easeInOut" }}
-  />
-);
+// ── Animation Helpers ── //
+const FadeIn = ({ children, delay = 0, className = "", direction = "up" }) => {
+  const yInitial = direction === "up" ? 40 : direction === "down" ? -40 : 0;
+  const xInitial = direction === "left" ? 40 : direction === "right" ? -40 : 0;
+  
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: yInitial, x: xInitial }}
+      whileInView={{ opacity: 1, y: 0, x: 0 }}
+      viewport={{ once: true, margin: "-100px" }}
+      transition={{ duration: 0.8, delay, ease: [0.16, 1, 0.3, 1] }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+};
 
-const FadeIn = ({ children, delay = 0, className = "" }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 24 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true, margin: "-80px" }}
-    transition={{ duration: 0.65, delay }}
-    className={className}
-  >
-    {children}
-  </motion.div>
-);
+const FloatingElement = ({ children, className = "", delay = 0, yOffset = 20, duration = 6 }) => {
+  return (
+    <motion.div
+      className={className}
+      animate={{ y: [0, -yOffset, 0] }}
+      transition={{ duration, delay, repeat: Infinity, ease: "easeInOut" }}
+    >
+      {children}
+    </motion.div>
+  );
+};
 
-const CheckIcon = ({ className }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="3"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="M20 6 9 17l-5-5" />
-  </svg>
-);
-
-/* ── Data ── */
-const heroStats = [
-  { icon: Users, label: "Students", value: "500+" },
-  { icon: Star, label: "Age Range", value: "6 – 17" },
-  { icon: Globe2, label: "Countries", value: "3+" },
+// ── Data Configs ── //
+const timelineSteps = [
+  {
+    year: "The Spark",
+    title: "A Widening Gap",
+    desc: "We noticed children were immersed in technology, but strictly as consumers. While the tools of the future (like AI) were evolving exponentially, classroom approaches remained stagnant, prioritizing test scores over resilience and creative problem-solving.",
+    color: "#f97316",
+    icon: Sparkles
+  },
+  {
+    year: "The Vision",
+    title: "Building the Foundation",
+    desc: "We asked a simple question: 'What if we designed a learning journey that grows with the child?' We researched international standards, cognitive models, and combined them into a curriculum that prioritizes thinking first, coding second.",
+    color: "#2dd4bf",
+    icon: Compass
+  },
+  {
+    year: "The Ecosystem",
+    title: "Sparvi Lab Is Born",
+    desc: "It wasn't just about offering classes; it was about creating a full ecosystem involving students, mentors, and parents. By building this partnership, we turned isolated workshops into a long-term developmental journey.",
+    color: "#a78bfa",
+    icon: Target
+  }
 ];
 
 const pillars = [
-  { icon: Layers, color: "#2dd4bf", bg: "rgba(45,212,191,0.12)", title: "Age-structured", desc: "Designed specifically for different developmental stages from 6 to 17." },
-  { icon: Brain, color: "#FBBF24", bg: "rgba(251,191,36,0.12)", title: "Skills-driven", desc: "Focused on thinking skills first, specific tools second." },
-  { icon: TrendingUp, color: "#a78bfa", bg: "rgba(167,139,250,0.12)", title: "Progressive", desc: "Each level builds on the last, so children grow year after year." },
-  { icon: BookOpen, color: "#f97316", bg: "rgba(249,115,22,0.12)", title: "Proven Models", desc: "Grounded in learning models including SAVI, Meier's, and 4MAT." },
+  { icon: Layers, color: "#2dd4bf", title: "Age-Structured Path", desc: "Designed for specific developmental stages. They begin with block-based logic, transition to real syntax, and eventually build robust applications." },
+  { icon: Brain, color: "#FBBF24", title: "Skills Over Syntax", desc: "We focus on computational thinking, problem decomposition, and resilience before teaching the specific commands of any single language." },
+  { icon: TrendingUp, color: "#a78bfa", title: "Progressive Mastery", desc: "Every level builds on the last. Students don't just collect certificates; they stack capabilities, growing year after year." },
+  { icon: BookOpen, color: "#f97316", title: "Proven Models", desc: "Our methodology is grounded in established learning models including SAVI, Meier's techniques, and 4MAT frameworks." },
 ];
 
-const learnItems = [
-  { icon: Zap, color: "#FBBF24", text: "Break down problems and design solutions" },
-  { icon: Code, color: "#2dd4bf", text: "Build projects in computational thinking, creative coding, electronics, game design, and early AI concepts" },
-  { icon: MessageSquare, color: "#a78bfa", text: "Discuss their ideas, present their thinking, and explain why something works" },
-  { icon: Wrench, color: "#f97316", text: "Face open-ended challenges where there is no single correct answer" },
+const learnerOutcomes = [
+  { text: "Break down complex problems into manageable steps" },
+  { text: "Write creative code, design games, and grasp early AI" },
+  { text: "Discuss ideas and confidently explain mechanisms" },
+  { text: "Persist through open-ended, ambiguous challenges" }
 ];
 
-const partnerItems = [
-  "Helping you understand your child's learning style",
-  "Offering practical ways to support focus and curiosity at home",
-  "Encouraging healthy tech habits rather than passive screen time",
-  "Making progress visible — through skills and behaviors, not just grades",
-];
-
-/* ── Page ── */
+// ── The Page Component ── //
 const OurStory = () => {
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
+
   useEffect(() => {
-    document.title = "Our Story — Sparvi Lab | Why We Build STEM Education for Kids";
+    document.title = "Our Story — Sparvi Lab | The Origin of Innovation";
   }, []);
+
   return (
-  <div className="min-h-screen flex flex-col bg-slate-50/50 font-sans">
-    <Navbar />
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-[#2dd4bf]/30 overflow-x-hidden">
+      <Navbar />
 
-    {/* ═══════════ HERO ═══════════ */}
-    <div
-      className="relative overflow-hidden"
-      style={{ background: "linear-gradient(135deg, #071228 0%, #102a5a 55%, #1a3a6b 100%)" }}
-    >
-      {/* Glow blobs */}
-      <div className="absolute inset-0 pointer-events-none">
-        <FloatingShape className="absolute top-[20%] left-[10%] w-3 h-3 rounded-full bg-[#FBBF24]/30" delay={0} />
-        <FloatingShape className="absolute top-[60%] right-[12%] w-2 h-2 rounded-full bg-[#2dd4bf]/40" delay={1.5} />
-        <FloatingShape className="absolute bottom-[30%] left-[55%] w-2.5 h-2.5 rounded-full bg-[#FBBF24]/20" delay={2.5} />
-        <div className="absolute top-0 left-1/3 w-96 h-96 rounded-full bg-[#FBBF24]/5 blur-[120px]" />
-        <div className="absolute bottom-0 right-0 w-72 h-72 rounded-full bg-[#2dd4bf]/5 blur-[100px]" />
-      </div>
+      {/* Progress Bar */}
+      <motion.div 
+        style={{ scaleX, transformOrigin: "0%", zIndex: 100 }}
+        className="fixed top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#2dd4bf] to-[#FBBF24]" 
+      />
 
-      <div className="relative z-10 max-w-4xl mx-auto px-5 pt-28 pb-6 md:pt-36 md:pb-8 text-center">
-        <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.7 }}>
-          <span className="inline-flex items-center gap-2 bg-[#FBBF24]/15 border border-[#FBBF24]/30 text-[#FBBF24] text-xs font-semibold px-4 py-1.5 rounded-full mb-6 tracking-widest uppercase">
-            Our Journey
-          </span>
-          <h1 className="text-4xl md:text-6xl font-extrabold text-white leading-tight mb-5">
-            The Story Behind{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FBBF24] to-[#f97316]">
-              Sparvi Lab
+      {/* ────────────────── 1. EXPERIENTIAL HERO ────────────────── */}
+      <section className="relative min-h-[95vh] flex items-center justify-center overflow-hidden bg-[#071228]">
+        {/* Dynamic Background */}
+        <div className="absolute inset-0 w-full h-full">
+          <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#102a5a] rounded-full blur-[150px] mix-blend-screen opacity-70" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#a78bfa]/20 rounded-full blur-[150px] mix-blend-screen opacity-60" />
+          <div className="absolute top-[20%] right-[10%] w-[30%] h-[30%] bg-[#2dd4bf]/20 rounded-full blur-[120px] mix-blend-screen opacity-50" />
+          <div className="absolute w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03]" />
+        </div>
+
+        {/* Floating Particles */}
+        <FloatingElement className="absolute top-[30%] left-[20%] text-[#2dd4bf]/40" duration={8} yOffset={30}>
+          <Brain className="w-12 h-12" />
+        </FloatingElement>
+        <FloatingElement className="absolute bottom-[25%] right-[25%] text-[#FBBF24]/40" delay={2} duration={10} yOffset={40}>
+          <Rocket className="w-10 h-10" />
+        </FloatingElement>
+        <FloatingElement className="absolute top-[40%] right-[15%] text-[#a78bfa]/30" delay={1} duration={7} yOffset={25}>
+          <Code className="w-8 h-8" />
+        </FloatingElement>
+
+        <div className="relative z-10 w-full max-w-6xl mx-auto px-6 text-center">
+          {/* <FadeIn direction="up">
+            <span className="inline-flex items-center gap-2 px-5 py-2 mb-8 rounded-full bg-white/5 border border-white/10 text-[#2dd4bf] tracking-[0.2em] text-xs font-bold uppercase backdrop-blur-md">
+              <Sparkles className="w-4 h-4" /> The Origin Story
             </span>
-          </h1>
-          <p className="text-slate-300 max-w-2xl mx-auto text-base md:text-lg leading-relaxed mb-10">
-            We started with one simple belief — every child deserves the chance to build, create, and discover.
-            Here's how that belief became a movement.
-          </p>
-        </motion.div>
+          </FadeIn> */}
+          
+          <FadeIn delay={0.1} direction="up">
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold text-white tracking-tight leading-[1.1] mb-8">
+              Changing the way <br/>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2dd4bf] via-[#38bdf8] to-[#a78bfa]">
+                children think.
+              </span>
+            </h1>
+          </FadeIn>
 
-        {/* Stats bar */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.7, delay: 0.25 }}
-          className="flex flex-wrap justify-center gap-4 pb-12"
-        >
-          {heroStats.map(({ icon: Icon, label, value }) => (
-            <div
-              key={label}
-              className="flex items-center gap-2.5 bg-white/8 border border-white/15 backdrop-blur-sm rounded-full px-5 py-2.5"
-            >
-              <Icon className="w-4 h-4 text-[#FBBF24]" />
-              <span className="text-white font-bold text-sm">{value}</span>
-              <span className="text-slate-400 text-xs">{label}</span>
-            </div>
-          ))}
-        </motion.div>
-      </div>
-
-      {/* Wave */}
-      <div className="absolute -bottom-px left-0 right-0">
-        <svg viewBox="0 0 1440 60" fill="none" className="w-full block">
-          <path d="M0 60V20C240 50 480 0 720 20C960 40 1200 10 1440 30V60H0Z" fill="#f8fafc" />
-        </svg>
-      </div>
-    </div>
-
-    {/* ═══════════ CONTENT ═══════════ */}
-    <main className="flex-1 px-5 py-16 md:py-20 space-y-20 md:space-y-28 max-w-6xl mx-auto w-full">
-
-      {/* §1 — The world is changing */}
-      <section className="grid md:grid-cols-2 gap-12 items-center">
-        <FadeIn>
-          <div className="space-y-5">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#2dd4bf]/10 text-[#2dd4bf]">
-              <Globe2 className="w-6 h-6" />
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 leading-tight">
-              The world is changing faster than childhood.
-            </h2>
-            <div className="space-y-4 text-slate-600 leading-relaxed text-[17px]">
-              <p>
-                Children today are growing up in a world shaped by AI, automation, and technologies that didn't exist even a few years ago. The tools they'll use as adults are evolving at a speed schools can't keep up with.
-              </p>
-              <p>
-                Yet most kids are still learning as if they are preparing for the past, not the future. They are expected to compete in an AI-driven world without the thinking skills, confidence, or adaptability they actually need.
-              </p>
-              <p className="font-medium text-slate-800 border-l-4 border-[#2dd4bf] pl-4 py-1 bg-[#2dd4bf]/5 rounded-r-xl">
-                Parents feel this gap deeply. They want their children to understand technology, to be creators not just consumers, and to build skills that will still matter when today's tools are obsolete.
-              </p>
-            </div>
-          </div>
-        </FadeIn>
-
-        {/* Decorative dark card */}
-        <FadeIn delay={0.2}>
-          <div
-            className="rounded-3xl p-8 shadow-2xl relative overflow-hidden"
-            style={{ background: "linear-gradient(135deg, #071228 0%, #102a5a 100%)" }}
-          >
-            <div className="absolute top-0 right-0 w-48 h-48 bg-[#2dd4bf]/10 rounded-full blur-[60px] pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#FBBF24]/8 rounded-full blur-[60px] pointer-events-none" />
-            <p className="text-slate-400 text-xs uppercase tracking-widest mb-6 relative z-10">Skills of the future</p>
-            <div className="grid grid-cols-2 gap-4 relative z-10">
-              {[
-                { icon: Brain, color: "#FBBF24", label: "Critical Thinking" },
-                { icon: Cpu, color: "#2dd4bf", label: "Tech Literacy" },
-                { icon: Zap, color: "#a78bfa", label: "Adaptability" },
-                { icon: Code, color: "#f97316", label: "Creative Coding" },
-              ].map(({ icon: Icon, color, label }) => (
-                <div
-                  key={label}
-                  className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10 text-center"
-                >
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center"
-                    style={{ background: `${color}20` }}
-                  >
-                    <Icon className="w-5 h-5" style={{ color }} />
-                  </div>
-                  <span className="text-white text-xs font-semibold leading-tight">{label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </FadeIn>
-      </section>
-
-      {/* §2 — The problem we saw */}
-      <section className="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-slate-100 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-red-50 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
-
-        <FadeIn className="text-center max-w-3xl mx-auto mb-10 relative z-10">
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">The problem we saw</h2>
-          <p className="text-slate-600 text-lg">When we looked at the market, we saw the same pattern repeated everywhere:</p>
-        </FadeIn>
-
-        <div className="grid md:grid-cols-2 gap-5 relative z-10">
-          {[
-            "Short, tool-based courses that teach Scratch, Python, or robotics in isolation",
-            "No long-term plan that follows a child from early curiosity to real innovation",
-            "Little focus on core thinking skills like problem-solving, logical reasoning, and learning how to learn",
-            "No alignment with international standards or clear way to measure growth over years",
-          ].map((text, i) => (
-            <FadeIn key={i} delay={i * 0.1}>
-              <div className="flex items-start gap-4 p-5 rounded-2xl bg-slate-50 border-l-4 border-red-400 border border-slate-100 hover:bg-red-50/40 transition-colors">
-                <X className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-                <p className="text-slate-700 leading-relaxed">{text}</p>
-              </div>
-            </FadeIn>
-          ))}
-        </div>
-
-        <FadeIn delay={0.4} className="mt-10 relative z-10">
-          <div className="bg-[#071228] rounded-2xl shadow-xl overflow-hidden flex">
-            <div className="w-1.5 bg-gradient-to-b from-[#FBBF24] to-[#f97316] flex-shrink-0" />
-            <div className="px-8 py-6">
-              <p className="text-slate-300 mb-2">Children were collecting disconnected badges and certificates, but not building a foundation. They knew "some code"…</p>
-              <p className="text-lg font-semibold text-[#FBBF24]">But they didn't know how to think, adapt, and keep learning.</p>
-            </div>
-          </div>
-        </FadeIn>
-      </section>
-
-      {/* §3 — Why we founded */}
-      <section className="text-center max-w-4xl mx-auto">
-        <FadeIn>
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#FBBF24]/10 text-[#FBBF24] mb-6">
-            <Target className="w-8 h-8" />
-          </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-5">Why we founded Sparvi Lab</h2>
-          <p className="text-xl text-slate-600 mb-10">
-            We started with a simple but ambitious question:{" "}
-            <span className="font-semibold text-slate-900">
-              "What if we designed a learning journey that grows with the child, not just a set of classes around tools?"
-            </span>
-          </p>
-        </FadeIn>
-
-        <div className="grid sm:grid-cols-2 gap-4 text-left">
-          {[
-            "How do we build problem-solvers, not button-clickers?",
-            "How do we grow confidence when facing something new and unfamiliar?",
-            "How do we help kids transfer skills from one tool to another, one field to another?",
-            "How do we involve parents as partners, not spectators?",
-          ].map((q, i) => (
-            <FadeIn key={i} delay={i * 0.1}>
-              <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex gap-4 items-start hover:border-[#2dd4bf]/40 transition-colors">
-                <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-[#2dd4bf]/10 flex items-center justify-center">
-                  <Compass className="w-4 h-4 text-[#2dd4bf]" />
-                </div>
-                <p className="text-slate-700 font-medium text-sm leading-relaxed">{q}</p>
-              </div>
-            </FadeIn>
-          ))}
-        </div>
-
-        <FadeIn delay={0.4} className="mt-8">
-          <p className="text-lg text-slate-700 leading-relaxed p-6 bg-gradient-to-r from-[#102a5a]/5 to-[#2dd4bf]/5 rounded-2xl border border-[#2dd4bf]/20">
-            Sparvi Lab was born from the belief that{" "}
-            <strong className="text-slate-900">the real skill of the AI age is learning resilience</strong> — the ability to understand, experiment, adapt, and keep going when the rules change.
-          </p>
-        </FadeIn>
-      </section>
-
-      {/* §4 — Curriculum pillars */}
-      <section className="grid md:grid-cols-12 gap-12 items-start">
-        <FadeIn className="md:col-span-5">
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 leading-tight mb-5">
-            A curriculum built around how children actually learn
-          </h2>
-          <p className="text-slate-600 text-lg mb-4">
-            Sparvi Lab is a curriculum-driven learning system for ages 6–17. It is not a one-off course, not a workshop, and not a random mix of tools.
-          </p>
-          <p className="text-slate-600">
-            Every lesson is intentionally designed to engage different learning styles, move through a clear cognitive journey (experience → reflect → conceptualize → apply), and connect to real-world problems.
-          </p>
-        </FadeIn>
-
-        <div className="md:col-span-7 grid sm:grid-cols-2 gap-4">
-          {pillars.map(({ icon: Icon, color, bg, title, desc }, i) => (
-            <FadeIn key={i} delay={i * 0.1}>
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-                <div
-                  className="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
-                  style={{ background: bg }}
-                >
-                  <Icon className="w-5 h-5" style={{ color }} />
-                </div>
-                <h3 className="text-base font-bold text-slate-900 mb-1.5">{title}</h3>
-                <p className="text-slate-600 text-sm leading-relaxed">{desc}</p>
-              </div>
-            </FadeIn>
-          ))}
-        </div>
-      </section>
-
-      {/* §5 — From coding to creating */}
-      <section
-        className="rounded-[2.5rem] p-8 md:p-14 text-white relative overflow-hidden"
-        style={{ background: "linear-gradient(135deg, #071228 0%, #102a5a 100%)" }}
-      >
-        <div className="absolute top-0 right-0 w-96 h-96 bg-[#2dd4bf] opacity-10 rounded-full blur-[100px] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#FBBF24] opacity-8 rounded-full blur-[100px] pointer-events-none" />
-
-        <div className="relative z-10 grid md:grid-cols-2 gap-12 items-center">
-          <FadeIn>
-            <h2 className="text-3xl md:text-4xl font-bold mb-5">From coding to creating: what learners do</h2>
-            <p className="text-slate-300 text-lg mb-6 leading-relaxed">
-              In Sparvi Lab, students don't just "complete activities". They learn to see technology as a tool they can shape, not something that controls them.
-            </p>
-            <p className="text-slate-400 italic border-l-2 border-[#2dd4bf]/40 pl-4">
-              "They learn to be comfortable with trial and error, to debug both their code and their thinking."
+          <FadeIn delay={0.2} direction="up">
+            <p className="text-xl md:text-2xl text-slate-300 font-light max-w-3xl mx-auto leading-relaxed mb-12">
+              We started with one simple belief — every child deserves the chance to build, create, and master the tools of tomorrow.
             </p>
           </FadeIn>
 
-          <div className="space-y-3">
-            {learnItems.map(({ icon: Icon, color, text }, i) => (
-              <FadeIn key={i} delay={i * 0.1}>
-                <div className="flex items-start gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/8 transition-colors">
-                  <div
-                    className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{ background: `${color}20` }}
-                  >
-                    <Icon className="w-4 h-4" style={{ color }} />
+          <FadeIn delay={0.4}>
+            <div className="flex justify-center border-t border-white/10 pt-10 mt-10 max-w-4xl mx-auto">
+              <div className="grid grid-cols-3 gap-6 md:gap-20">
+                {[
+                  { value: "500+", label: "Students", icon: Users },
+                  { value: "6 - 17", label: "Age Range", icon: Star },
+                  { value: "10+", label: "Countries", icon: Globe2 }
+                ].map((stat, i) => (
+                  <div key={i} className="flex flex-col items-center gap-2">
+                    <stat.icon className="w-6 h-6 text-[#2dd4bf] mb-2 opacity-80" />
+                    <span className="text-3xl md:text-4xl font-bold text-white tracking-tight">{stat.value}</span>
+                    <span className="text-xs md:text-sm text-slate-400 uppercase tracking-widest">{stat.label}</span>
                   </div>
-                  <p className="text-slate-200 text-sm leading-relaxed">{text}</p>
+                ))}
+              </div>
+            </div>
+          </FadeIn>
+        </div>
+
+        {/* Scroll Indicator */}
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3">
+          {/* <span className="text-white/40 text-xs uppercase tracking-widest">Discover</span> */}
+          <motion.div
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <ChevronDown className="w-5 h-5 text-white/50" />
+          </motion.div>
+        </div>
+
+        {/* Bottom Wave Divider */}
+        <div className="absolute -bottom-[2px] left-0 right-0">
+          <svg viewBox="0 0 1440 80" fill="none" className="w-full h-auto">
+            <path d="M0 80V30C240 70 480 0 720 30C960 60 1200 10 1440 40V80H0Z" fill="#f8fafc" />
+          </svg>
+        </div>
+      </section>
+
+      {/* ────────────────── 2. THE TIMELINE FLOW ────────────────── */}
+      <section className="py-24 md:py-40 px-6 relative max-w-5xl mx-auto">
+        <FadeIn className="text-center mb-20 md:mb-32">
+          <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 tracking-tight">How it all unfolded</h2>
+          <p className="text-xl text-slate-500 max-w-2xl mx-auto">
+            The transition from a simple observation to a structured educational revolution.
+          </p>
+        </FadeIn>
+
+        <div className="relative">
+          {/* Timeline Center Line */}
+          <div className="absolute left-6 md:left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-[#f97316] via-[#2dd4bf] to-[#a78bfa] rounded-full opacity-20 -translate-x-1/2" />
+
+          <div className="space-y-24">
+            {timelineSteps.map((step, idx) => (
+              <div key={idx} className={`relative flex flex-col md:flex-row items-center gap-10 md:gap-16 ${idx % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"}`}>
+                
+                {/* Timeline Dot */}
+                <div className="absolute left-6 md:left-1/2 top-0 md:top-1/2 w-16 h-16 rounded-full bg-white shadow-xl border-4 flex items-center justify-center -translate-x-1/2 md:-translate-y-1/2 z-10" style={{ borderColor: step.color }}>
+                  <step.icon className="w-6 h-6" style={{ color: step.color }} />
+                </div>
+
+                {/* Content */}
+                <FadeIn direction={idx % 2 === 0 ? "right" : "left"} className={`w-full pl-24 md:pl-0 md:w-1/2 ${idx % 2 === 0 ? "md:text-right" : "md:text-left"}`}>
+                  <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6 font-bold text-sm`} style={{ color: step.color, backgroundColor: `${step.color}15` }}>
+                    {step.year}
+                  </div>
+                  <h3 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6 leading-tight">{step.title}</h3>
+                  <p className="text-lg text-slate-600 leading-relaxed">{step.desc}</p>
+                </FadeIn>
+                
+                {/* Spacer for alternate side */}
+                <div className="hidden md:block md:w-1/2" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ────────────────── 3. CURRICULUM ARCHITECTURE ────────────────── */}
+      <section className="py-24 md:py-32 bg-white border-y border-slate-100">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid lg:grid-cols-12 gap-16 items-center">
+            
+            {/* Left Text */}
+            <div className="lg:col-span-5">
+              <FadeIn direction="right">
+                <div className="w-16 h-16 rounded-2xl bg-[#071228] text-white flex items-center justify-center mb-8 shadow-xl">
+                  <Brain className="w-8 h-8 text-[#2dd4bf]" />
+                </div>
+                <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 leading-tight">
+                  Engineered for <br/>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2dd4bf] to-[#3b82f6]">Deep Learning</span>
+                </h2>
+                <p className="text-lg text-slate-600 mb-8 leading-relaxed">
+                  Sparvi Lab is not a one-off workshop or a scattered blend of tools. It is a curriculum-driven architecture designed around how children actually process information. We sequence experiences so the leap from early curiosity to real innovation is seamless.
+                </p>
+                
+                <div className="space-y-5">
+                  {[
+                    "Experiential first, conceptual second",
+                    "Adaptable across multiple tools & frameworks",
+                    "Aligned with international tech standards"
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
+                      <div className="w-8 h-8 rounded-full bg-[#2dd4bf]/20 flex items-center justify-center flex-shrink-0">
+                        <CheckCircle2 className="w-4 h-4 text-[#0d9488]" />
+                      </div>
+                      <span className="font-medium text-slate-700">{item}</span>
+                    </div>
+                  ))}
                 </div>
               </FadeIn>
-            ))}
+            </div>
+
+            {/* Right Grid */}
+            <div className="lg:col-span-7 grid sm:grid-cols-2 gap-6">
+              {pillars.map((pillar, i) => (
+                <FadeIn key={i} delay={i * 0.1} direction="up">
+                  <div className="group h-full p-8 rounded-[2rem] bg-slate-50 border border-slate-100 hover:bg-white hover:shadow-2xl hover:shadow-[#2dd4bf]/10 transition-all duration-500 hover:-translate-y-2">
+                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3 shadow-md" style={{ backgroundColor: pillar.color, color: 'white' }}>
+                      <pillar.icon className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900 mb-4">{pillar.title}</h3>
+                    <p className="text-slate-600 leading-relaxed text-sm md:text-base">{pillar.desc}</p>
+                  </div>
+                </FadeIn>
+              ))}
+            </div>
+
           </div>
         </div>
       </section>
 
-      {/* §6 — Partnership with parents */}
-      <section className="max-w-4xl mx-auto text-center">
-        <FadeIn>
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#2dd4bf]/10 text-[#2dd4bf] mb-6">
-            <HeartHandshake className="w-8 h-8" />
-          </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-5">A partnership with parents</h2>
-          <p className="text-xl text-slate-600 mb-10">
-            We believe real change happens when school, learning centers, and home are aligned. You are not just "dropping your child off for a class" — you are joining a long-term learning journey with them.
-          </p>
-        </FadeIn>
+      {/* ────────────────── 4. WHAT THEY ACTUALLY DO ────────────────── */}
+      <section className="py-24 md:py-32 px-6 bg-slate-50 relative overflow-hidden">
+        <div className="max-w-6xl mx-auto">
+          <div className="p-10 md:p-16 rounded-[3rem] bg-[#071228] relative shadow-2xl overflow-hidden">
+            {/* Dark Card Graphics */}
+            <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-gradient-to-bl from-[#a78bfa]/20 to-transparent rounded-full blur-[80px]" />
+            <div className="absolute bottom-0 left-0 w-[30rem] h-[30rem] bg-gradient-to-tr from-[#2dd4bf]/20 to-transparent rounded-full blur-[80px]" />
+            
+            <div className="relative z-10 grid lg:grid-cols-2 gap-16 items-center">
+              <FadeIn>
+                <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">From Coding to Creating</h2>
+                <p className="text-xl text-slate-300 mb-8 leading-relaxed font-light">
+                  In Sparvi Lab, learners don't just "complete activities". They learn to see technology as a raw material they can shape, building a tolerance for trial, error, and debugging.
+                </p>
+                <blockquote className="pl-6 border-l-4 border-[#2dd4bf] text-slate-400 italic text-lg pr-4">
+                  "They learn to be comfortable with ambiguity, debugging both their code and their own logic."
+                </blockquote>
+              </FadeIn>
 
-        <div className="grid sm:grid-cols-2 gap-4 text-left">
-          {partnerItems.map((item, i) => (
-            <FadeIn key={i} delay={i * 0.1}>
-              <div className="flex items-center gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-[#2dd4bf]/30 transition-colors">
-                <div className="w-9 h-9 rounded-xl bg-[#2dd4bf]/10 flex items-center justify-center flex-shrink-0">
-                  <CheckIcon className="w-4 h-4 text-[#2dd4bf]" />
-                </div>
-                <p className="text-slate-700 font-medium text-sm leading-relaxed">{item}</p>
+              <div className="space-y-4">
+                {learnerOutcomes.map((item, i) => (
+                  <FadeIn key={i} delay={i * 0.1}>
+                    <div className="flex items-start gap-5 p-5 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm hover:bg-white/10 transition-colors">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2dd4bf] to-[#3b82f6] flex items-center justify-center flex-shrink-0 shadow-lg">
+                        <Wrench className="w-4 h-4 text-white" />
+                      </div>
+                      <p className="text-slate-200 mt-2 font-medium">{item.text}</p>
+                    </div>
+                  </FadeIn>
+                ))}
               </div>
-            </FadeIn>
-          ))}
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* §7 — Vision */}
-      <section
-        className="relative rounded-[2.5rem] overflow-hidden text-white py-20 px-8 text-center shadow-2xl"
-        style={{ background: "linear-gradient(135deg, #071228 0%, #102a5a 60%, #1a3a6b 100%)" }}
-      >
-        {/* CSS dots pattern instead of external URL */}
-        <div
-          className="absolute inset-0 opacity-[0.06] pointer-events-none"
-          style={{
-            backgroundImage: "radial-gradient(circle, #ffffff 1px, transparent 1px)",
-            backgroundSize: "28px 28px",
-          }}
-        />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-48 bg-[#FBBF24]/10 rounded-full blur-[80px] pointer-events-none" />
+      {/* ────────────────── 5. FULL WIDTH CALL TO ACTION ────────────────── */}
+      <section className="relative pt-20 pb-32 px-6 overflow-hidden">
+        {/* Abstract shapes for background */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-5xl h-[80%] bg-gradient-to-r from-[#2dd4bf]/20 via-[#FBBF24]/20 to-[#a78bfa]/20 rounded-full blur-[120px] pointer-events-none" />
 
-        <FadeIn className="relative z-10 max-w-3xl mx-auto">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#FBBF24]/15 border border-[#FBBF24]/30 text-[#FBBF24] mb-8">
-            <Rocket className="w-8 h-8" />
+        <FadeIn className="relative z-10 max-w-4xl mx-auto text-center">
+          <div className="mb-10 flex justify-center">
+            <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#FBBF24] to-[#f97316] flex items-center justify-center shadow-2xl shadow-[#FBBF24]/30 rotate-3">
+              <Rocket className="w-10 h-10 text-white -rotate-3" />
+            </div>
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">Our vision for the next generation</h2>
-
-          <p className="text-xl md:text-2xl font-light text-slate-200 mb-10 leading-relaxed">
-            We are not trying to create an army of coders. We are building a generation of innovators and resilient learners who:
+          
+          <h2 className="text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tight leading-tight mb-8">
+            The future belongs to the <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#f97316] to-[#FBBF24]">resilient.</span>
+          </h2>
+          
+          <p className="text-xl md:text-2xl text-slate-600 mb-12 max-w-2xl mx-auto leading-relaxed">
+            The tools will keep changing, but the ability to think, adapt, and build will last forever. Join us in shaping tomorrow's leaders.
           </p>
 
-          <div className="flex flex-wrap justify-center gap-3 mb-12">
-            {["Think clearly when problems are messy", "Stay curious when tools change", "Feel confident experimenting", "Understand AI responsibility"].map((trait, i) => (
-              <span
-                key={i}
-                className="px-4 py-2 rounded-full bg-white/10 border border-white/20 text-sm md:text-base backdrop-blur-md"
-              >
-                {trait}
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-5">
+            <button className="group relative px-8 py-5 w-full sm:w-auto rounded-full bg-[#071228] text-white font-bold text-lg overflow-hidden shadow-2xl hover:shadow-[#071228]/40 transition-shadow">
+              <div className="absolute inset-0 bg-gradient-to-r from-[#2dd4bf] to-[#3b82f6] translate-y-[100%] group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+              <span className="relative flex items-center justify-center gap-3">
+                Explore Programs
+                <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
               </span>
-            ))}
-          </div>
-
-          <p className="text-slate-400 mb-12 max-w-2xl mx-auto leading-relaxed">
-            The future will keep changing. New platforms, new devices, new roles will appear. Our mission at Sparvi Lab is to ensure that when that future arrives, today's children are not afraid of it — they are ready for it.
-          </p>
-
-          <div className="flex flex-col md:flex-row justify-center items-center gap-4 md:gap-8 text-2xl md:text-3xl font-bold">
-            {["Ready to understand.", "Ready to create.", "Ready to lead."].map((phrase, i) => (
-              <React.Fragment key={phrase}>
-                <motion.div
-                  initial={{ opacity: 0, y: 12 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.2 + i * 0.2 }}
-                  className="text-transparent bg-clip-text bg-gradient-to-r from-[#FBBF24] to-[#2dd4bf]"
-                >
-                  {phrase}
-                </motion.div>
-                {i < 2 && <div className="hidden md:block w-1.5 h-1.5 rounded-full bg-slate-600" />}
-              </React.Fragment>
-            ))}
+            </button>
+            
+            <button className="px-8 py-5 w-full sm:w-auto rounded-full bg-white border-2 border-slate-200 text-slate-700 hover:border-[#2dd4bf] hover:text-[#2dd4bf] font-bold text-lg shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              Talk to an Expert
+            </button>
           </div>
         </FadeIn>
       </section>
 
-    </main>
+      {/* ────────────────── FOOTER ────────────────── */}
+      {/* <footer className="relative bg-[#071228] text-center pt-20 pb-10 border-t border-white/10">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#2dd4bf]/50 to-transparent" />
+        
+        <div className="max-w-5xl mx-auto px-6 flex flex-col items-center">
+          <div className="flex justify-center items-center gap-4 mb-8">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#2dd4bf] to-[#3b82f6] flex items-center justify-center shadow-lg shadow-[#2dd4bf]/20">
+              <span className="text-white font-bold text-2xl leading-none">S</span>
+            </div>
+            <span className="text-white font-bold text-3xl tracking-tight">Sparvi Lab</span>
+          </div>
 
-    {/* Footer */}
-    <footer className="py-6 text-center text-xs bg-[#071228]">
-      <p className="text-slate-500">© {new Date().getFullYear()} Sparvi Lab. All rights reserved.</p>
-    </footer>
-  </div>
+          <div className="w-24 h-1.5 bg-gradient-to-r from-[#FBBF24] to-[#f97316] rounded-full mb-10 opacity-90 shadow-[0_0_15px_rgba(251,191,36,0.5)]" />
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12 w-full max-w-3xl text-sm">
+            {[
+              "Methodology",
+              "Curriculum Framework",
+              "For Parents",
+              "Join the Team"
+            ].map((link, i) => (
+              <a key={i} href="#" className="text-slate-400 hover:text-white transition-colors">{link}</a>
+            ))}
+          </div>
+
+          <p className="text-slate-500 text-sm border-t border-white/10 w-full pt-8">
+            © {new Date().getFullYear()} Sparvi Lab. All rights reserved. <br className="md:hidden" />
+            <span className="hidden md:inline"> | </span> 
+            Pioneering resilient intelligence.
+          </p>
+        </div>
+      </footer> */}
+
+    </div>
   );
 };
 
