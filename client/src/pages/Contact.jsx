@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Mail,
@@ -56,6 +56,9 @@ const contactMethods = [
 ];
 
 const Contact = () => {
+  useEffect(() => {
+    document.title = "Contact Sparvi Lab — Reach Us by Phone, WhatsApp, or Email";
+  }, []);
   const [formState, setFormState] = useState({
     parentName: "",
     phone: "",

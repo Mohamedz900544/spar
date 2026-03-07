@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import Navbar from "../components/Navbar";
 import {
@@ -86,7 +86,11 @@ const partnerItems = [
 ];
 
 /* ── Page ── */
-const OurStory = () => (
+const OurStory = () => {
+  useEffect(() => {
+    document.title = "Our Story — Sparvi Lab | Why We Build STEM Education for Kids";
+  }, []);
+  return (
   <div className="min-h-screen flex flex-col bg-slate-50/50 font-sans">
     <Navbar />
 
@@ -448,6 +452,7 @@ const OurStory = () => (
       <p className="text-slate-500">© {new Date().getFullYear()} Sparvi Lab. All rights reserved.</p>
     </footer>
   </div>
-);
+  );
+};
 
 export default OurStory;

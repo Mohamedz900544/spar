@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -63,6 +63,9 @@ const features = [
 ];
 
 const SignUp = () => {
+  useEffect(() => {
+    document.title = "Enroll Your Child — Sparvi Lab | Reserve a Seat Today";
+  }, []);
   const navigate = useNavigate();
   const [serverError, setServerError] = useState("");
   const {

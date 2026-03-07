@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import Navbar from "../components/Navbar";
 import {
@@ -210,6 +210,9 @@ const FloatingShape = ({ className, delay = 0, duration = 6 }) => (
    MAIN COMPONENT
 --------------------------------------------------------*/
 export default function Courses() {
+  useEffect(() => {
+    document.title = "Courses — Sparvi Lab | STEM Programs for Ages 6–17";
+  }, []);
   const [selectedAge, setSelectedAge] = useState(null);
   const [openPhase, setOpenPhase] = useState(null);
   const [openFoundation, setOpenFoundation] = useState(null);

@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /parent
+Disallow: /instructor
+Disallow: /blocks/
+Disallow: /fractions/
+Disallow: /login
+Allow: /blocks/share/
+
+Sitemap: https://sparvilab.com/sitemap.xml

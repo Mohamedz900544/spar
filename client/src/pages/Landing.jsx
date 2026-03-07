@@ -331,6 +331,9 @@ const cardAccents = [
 ];
 
 const Landing = () => {
+  useEffect(() => {
+    document.title = "Sparvi Lab — Live STEM Education for Kids Ages 6–17";
+  }, []);
   const [openFAQ, setOpenFAQ] = useState(-1);
   const [projectIndex, setProjectIndex] = useState(0);
   const projectTrackRef = useRef(null);
@@ -371,20 +374,19 @@ const Landing = () => {
             className="order-1 md:order-none text-center md:text-left"
           >
             <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-[3.4rem] font-extrabold tracking-tight mb-4 md:mb-5 leading-[1.15] text-white font-display">
-              <span className="block">
-                Building the
-              </span>
-              <span className="block">
-                Next Generation’s
-              </span>
+              <span className="block">Building the</span>
+              <span className="block">Next Generation’s</span>
               <span className="inline-block mt-2 bg-[#FBBF24] text-[#024f63] border-2 border-white px-3 py-1 rounded-md text-xl sm:text-2xl md:text-3xl font-bold transform -rotate-1">
                 Minds
               </span>
             </h1>
+            {/* Hidden SEO-friendly h1 text for crawlers */}
+            <p className="sr-only">
+              Sparvi Lab — Live STEM Education for Kids Ages 6–17. Coding, electronics, robotics, and AI through structured hands-on sessions.
+            </p>
 
             <p className="max-w-xl mx-auto md:mx-0 text-xs sm:text-sm md:text-base text-slate-300 mb-6 md:mb-8 leading-relaxed">
-              Hands-on learning that sparks creativity. Build robots, learn
-              circuits, and code your future with Sparvi Lab.
+              Live, instructor-led STEM sessions for ages 6–17. Kids learn electronics, coding, robotics, and AI through structured hands-on projects — online and in-person.
             </p>
 
             {/* CTA Buttons */}
