@@ -233,6 +233,8 @@ const VideoCard = ({ thumbnail, ytSrc, name, meta }) => {
           src={thumbnail}
           alt={name}
           loading="lazy"
+          width="247"
+          height="373"
           className="sparvi-hero-thumb-img"
         />
 
@@ -365,6 +367,8 @@ const Landing = () => {
               src="https://res.cloudinary.com/dipzvlfnt/image/upload/f_auto,q_auto,w_900/v1772832876/Robot_l1b0pg.webp"
               alt="Sparvi Lab Robot"
               fetchpriority="high"
+              width="900"
+              height="496"
               className="w-[140%] max-w-none drop-shadow-[0_20px_40px_rgba(0,0,0,0.3)]"
             />
           </Motion.div>
@@ -730,7 +734,7 @@ const Landing = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-16">
             {/* Column 1: Logo & Info */}
             <div>
-              <img src="/logo-white.png" alt="Sparvi Lab" className="h-10 mb-4" />
+              <img src="/logo-white.png" alt="Sparvi Lab" width="133" height="70" className="h-10 mb-4" />
               <p className="text-slate-400 text-sm leading-relaxed mb-5">
                 Hands-on learning that sparks creativity. Build robots, learn
                 circuits, and code your future.

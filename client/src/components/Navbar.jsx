@@ -99,6 +99,8 @@ const Navbar = () => {
           <img
             src={effectiveScrolled ? logoScrolled : logoTransparent}
             alt="Sparvi Lab"
+            width="133"
+            height="70"
             className={[
               "transition-all duration-300 object-contain",
               effectiveScrolled ? "h-8 md:h-10" : "h-9 md:h-12",
