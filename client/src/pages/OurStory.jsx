@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import Navbar from "../components/Navbar";
 import {
@@ -305,17 +306,17 @@ const OurStory = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row justify-center items-center gap-5">
-            <button className="group relative px-8 py-5 w-full sm:w-auto rounded-full bg-[#071228] text-white font-bold text-lg overflow-hidden shadow-2xl hover:shadow-[#071228]/40 transition-shadow">
+            <Link to="/courses" className="group relative px-8 py-5 w-full sm:w-auto rounded-full bg-[#071228] text-white font-bold text-lg overflow-hidden shadow-2xl hover:shadow-[#071228]/40 transition-shadow">
               <div className="absolute inset-0 bg-gradient-to-r from-[#2dd4bf] to-[#3b82f6] translate-y-[100%] group-hover:translate-y-0 transition-transform duration-300 ease-out" />
               <span className="relative flex items-center justify-center gap-3">
                 Explore Programs
                 <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
               </span>
-            </button>
+            </Link>
 
-            <button className="px-8 py-5 w-full sm:w-auto rounded-full bg-white border-2 border-slate-200 text-slate-700 hover:border-[#2dd4bf] hover:text-[#2dd4bf] font-bold text-lg shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+            <Link to="/contact" className="px-8 py-5 w-full sm:w-auto rounded-full bg-white border-2 border-slate-200 text-slate-700 hover:border-[#2dd4bf] hover:text-[#2dd4bf] text-center font-bold text-lg shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               Talk to an Expert
-            </button>
+            </Link>
           </div>
         </FadeIn>
       </section>
