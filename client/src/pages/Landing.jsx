@@ -33,29 +33,74 @@ const Sparkles = () => (
    ============================== */
 const faqItems = [
   {
-    question: "What comes in the Sparvi Lab electronics kit?",
+    question: "What exactly will my child learn at Sparvi Lab?",
     answer:
-      "The kit includes everything your child needs for the course: a breadboard, jumper wires, LEDs, resistors, a buzzer, switches, and a battery pack. Everything is low-voltage (safe for kids) and reusable for endless projects!",
+      "Your child will learn the skills that make technology easier to understand long-term, not just one tool for a short time. We build strong foundations in problem-solving, logical reasoning, creativity, and learning agility, then apply them through hands-on learning across computational thinking, creative coding, electronics and robotics, game development, and early AI concepts. The goal is a child who can face new challenges confidently and learn new technologies faster.",
   },
   {
-    question: "What age group is this suitable for?",
+    question: "What age groups do you offer, and how are levels decided?",
     answer:
-      "Sparvi Lab sessions are designed for children ages 7–12. Our curriculum uses age-appropriate language, visuals, and hands-on activities that keep young learners engaged and confident.",
+      "Sparvi Lab is designed for ages 6–17. Students are placed into age bands with a progressive curriculum that grows year by year. Placement is based on age and a simple onboarding check to understand the child's current level, attention span, and comfort with problem-solving. If a child is advanced, we can place them higher. If they need stronger foundations, we start from the right step without pressure.",
   },
   {
-    question: "Do parents need to help during the sessions?",
+    question: "Do students need any prior coding or robotics experience?",
     answer:
-      "Not at all! Our friendly instructors guide every step. Parents are welcome to watch, but kids are encouraged to explore and build independently with mentor support.",
+      "No. Prior experience is not required. Many students join with zero background and start from the foundations. We teach concepts in an age-appropriate way that is designed for beginners. If your child already has experience, we do not repeat basics blindly. We challenge them with deeper tasks and more advanced projects.",
+  },
+  {
+    question: "Do parents need to attend or help during sessions?",
+    answer:
+      "In most cases, parents do not need to sit next to the child during the session. Sessions are guided and structured, and we teach children to think independently. For ages 6–8, we recommend light support at the beginning (mainly for setup and focus). After that, we gradually reduce dependence so the child builds confidence and ownership. We also run parent guidance sessions so you know how to support your child without doing the work for them.",
   },
   {
     question: "What happens if we miss a live class?",
     answer:
-      "No worries — we provide session summaries and your child can catch up in the next class. Our structured curriculum makes it easy to rejoin without falling behind.",
+      "If you miss a session, your child will not be left behind. We provide a clear catch-up plan based on what was missed. Depending on the program, you may receive a session recording or a guided summary with tasks to complete. If needed, we also offer support time to help the student catch up and rejoin confidently.",
   },
   {
-    question: "Is prior coding or robotics experience required?",
+    question: "How do you track progress and measure improvement over time?",
     answer:
-      "Absolutely not! Sparvi Lab starts from scratch. We begin with the basics of electricity and circuits, building up to more complex projects week by week.",
+      "We track progress using skill-based milestones, not just completed lessons. We focus on how the child is improving in areas such as problem-solving strategy, logical reasoning, debugging ability, creativity in solutions, and confidence during challenges. Parents receive progress updates that highlight strengths and what to work on next. This makes learning measurable and shows real growth, not just finished projects.",
+  },
+  {
+    question: "Is Sparvi Lab online, in-person, or both?",
+    answer:
+      "Sparvi Lab can be delivered online and in-person depending on your location and the program schedule. Online sessions are interactive and hands-on, not passive watching. In-person sessions follow the same curriculum, with more physical collaboration. When you enroll, we confirm the available format options and schedules for your area.",
+  },
+  {
+    question: "How are lessons taught to match different learning styles?",
+    answer:
+      "We use proven learning models such as SAVI, 4MAT, and Meier's learning phases, so every lesson includes multiple types of engagement. Students learn by building, discussing, experimenting, moving, and applying. This supports children who learn visually, practically, socially, or through exploration. It also keeps sessions active, reduces boredom, and improves understanding and retention.",
+  },
+  {
+    question: "How do you keep kids safe and focused with technology at home?",
+    answer:
+      "We promote healthy tech habits as part of the learning journey. Students learn structured screen use, not endless screen time. We guide parents with simple routines to support focus and reduce distractions. We also design projects around purposeful creation, so the child uses technology to build and think, not just consume. If parents want extra support, we provide guidance sessions to help create a safe, balanced home setup.",
+  },
+  {
+    question: "How long is each program, and how often are sessions?",
+    answer:
+      "Programs are structured to create real progress, not quick exposure. Session length and frequency depend on the age group and track. You will receive a clear schedule before starting, including how many sessions per month and what outcomes to expect by the end. For younger ages, sessions are shorter and more activity-based. For older ages, sessions are deeper and project-heavy.",
+  },
+  {
+    question: "What if my child is shy or lacks confidence?",
+    answer:
+      "That is common, and it is one of the main areas we support. We use guided participation and safe challenges that gradually increase in difficulty. We encourage thinking out loud and celebrate effort and improvement, not just correct answers. Over time, children build confidence because they learn how to approach problems step by step and see themselves improving.",
+  },
+  {
+    question: "What equipment do we need at home for online learning?",
+    answer:
+      "In most cases, you need a laptop or desktop computer and a stable internet connection. For some tracks, the electronics kit is required. We provide a short setup guide so everything is ready before the first session. If your child joins a hardware track, we also guide you through safe setup and handling.",
+  },
+  {
+    question: "Can my child switch tracks later?",
+    answer:
+      "Yes, switching tracks is possible depending on the schedule and your child's readiness. We usually recommend finishing the current phase first, then switching with a clear plan. Because the curriculum is structured, we make sure the child does not miss key foundations when moving between tracks.",
+  },
+  {
+    question: "How do you ensure the curriculum is not just random activities?",
+    answer:
+      "Every activity at Sparvi Lab is tied to a learning objective and a progression path. We do not teach random \"fun projects\" without a learning journey. Each level builds on the previous one and prepares the child for more advanced thinking and real-world relevance. That is what makes Sparvi Lab a curriculum-driven system, not a tool-based academy.",
   },
 ];
 
