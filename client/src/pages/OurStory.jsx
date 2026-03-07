@@ -2,17 +2,25 @@ import React, { useEffect, useRef } from "react";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import Navbar from "../components/Navbar";
 import {
-  Globe2, Target, Compass, BookOpen, Layers, 
-  TrendingUp, Brain, Code, Wrench, MessageSquare, Zap, 
+  Globe2, Target, Compass, BookOpen, Layers,
+  TrendingUp, Brain, Code, Wrench, MessageSquare, Zap,
   HeartHandshake, Rocket, Users, Star, ArrowRight,
   Sparkles, CheckCircle2, ChevronDown
 } from "lucide-react";
 
 // ── Animation Helpers ── //
+const FloatingShape = ({ className, delay = 0, duration = 6 }) => (
+  <motion.div
+    className={className}
+    animate={{ y: [0, -12, 0], opacity: [0.4, 0.9, 0.4] }}
+    transition={{ duration, delay, repeat: Infinity, ease: "easeInOut" }}
+  />
+);
+
 const FadeIn = ({ children, delay = 0, className = "", direction = "up" }) => {
   const yInitial = direction === "up" ? 40 : direction === "down" ? -40 : 0;
   const xInitial = direction === "left" ? 40 : direction === "right" ? -40 : 0;
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, y: yInitial, x: xInitial }}
@@ -79,9 +87,6 @@ const learnerOutcomes = [
 
 // ── The Page Component ── //
 const OurStory = () => {
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
-
   useEffect(() => {
     document.title = "Our Story — Sparvi Lab | The Origin of Innovation";
   }, []);
@@ -90,92 +95,64 @@ const OurStory = () => {
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-[#2dd4bf]/30 overflow-x-hidden">
       <Navbar />
 
-      {/* Progress Bar */}
-      <motion.div 
-        style={{ scaleX, transformOrigin: "0%", zIndex: 100 }}
-        className="fixed top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#2dd4bf] to-[#FBBF24]" 
-      />
-
-      {/* ────────────────── 1. EXPERIENTIAL HERO ────────────────── */}
-      <section className="relative min-h-[95vh] flex items-center justify-center overflow-hidden bg-[#071228]">
-        {/* Dynamic Background */}
-        <div className="absolute inset-0 w-full h-full">
-          <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#102a5a] rounded-full blur-[150px] mix-blend-screen opacity-70" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#a78bfa]/20 rounded-full blur-[150px] mix-blend-screen opacity-60" />
-          <div className="absolute top-[20%] right-[10%] w-[30%] h-[30%] bg-[#2dd4bf]/20 rounded-full blur-[120px] mix-blend-screen opacity-50" />
-          <div className="absolute w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03]" />
+      {/* ===== Hero Banner ===== */}
+      <div
+        className="relative overflow-hidden"
+        style={{
+          background:
+            "linear-gradient(135deg, #071228 0%, #102a5a 50%, #1a3a6b 100%)",
+        }}
+      >
+        {/* Floating decorations */}
+        <div className="absolute inset-0 pointer-events-none">
+          <FloatingShape className="absolute top-[20%] left-[10%] w-3 h-3 rounded-full bg-[#FBBF24]/30" delay={0} />
+          <FloatingShape className="absolute top-[40%] right-[15%] w-2 h-2 rounded-full bg-[#2dd4bf]/40" delay={1} />
+          <FloatingShape className="absolute bottom-[20%] left-[60%] w-2.5 h-2.5 rounded-full bg-[#FBBF24]/20" delay={2} />
+          <div className="absolute top-0 right-0 w-96 h-96 rounded-full bg-[#FBBF24]/5 blur-[120px]" />
+          <div className="absolute bottom-0 left-0 w-72 h-72 rounded-full bg-[#2dd4bf]/5 blur-[100px]" />
         </div>
 
-        {/* Floating Particles */}
-        <FloatingElement className="absolute top-[30%] left-[20%] text-[#2dd4bf]/40" duration={8} yOffset={30}>
-          <Brain className="w-12 h-12" />
-        </FloatingElement>
-        <FloatingElement className="absolute bottom-[25%] right-[25%] text-[#FBBF24]/40" delay={2} duration={10} yOffset={40}>
-          <Rocket className="w-10 h-10" />
-        </FloatingElement>
-        <FloatingElement className="absolute top-[40%] right-[15%] text-[#a78bfa]/30" delay={1} duration={7} yOffset={25}>
-          <Code className="w-8 h-8" />
-        </FloatingElement>
-
-        <div className="relative z-10 w-full max-w-6xl mx-auto px-6 text-center">
-          {/* <FadeIn direction="up">
-            <span className="inline-flex items-center gap-2 px-5 py-2 mb-8 rounded-full bg-white/5 border border-white/10 text-[#2dd4bf] tracking-[0.2em] text-xs font-bold uppercase backdrop-blur-md">
-              <Sparkles className="w-4 h-4" /> The Origin Story
-            </span>
-          </FadeIn> */}
-          
-          <FadeIn delay={0.1} direction="up">
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold text-white tracking-tight leading-[1.1] mb-8">
-              Changing the way <br/>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2dd4bf] via-[#38bdf8] to-[#a78bfa]">
-                children think.
-              </span>
+        <div className="relative z-10 max-w-6xl mx-auto px-5 pt-28 pb-16 md:pt-32 md:pb-20 text-center">
+          <motion.div
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.7 }}
+          >
+            <h1 className="text-3xl md:text-5xl font-extrabold text-white leading-tight mb-4 font-display">
+              The Origin <span className="text-[#FBBF24]">Story</span>
             </h1>
-          </FadeIn>
-
-          <FadeIn delay={0.2} direction="up">
-            <p className="text-xl md:text-2xl text-slate-300 font-light max-w-3xl mx-auto leading-relaxed mb-12">
+            <p className="text-slate-300 max-w-lg mx-auto text-sm md:text-base mb-8">
               We started with one simple belief — every child deserves the chance to build, create, and master the tools of tomorrow.
             </p>
-          </FadeIn>
 
-          <FadeIn delay={0.4}>
-            <div className="flex justify-center border-t border-white/10 pt-10 mt-10 max-w-4xl mx-auto">
-              <div className="grid grid-cols-3 gap-6 md:gap-20">
+            <div className="flex justify-center border-t border-white/10 pt-8 max-w-2xl mx-auto">
+              <div className="grid grid-cols-3 gap-6 md:gap-12 w-full">
                 {[
                   { value: "500+", label: "Students", icon: Users },
                   { value: "6 - 17", label: "Age Range", icon: Star },
                   { value: "10+", label: "Countries", icon: Globe2 }
                 ].map((stat, i) => (
-                  <div key={i} className="flex flex-col items-center gap-2">
-                    <stat.icon className="w-6 h-6 text-[#2dd4bf] mb-2 opacity-80" />
-                    <span className="text-3xl md:text-4xl font-bold text-white tracking-tight">{stat.value}</span>
-                    <span className="text-xs md:text-sm text-slate-400 uppercase tracking-widest">{stat.label}</span>
+                  <div key={i} className="flex flex-col items-center gap-1.5">
+                    <stat.icon className="w-5 h-5 text-[#FBBF24] mb-1 opacity-90" />
+                    <span className="text-2xl md:text-3xl font-bold text-white tracking-tight">{stat.value}</span>
+                    <span className="text-[10px] md:text-xs text-slate-400 uppercase tracking-widest">{stat.label}</span>
                   </div>
                 ))}
               </div>
             </div>
-          </FadeIn>
-        </div>
-
-        {/* Scroll Indicator */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3">
-          {/* <span className="text-white/40 text-xs uppercase tracking-widest">Discover</span> */}
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <ChevronDown className="w-5 h-5 text-white/50" />
           </motion.div>
         </div>
 
-        {/* Bottom Wave Divider */}
-        <div className="absolute -bottom-[2px] left-0 right-0">
-          <svg viewBox="0 0 1440 80" fill="none" className="w-full h-auto">
-            <path d="M0 80V30C240 70 480 0 720 30C960 60 1200 10 1440 40V80H0Z" fill="#f8fafc" />
+        {/* Wave separator */}
+        <div className="absolute -bottom-px left-0 right-0">
+          <svg viewBox="0 0 1440 60" fill="none" className="w-full block">
+            <path
+              d="M0 60V20C240 50 480 0 720 20C960 40 1200 10 1440 30V60H0Z"
+              fill="#f8fafc"
+            />
           </svg>
         </div>
-      </section>
+      </div>
 
       {/* ────────────────── 2. THE TIMELINE FLOW ────────────────── */}
       <section className="py-24 md:py-40 px-6 relative max-w-5xl mx-auto">
@@ -193,7 +170,7 @@ const OurStory = () => {
           <div className="space-y-24">
             {timelineSteps.map((step, idx) => (
               <div key={idx} className={`relative flex flex-col md:flex-row items-center gap-10 md:gap-16 ${idx % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"}`}>
-                
+
                 {/* Timeline Dot */}
                 <div className="absolute left-6 md:left-1/2 top-0 md:top-1/2 w-16 h-16 rounded-full bg-white shadow-xl border-4 flex items-center justify-center -translate-x-1/2 md:-translate-y-1/2 z-10" style={{ borderColor: step.color }}>
                   <step.icon className="w-6 h-6" style={{ color: step.color }} />
@@ -207,7 +184,7 @@ const OurStory = () => {
                   <h3 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6 leading-tight">{step.title}</h3>
                   <p className="text-lg text-slate-600 leading-relaxed">{step.desc}</p>
                 </FadeIn>
-                
+
                 {/* Spacer for alternate side */}
                 <div className="hidden md:block md:w-1/2" />
               </div>
@@ -220,7 +197,7 @@ const OurStory = () => {
       <section className="py-24 md:py-32 bg-white border-y border-slate-100">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid lg:grid-cols-12 gap-16 items-center">
-            
+
             {/* Left Text */}
             <div className="lg:col-span-5">
               <FadeIn direction="right">
@@ -228,13 +205,13 @@ const OurStory = () => {
                   <Brain className="w-8 h-8 text-[#2dd4bf]" />
                 </div>
                 <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 leading-tight">
-                  Engineered for <br/>
+                  Engineered for <br />
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2dd4bf] to-[#3b82f6]">Deep Learning</span>
                 </h2>
                 <p className="text-lg text-slate-600 mb-8 leading-relaxed">
                   Sparvi Lab is not a one-off workshop or a scattered blend of tools. It is a curriculum-driven architecture designed around how children actually process information. We sequence experiences so the leap from early curiosity to real innovation is seamless.
                 </p>
-                
+
                 <div className="space-y-5">
                   {[
                     "Experiential first, conceptual second",
@@ -278,7 +255,7 @@ const OurStory = () => {
             {/* Dark Card Graphics */}
             <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-gradient-to-bl from-[#a78bfa]/20 to-transparent rounded-full blur-[80px]" />
             <div className="absolute bottom-0 left-0 w-[30rem] h-[30rem] bg-gradient-to-tr from-[#2dd4bf]/20 to-transparent rounded-full blur-[80px]" />
-            
+
             <div className="relative z-10 grid lg:grid-cols-2 gap-16 items-center">
               <FadeIn>
                 <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">From Coding to Creating</h2>
@@ -318,11 +295,11 @@ const OurStory = () => {
               <Rocket className="w-10 h-10 text-white -rotate-3" />
             </div>
           </div>
-          
+
           <h2 className="text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tight leading-tight mb-8">
             The future belongs to the <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#f97316] to-[#FBBF24]">resilient.</span>
           </h2>
-          
+
           <p className="text-xl md:text-2xl text-slate-600 mb-12 max-w-2xl mx-auto leading-relaxed">
             The tools will keep changing, but the ability to think, adapt, and build will last forever. Join us in shaping tomorrow's leaders.
           </p>
@@ -335,7 +312,7 @@ const OurStory = () => {
                 <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
               </span>
             </button>
-            
+
             <button className="px-8 py-5 w-full sm:w-auto rounded-full bg-white border-2 border-slate-200 text-slate-700 hover:border-[#2dd4bf] hover:text-[#2dd4bf] font-bold text-lg shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               Talk to an Expert
             </button>
