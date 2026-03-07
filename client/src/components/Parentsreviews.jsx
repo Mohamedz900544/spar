@@ -97,7 +97,7 @@ export default function TestimonialsSection() {
         <div
           className="
             pointer-events-none absolute inset-0
-            bg-[url('https://innova-platform.com/images/testimonialbg.png')]
+            bg-[url('https://res.cloudinary.com/dipzvlfnt/image/upload/v1772879885/testimonialbg_zqwuom.webp')]
             bg-center bg-cover
             mix-blend-overlay
             
