@@ -294,6 +294,10 @@ button {
   animation-delay: 1.3s;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .sparkle { animation: none; }
+}
+
 /* ============================
    FRACTION BOARD (keep existing)
    ============================ */

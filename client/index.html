@@ -7,10 +7,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Sparvi Lab — Engaging live sessions and kits to learn electronics for kids. Build robots, learn circuits, and code your future." />
 
-  <!-- Google Fonts: Inter + Poppins -->
+  <!-- Google Fonts: Inter + Poppins (non-blocking) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@600;700&display=swap" /></noscript>
+
+  <!-- Preload LCP hero image -->
+  <link rel="preload" as="image" fetchpriority="high" href="https://res.cloudinary.com/dipzvlfnt/image/upload/f_auto,q_auto,w_900/v1772832876/Robot_l1b0pg.webp" />
 
   <title>Sparvi Lab — Electronics for Kids</title>
 </head>

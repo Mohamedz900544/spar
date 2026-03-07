@@ -179,6 +179,9 @@ const HERO_VIDEOS = [
   },
 ];
 
+const gifToVideo = (gifUrl, ext) =>
+  gifUrl.replace("/image/upload/", `/image/upload/f_${ext},q_auto,vc_auto/`);
+
 const studentProjects = [
   {
     img: "https://res.cloudinary.com/dipzvlfnt/image/upload/v1772832886/handgenerator_idc4mj.gif",
@@ -299,8 +302,7 @@ const Landing = () => {
     if (!track) return;
     const card = track.querySelector(`[data-project-index="${projectIndex}"]`);
     if (!card) return;
-    const left = card.offsetLeft - track.offsetLeft;
-    track.scrollTo({ left, behavior: "smooth" });
+    card.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
   }, [projectIndex]);
 
   return (
@@ -361,8 +363,9 @@ const Landing = () => {
             className="order-2 md:order-none flex justify-center"
           >
             <img
-              src="https://res.cloudinary.com/dipzvlfnt/image/upload/v1772832876/Robot_l1b0pg.webp"
+              src="https://res.cloudinary.com/dipzvlfnt/image/upload/f_auto,q_auto,w_900/v1772832876/Robot_l1b0pg.webp"
               alt="Sparvi Lab Robot"
+              fetchpriority="high"
               className="w-[140%] max-w-none drop-shadow-[0_20px_40px_rgba(0,0,0,0.3)]"
             />
           </Motion.div>
@@ -471,11 +474,17 @@ const Landing = () => {
 
                 {/* Thumbnail */}
                 <div className="relative overflow-hidden h-48 sm:h-52">
-                  <img
-                    src={proj.img}
-                    alt={proj.title}
+                  <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    aria-label={proj.title}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-                  />
+                  >
+                    <source src={gifToVideo(proj.img, "webm")} type="video/webm" />
+                    <source src={gifToVideo(proj.img, "mp4")} type="video/mp4" />
+                  </video>
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-slate-900/15 to-transparent z-10" />
                 </div>
 
@@ -562,8 +571,9 @@ const Landing = () => {
             <div className="flex flex-col items-center gap-4 lg:w-[340px] shrink-0 order-2 lg:order-none h-full">
               <div className="w-90 h-90 sm:w-80 sm:h-80 lg:w-full lg:flex-1 lg:max-w-[340px] mx-auto">
                 <img
-                  src="https://res.cloudinary.com/dipzvlfnt/image/upload/v1772832874/its_bqxp1i.webp"
+                  src="https://res.cloudinary.com/dipzvlfnt/image/upload/f_auto,q_auto,w_640/v1772832874/its_bqxp1i.webp"
                   alt="Student holding money"
+                  loading="lazy"
                   className="w-full h-full object-contain lg:object-cover rounded-3xl"
                 />
               </div>
