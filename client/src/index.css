@@ -435,13 +435,13 @@ button {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 64px;
-  height: 64px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: none;
   background: #FBBF24;
   color: #071228;
-  font-size: 1.2rem;
+  font-size: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -496,8 +496,8 @@ button {
 }
 
 .sparvi-hero-play-icon {
-  width: 32px;
-  height: 32px;
+  width: 20px;
+  height: 20px;
 }
 
 @media (max-width: 640px) {
@@ -521,14 +521,14 @@ button {
   }
 
   .sparvi-hero-play-btn {
-    width: 48px;
-    height: 48px;
-    font-size: 1rem;
+    width: 34px;
+    height: 34px;
+    font-size: 0.85rem;
   }
 
   .sparvi-hero-play-icon {
-    width: 24px;
-    height: 24px;
+    width: 16px;
+    height: 16px;
   }
 }
 
