@@ -416,7 +416,7 @@ const Landing = () => {
               fetchpriority="high"
               width="900"
               height="496"
-              className="w-full max-w-[560px] sm:max-w-[680px] md:max-w-[780px] lg:max-w-[860px] h-auto drop-shadow-[0_20px_40px_rgba(0,0,0,0.3)]"
+              className="w-[130%] max-w-none drop-shadow-[0_20px_40px_rgba(0,0,0,0.3)]"
             />
           </Motion.div>
         </div>
