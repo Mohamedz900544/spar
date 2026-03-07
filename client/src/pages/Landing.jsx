@@ -244,8 +244,8 @@ const VideoCard = ({ thumbnail, ytSrc, name, meta }) => {
           aria-label={`Play video for ${name}`}
           onClick={(e) => { e.stopPropagation(); setPlaying(true); }}
         >
-          <svg viewBox="0 0 24 24" fill="currentColor" className="sparvi-hero-play-icon">
-            <path d="M8 5v14l11-7z" />
+          <svg viewBox="0 0 24 24" fill="currentColor" width="10" height="10" style={{ minWidth: 10, minHeight: 10 }}>
+            <path d="M6 3.5l14 8.5-14 8.5z" />
           </svg>
         </button>
 
