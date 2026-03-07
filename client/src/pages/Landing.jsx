@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { LazyMotion, domAnimation, m as Motion } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Parentsreviews from "../components/Parentsreviews";
@@ -352,7 +352,6 @@ const Landing = () => {
   }, [projectIndex, projectCount]);
 
   return (
-    <LazyMotion features={domAnimation}>
     <div className="min-h-screen bg-slate-50/50 text-slate-800 font-sans flex flex-col">
       <Navbar />
 
@@ -874,7 +873,6 @@ const Landing = () => {
         </div>
       </footer>
     </div>
-    </LazyMotion>
   );
 };
 

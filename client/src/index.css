@@ -205,6 +205,7 @@ button {
   border-radius: 50%;
   background: white;
   opacity: 0;
+  will-change: transform, opacity;
   animation: sparkle-anim 3s ease-in-out infinite;
 }
 
@@ -448,6 +449,7 @@ button {
   cursor: pointer;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   z-index: 3;
+  will-change: transform;
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   animation: pulse-soft 2s infinite;
 }

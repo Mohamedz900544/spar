@@ -91,7 +91,7 @@ const Navbar = () => {
         className={[
           "max-w-7xl mx-auto px-4 md:px-8 flex items-center justify-between",
           "transition-all duration-500",
-          effectiveScrolled ? "h-14 md:h-16" : "h-16 md:h-20",
+          effectiveScrolled ? "py-2 md:py-3" : "py-3 md:py-5",
         ].join(" ")}
       >
         {/* LOGO */}
