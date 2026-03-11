@@ -830,9 +830,10 @@ const Landing = () => {
               </h4>
               <nav className="flex flex-col gap-3">
                 <Link to="/" className="text-slate-400 hover:text-white text-sm transition-colors">Home</Link>
-                <Link to="/signup" className="text-slate-400 hover:text-white text-sm transition-colors">Secure your seat</Link>
-                <Link to="/courses" className="text-slate-400 hover:text-white text-sm transition-colors">Explore Levels</Link>
+                <Link to="/courses" className="text-slate-400 hover:text-white text-sm transition-colors">Courses</Link>
+                <Link to="/our-story" className="text-slate-400 hover:text-white text-sm transition-colors">Our Story</Link>
                 <Link to="/contact" className="text-slate-400 hover:text-white text-sm transition-colors">Contact Us</Link>
+                <Link to="/signup" className="text-slate-400 hover:text-white text-sm transition-colors">Join Us</Link>
               </nav>
             </div>
 
