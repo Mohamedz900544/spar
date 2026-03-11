@@ -16,9 +16,12 @@ function PageTransitionLoader() {
     if (prevPath.current === location.pathname) return;
     prevPath.current = location.pathname;
 
-    setVisible(true);
-    const t = setTimeout(() => setVisible(false), 600);
-    return () => clearTimeout(t);
+    const showTimer = setTimeout(() => setVisible(true), 0);
+    const hideTimer = setTimeout(() => setVisible(false), 600);
+    return () => {
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+    };
   }, [location.pathname]);
 
   if (!visible) return null;

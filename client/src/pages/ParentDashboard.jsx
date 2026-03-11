@@ -496,7 +496,7 @@ const ParentDashboard = ({ parent, setParent }) => {
                 <span className="flex items-center gap-1.5 flex-wrap">
                   Don't have one?
                   <a
-                    href="https://wa.me/qr/X2ZKI6VG4AXWO1"
+                    href="https://wa.me/201500077369"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white transition-all hover:brightness-110 hover:-translate-y-px shadow-sm"

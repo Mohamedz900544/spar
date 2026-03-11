@@ -16,6 +16,7 @@ import {
   Send,
   Play,
 } from "lucide-react";
+import { FaTiktok, FaWhatsapp } from "react-icons/fa6";
 
 /* ==============================
    SPARKLES COMPONENT
@@ -788,16 +789,36 @@ const Landing = () => {
               </p>
               <div className="flex gap-3">
                 <a
-                  href="#"
+                  href="https://www.instagram.com/sparvilab"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                >
+                  <Instagram size={16} />
+                </a>
+                <a
+                  href="https://www.facebook.com/sparviIab"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
                 >
                   <Facebook size={16} />
                 </a>
                 <a
-                  href="#"
+                  href="https://www.tiktok.com/@sparvilab"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
                 >
-                  <Instagram size={16} />
+                  <FaTiktok size={16} />
+                </a>
+                <a
+                  href="https://wa.me/201500077369"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                >
+                  <FaWhatsapp size={16} />
                 </a>
               </div>
             </div>

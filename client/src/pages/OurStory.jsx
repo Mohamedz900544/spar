@@ -127,7 +127,7 @@ const OurStory = () => {
             </p>
 
             <div className="flex justify-center border-t border-white/10 pt-8 max-w-2xl mx-auto">
-              <div className="grid grid-cols-3 gap-6 md:gap-12 w-full">
+              {/* <div className="grid grid-cols-3 gap-6 md:gap-12 w-full">
                 {[
                   { value: "500+", label: "Students", icon: Users },
                   { value: "6 - 17", label: "Age Range", icon: Star },
@@ -139,7 +139,7 @@ const OurStory = () => {
                     <span className="text-[10px] md:text-xs text-slate-400 uppercase tracking-widest">{stat.label}</span>
                   </div>
                 ))}
-              </div>
+              </div> */}
             </div>
           </motion.div>
         </div>
