@@ -533,12 +533,8 @@ const Landing = () => {
       {/* ============================
          WHY CHOOSE SPARVI LAB?
          ============================ */}
-      <Motion.section
+      <section
         className="py-16 md:py-24 px-6 bg-slate-50"
-        initial={{ y: 40, opacity: 0 }}
-        whileInView={{ y: 0, opacity: 1 }}
-        viewport={{ once: true, amount: 0.15 }}
-        transition={{ duration: 0.7 }}
       >
         <div className="max-w-7xl mx-auto">
           {/* Heading */}
@@ -590,12 +586,8 @@ const Landing = () => {
                 ];
                 const fa = featureAccents[i % featureAccents.length];
                 return (
-                  <Motion.div
+                  <div
                     key={i}
-                    initial={{ y: 20, opacity: 0 }}
-                    whileInView={{ y: 0, opacity: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: i * 0.08 }}
                     className="relative rounded-3xl p-6 transition-all duration-500 hover:-translate-y-1.5 group overflow-hidden cursor-default bg-white"
                     style={{
                       border: `1.5px solid ${fa.border}`,
@@ -639,14 +631,14 @@ const Landing = () => {
                         </p>
                       </div>
                     </div>
-                  </Motion.div>
+                  </div>
                 );
               })}
             </div>
 
           </div>
         </div>
-      </Motion.section>
+      </section>
 
       {/* ============================
          LEARNING PATH SECTION
