@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const navLinks = [
-  { label: "Home", to: "/" },
-  { label: "Courses", to: "/courses" },
-  { label: "Our Story", to: "/our-story" },
-  { label: "Contact Us", to: "/contact" },
+  { label: "nav.home", to: "/" },
+  { label: "nav.courses", to: "/courses" },
+  { label: "nav.our_story", to: "/our-story" },
+  { label: "nav.contact", to: "/contact" },
 ];
 
 const Navbar = () => {
+  const { t, i18n } = useTranslation();
   const location = useLocation();
   const isLanding = location.pathname === "/";
 
@@ -19,6 +21,12 @@ const Navbar = () => {
 
   const logoScrolled = "/logo.png";
   const logoTransparent = "/logo-white.png";
+
+  const toggleLanguage = () => {
+    const newLang = i18n.language === "ar" ? "en" : "ar";
+    i18n.changeLanguage(newLang);
+    localStorage.setItem("sparvi_lang", newLang);
+  };
 
   /* ================= BODY SCROLL LOCK ================= */
   useEffect(() => {
@@ -95,7 +103,7 @@ const Navbar = () => {
         ].join(" ")}
       >
         {/* LOGO */}
-        <Link to="/" className="shrink-0">
+        <Link to="/" className="shrink-0 flex items-center gap-4">
           <img
             src={effectiveScrolled ? logoScrolled : logoTransparent}
             alt="Sparvi Lab"
@@ -118,7 +126,7 @@ const Navbar = () => {
                 `${linkBase} ${isActive ? linkActive : linkInactive}`
               }
             >
-              {item.label}
+              {t(item.label)}
             </NavLink>
           ))}
 
@@ -128,14 +136,22 @@ const Navbar = () => {
               `${linkBase} ${isActive ? linkActive : linkInactive}`
             }
           >
-            Login
+            {t("nav.login")}
           </NavLink>
 
           <Link to="/signup">
             <button className="rounded-full bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 font-semibold px-6 py-2 shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 text-sm">
-              Sign Up
+              {t("nav.signup")}
             </button>
           </Link>
+
+          <button
+            onClick={toggleLanguage}
+            className={`font-semibold text-sm transition-colors duration-200 flex items-center gap-2 ${effectiveScrolled ? "text-[#102a5a] hover:text-[#FBBF24]" : "text-white/90 hover:text-white"}`}
+            aria-label="Toggle Language"
+          >
+            {i18n.language === "ar" ? "En" : "عربي"}
+          </button>
         </nav>
 
         {/* MOBILE BUTTON */}
@@ -169,6 +185,7 @@ const Navbar = () => {
             "transform transition-transform duration-300",
             open ? "translate-x-0" : "translate-x-full",
           ].join(" ")}
+          dir={document.documentElement.dir}
         >
           <div className="flex items-center justify-between p-5 bg-white">
             <img src={logoScrolled} alt="Sparvi Lab" className="h-8" />
@@ -192,7 +209,7 @@ const Navbar = () => {
                     }`
                   }
                 >
-                  {item.label}
+                  {t(item.label)}
                 </NavLink>
               ))}
 
@@ -201,13 +218,23 @@ const Navbar = () => {
                 onClick={() => setOpen(false)}
                 className={mobileLinkBase + " " + mobileInactive}
               >
-                Login
+                {t("nav.login")}
               </NavLink>
+
+              <button
+                onClick={() => {
+                  toggleLanguage();
+                  setOpen(false);
+                }}
+                className={mobileLinkBase + " " + mobileInactive + " text-start"}
+              >
+                {i18n.language === "ar" ? "Switch to English" : "التبديل للعربية"}
+              </button>
             </nav>
 
             <Link to="/signup" onClick={() => setOpen(false)}>
               <button className="mt-8 w-full rounded-xl bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 font-bold py-3.5 shadow-md transition-all duration-200">
-                Sign Up
+                {t("nav.signup")}
               </button>
             </Link>
           </div>

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import EgyptPhoneInput from "../components/EgyptPhoneInput";
+import { useTranslation } from "react-i18next";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -28,34 +29,15 @@ const FloatingShape = ({ className, delay = 0, duration = 6 }) => (
   />
 );
 
-const contactMethods = [
-  {
-    icon: Mail,
-    label: "Email",
-    value: "hello@sparvilab.com",
-    accent: "#FBBF24",
-  },
-  {
-    icon: PhoneCall,
-    label: "Phone / WhatsApp",
-    value: "+201500077369",
-    accent: "#2dd4bf",
-  },
-  {
-    icon: MapPin,
-    label: "Location",
-    value: "Cairo, Egypt",
-    accent: "#a78bfa",
-  },
-  {
-    icon: Clock,
-    label: "Working Hours",
-    value: "Sat – Thu, 10AM – 6PM",
-    accent: "#fb923c",
-  },
+const contactMethodsRaw = [
+  { icon: Mail, key: "m0", accent: "#FBBF24" },
+  { icon: PhoneCall, key: "m1", accent: "#2dd4bf" },
+  { icon: MapPin, key: "m2", accent: "#a78bfa" },
+  { icon: Clock, key: "m3", accent: "#fb923c" }
 ];
 
 const Contact = () => {
+  const { t, i18n } = useTranslation();
   useEffect(() => {
     document.title = "Contact Sparvi Lab — Reach Us by Phone, WhatsApp, or Email";
   }, []);
@@ -148,13 +130,12 @@ const Contact = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.7 }}
           >
-      
-            <h1 className="text-3xl md:text-5xl font-extrabold text-white leading-tight mb-4 font-display">
-              Get in <span className="text-[#FBBF24]">Touch</span>
+
+            <h1 className="text-3xl md:text-5xl font-extrabold text-white leading-tight mb-4 font-display text-center">
+              {t("contact.hero_title1")} <span className="text-[#FBBF24]">{t("contact.hero_title2")}</span>
             </h1>
-            <p className="text-slate-300 max-w-lg mx-auto text-sm md:text-base">
-              Have a question about our sessions, want to enroll, or just want to
-              say hi? We're here to help!
+            <p className="text-slate-300 max-w-lg mx-auto text-sm md:text-base text-center">
+              {t("contact.hero_subtitle")}
             </p>
           </motion.div>
         </div>
@@ -180,10 +161,10 @@ const Contact = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <h2 className="text-lg font-bold text-[#102a5a] mb-2 text-center lg:text-left">
-              Contact info
+            <h2 className="text-lg font-bold text-[#102a5a] mb-2 text-center">
+              {t("contact.info_title")}
             </h2>
-            {contactMethods.map((m, i) => (
+            {contactMethodsRaw.map((m, i) => (
               <motion.div
                 key={i}
                 className="group bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-default"
@@ -202,11 +183,11 @@ const Contact = () => {
                     />
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 font-medium mb-0.5">
-                      {m.label}
+                    <p className="text-xs text-slate-500 font-medium mb-0.5 text-start">
+                      {t(`contact.methods.${m.key}.label`)}
                     </p>
-                    <p className="text-sm font-semibold text-slate-800">
-                      {m.value}
+                    <p className="text-sm font-semibold text-slate-800 text-start" dir="ltr">
+                      {t(`contact.methods.${m.key}.value`)}
                     </p>
                   </div>
                 </div>
@@ -218,11 +199,11 @@ const Contact = () => {
               <div className="w-10 h-10 rounded-xl bg-[#FBBF24] flex items-center justify-center mx-auto mb-3">
                 <Zap className="w-5 h-5 text-[#102a5a]" />
               </div>
-              <h3 className="text-white font-semibold text-sm mb-1">
-                Kids Building the Future
+              <h3 className="text-white font-semibold text-sm mb-1 text-center">
+                {t("contact.brand_title")}
               </h3>
-              <p className="text-slate-400 text-xs">
-                STEM • Electronics • Robotics
+              <p className="text-slate-400 text-xs text-center" dir="ltr">
+                {t("contact.brand_subtitle")}
               </p>
             </div>
           </motion.div>
@@ -235,12 +216,12 @@ const Contact = () => {
             transition={{ duration: 0.6, delay: 0.35 }}
           >
             <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-[0_20px_60px_rgba(16,42,90,0.06)] border border-white/60 p-6 sm:p-8 md:p-10 w-full">
-              <div className="mb-7">
+              <div className="mb-7 text-center">
                 <h2 className="text-xl font-bold text-[#102a5a] font-display">
-                  Send us a message
+                  {t("contact.form_title")}
                 </h2>
                 <p className="text-sm text-slate-500 mt-1">
-                  Fill in the form and we'll get back to you within 24 hours.
+                  {t("contact.form_subtitle")}
                 </p>
               </div>
 
@@ -253,72 +234,74 @@ const Contact = () => {
                   <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
                     <Send className="w-7 h-7 text-green-600" />
                   </div>
-                  <h3 className="text-xl font-bold text-slate-800 mb-2">Message sent!</h3>
+                  <h3 className="text-xl font-bold text-slate-800 mb-2">{t("contact.success_title")}</h3>
                   <p className="text-sm text-slate-500 mb-6">
-                    We'll get back to you soon. Thank you for reaching out!
+                    {t("contact.success_subtitle")}
                   </p>
                   <button
                     onClick={() => setSent(false)}
-                    className="text-sm text-[#102a5a] font-semibold hover:text-[#FBBF24] transition-colors"
+                    className="text-sm text-[#102a5a] font-semibold hover:text-[#FBBF24] transition-colors flex items-center gap-1 mx-auto relative group"
                   >
-                    Send another message →
+                    {t("contact.send_another")}
                   </button>
                 </motion.div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto w-full">
-                  
+
                   {/* Flattened structure here so everything scales uniformly */}
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Parent name
+                    <label className="block text-sm font-medium text-slate-700 mb-2 text-start">
+                      {t("contact.parent_name")}
                     </label>
                     <input
                       name="parentName"
                       value={formState.parentName}
                       onChange={handleChange}
-                      className={inputClass}
-                      placeholder="Your name"
+                      className={`${inputClass} text-start`}
+                      placeholder={t("contact.parent_name_ph")}
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Phone / WhatsApp
+                    <label className="block text-sm font-medium text-slate-700 mb-2 text-start">
+                      {t("contact.phone")}
                     </label>
-                    <EgyptPhoneInput
-                      value={formState.phone}
-                      onChange={handlePhoneChange}
-                      error={phoneError}
-                      name="phone"
-                      required
-                    />
+                    <div dir="ltr">
+                      <EgyptPhoneInput
+                        value={formState.phone}
+                        onChange={handlePhoneChange}
+                        error={phoneError}
+                        name="phone"
+                        required
+                      />
+                    </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Child age <span className="text-slate-400">(optional)</span>
+                    <label className="block text-sm font-medium text-slate-700 mb-2 text-start">
+                      {t("contact.child_age")} <span className="text-slate-400">{t("contact.optional")}</span>
                     </label>
                     <input
                       type="number"
                       name="childAge"
                       value={formState.childAge}
                       onChange={handleChange}
-                      className={inputClass}
-                      placeholder="e.g. 8"
+                      className={`${inputClass} text-start`}
+                      placeholder={t("contact.child_age_ph")}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Message
+                    <label className="block text-sm font-medium text-slate-700 mb-2 text-start">
+                      {t("contact.message")}
                     </label>
                     <textarea
                       name="message"
                       value={formState.message}
                       onChange={handleChange}
-                      className={`${inputClass} min-h-[130px] resize-none`}
-                      placeholder="How can we help you?"
+                      className={`${inputClass} min-h-[130px] resize-none text-start pr-4`}
+                      placeholder={t("contact.message_ph")}
                       required
                     />
                   </div>
@@ -334,8 +317,8 @@ const Contact = () => {
                       <div className="w-5 h-5 border-2 border-[#102a5a]/30 border-t-[#102a5a] rounded-full animate-spin" />
                     ) : (
                       <>
-                        Send Message
-                        <ArrowRight className="w-4 h-4" />
+                        {t("contact.submit")}
+                        <ArrowRight className={`w-4 h-4 ${i18n.language === "ar" ? "rotate-180" : ""}`} />
                       </>
                     )}
                   </motion.button>

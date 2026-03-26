@@ -17,6 +17,7 @@ import {
   Play,
 } from "lucide-react";
 import { FaTiktok, FaWhatsapp, FaCcApplePay, FaCcMastercard, FaCcVisa } from "react-icons/fa6";
+import { useTranslation } from "react-i18next";
 
 /* ==============================
    SPARKLES COMPONENT
@@ -109,36 +110,12 @@ const faqItems = [
    FEATURES DATA
    ============================== */
 const features = [
-  {
-    icon: Monitor,
-    title: "Live, Instructor-Led Missions",
-    text: "A Sparvi coach leads every session step by step and answers questions in real time, so no one gets stuck.",
-  },
-  {
-    icon: BarChart3,
-    title: "A Full Learning Journey",
-    text: "A structured curriculum for ages 6–17 that grows with your child, with clear levels and long-term progress, not random short courses.",
-  },
-  {
-    icon: Users,
-    title: "Built for Ages 6–17",
-    text: "Age-appropriate lessons that support beginners and still challenge advanced students.",
-  },
-  {
-    icon: BookOpen,
-    title: "Screen Time With a Purpose",
-    text: "Kids watch, then build, test, and improve hands-on projects, turning screen time into real creation.",
-  },
-  {
-    icon: Cpu,
-    title: "Structured Levels, Clear Progress",
-    text: "Students follow clear levels with measurable outcomes and unlock more advanced projects over time.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Parent Peace of Mind",
-    text: "Small groups, clear weekly goals, and simple updates so you always know what your child is learning.",
-  },
+  { icon: BookOpen },
+  { icon: Monitor },
+  { icon: Users },
+  { icon: BarChart3 },
+  { icon: Cpu },
+  { icon: ShieldCheck },
 ];
 
 /* ==============================
@@ -163,7 +140,7 @@ const FAQItem = ({ item, isOpen, onToggle, index }) => (
   >
     <button
       onClick={onToggle}
-      className="w-full flex items-center gap-4 p-5 md:p-6 text-left"
+      className="w-full flex items-center gap-4 p-5 md:p-6 text-start"
     >
       {/* Number badge */}
       <div
@@ -179,7 +156,7 @@ const FAQItem = ({ item, isOpen, onToggle, index }) => (
       </div>
 
       <span
-        className="flex-1 font-bold text-sm md:text-base transition-colors duration-300"
+        className="flex-1 font-bold text-sm md:text-base transition-colors duration-300 text-start"
         style={{ color: isOpen ? "#1d4ed8" : "#1e293b" }}
       >
         {item.question}
@@ -206,7 +183,7 @@ const FAQItem = ({ item, isOpen, onToggle, index }) => (
     >
       {/* Divider */}
       <div className="mx-5 md:mx-6 h-px" style={{ background: "rgba(29,78,216,0.1)" }} />
-      <p className="px-5 md:px-6 py-5 text-sm text-slate-600 leading-relaxed pl-[4.5rem]">
+      <p className="px-5 md:px-6 py-5 text-sm text-slate-600 leading-relaxed ps-[4.5rem] text-start">
         {item.answer}
       </p>
     </div>
@@ -332,6 +309,7 @@ const cardAccents = [
 ];
 
 const Landing = () => {
+  const { t, i18n } = useTranslation();
   useEffect(() => {
     document.title = "Sparvi Lab — Live STEM Education for Kids Ages 6–17";
   }, []);
@@ -372,34 +350,34 @@ const Landing = () => {
             initial={{ x: -60, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.9 }}
-            className="order-1 md:order-none text-center md:text-left"
+            className="order-1 md:order-none text-center md:text-start"
           >
             <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-[3.4rem] font-extrabold tracking-tight mb-4 md:mb-5 leading-[1.15] text-white font-display">
-              <span className="block">Building the</span>
-              <span className="block">Next Generation’s</span>
+              <span className="block">{t("landing.hero.title1")}</span>
+              <span className="block">{t("landing.hero.title2")}</span>
               <span className="inline-block mt-2 bg-[#FBBF24] text-[#024f63] border-2 border-white px-3 py-1 rounded-md text-xl sm:text-2xl md:text-3xl font-bold transform -rotate-1">
-                Minds
+                {t("landing.hero.title3")}
               </span>
             </h1>
             {/* Hidden SEO-friendly h1 text for crawlers */}
             <p className="sr-only">
-              Sparvi Lab — Live STEM Education for Kids Ages 6–17. Coding, electronics, robotics, and AI through structured hands-on sessions.
+              {t("landing.hero.seo_text")}
             </p>
 
             <p className="max-w-xl mx-auto md:mx-0 text-xs sm:text-sm md:text-base text-slate-300 mb-6 md:mb-8 leading-relaxed">
-              Live, instructor-led STEM sessions for ages 6–17. Kids learn electronics, coding, robotics, and AI through structured hands-on projects — online and in-person.
+              {t("landing.hero.subtitle")}
             </p>
 
             {/* CTA Buttons */}
             <div className="flex flex-row flex-nowrap justify-center md:justify-start items-center gap-2 sm:gap-4">
               <Link to="/signup">
                 <button className="inline-flex items-center justify-center gap-2 rounded-full px-4 sm:px-8 py-2.5 sm:py-3 text-xs sm:text-base font-semibold shadow-[0_8px_25px_rgba(251,191,36,0.4)] hover:shadow-[0_12px_35px_rgba(251,191,36,0.5)] bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 transition-all duration-200 hover:-translate-y-0.5 whitespace-nowrap min-w-0">
-                  Secure your seat!
+                  {t("landing.hero.cta_primary")}
                 </button>
               </Link>
 
               <Link to="/our-story" className="inline-flex items-center justify-center gap-2 rounded-full px-4 sm:px-8 py-2.5 sm:py-3 text-xs sm:text-base font-semibold border-2 border-white/30 text-white hover:bg-white/10 transition-all duration-200 whitespace-nowrap min-w-0">
-                Our Story ➤
+                {t("landing.hero.cta_secondary")}
               </Link>
             </div>
           </Motion.div>
@@ -426,7 +404,7 @@ const Landing = () => {
       {/* ============================
           HEAR FROM OUR HEROES
          ============================ */}
-      <Motion.section
+      {/* <Motion.section
         className="py-16 md:py-20 px-6 bg-slate-50/50"
         initial={{ y: 40, opacity: 0 }}
         whileInView={{ y: 0, opacity: 1 }}
@@ -434,7 +412,7 @@ const Landing = () => {
         transition={{ duration: 0.7 }}
       >
         <div className="max-w-4xl mx-auto text-center">
-          {/* Gradient heading */}
+          
           <h2
             className="text-2xl md:text-4xl font-display mb-10 text-center"
             style={{
@@ -447,17 +425,17 @@ const Landing = () => {
               backgroundClip: "text",
             }}
           >
-            Hear from Our Heroes
+            {t("landing.heroes.title")}
           </h2>
 
-          {/* Video cards */}
+         
           <div className="flex flex-wrap justify-center gap-6 mt-2">
             {HERO_VIDEOS.map((v) => (
               <VideoCard key={v.name} thumbnail={v.thumbnail} ytSrc={v.ytSrc} name={v.name} meta={v.meta} />
             ))}
           </div>
         </div>
-      </Motion.section>
+      </Motion.section> */}
 
       {/* ============================
           STUDENT PROJECTS
@@ -485,10 +463,10 @@ const Landing = () => {
                 backgroundClip: "text",
               }}
             >
-              Discover Our Students' Projects
+              {t("landing.projects.title")}
             </h2>
             <p className="text-slate-500 text-sm md:text-base mt-4 max-w-xl mx-auto">
-              Explore out these incredible hands-on creations by Sparvi Lab makers.
+              {t("landing.projects.subtitle")}
             </p>
           </div>
 
@@ -498,65 +476,66 @@ const Landing = () => {
             className="mt-10 flex gap-6 md:gap-8 overflow-x-auto pb-8 snap-x snap-mandatory scroll-smooth hide-scrollbar px-4"
           >
             {studentProjects.map((proj, i) => {
+              const pKey = `p${i + 1}`;
               const accent = cardAccents[i % cardAccents.length];
               return (
 
-              <Motion.div
-                key={i}
-                initial={{ y: 20, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="relative rounded-3xl transition-all duration-500 hover:-translate-y-2 overflow-hidden group shrink-0 basis-[110%] sm:basis-[29%] lg:basis-[20%] snap-start"
-                style={{
-                  background: "#ffffff",
-                  border: "1.5px solid rgba(148,163,184,0.15)",
-                  boxShadow: "0 2px 16px rgba(0,0,0,0.05)",
-                }}
-                onMouseEnter={e => e.currentTarget.style.boxShadow = `0 20px 40px rgba(0,0,0,0.1), 0 0 0 2px ${accent.from}30`}
-                onMouseLeave={e => e.currentTarget.style.boxShadow = "0 2px 16px rgba(0,0,0,0.05)"}
-                data-project-index={i}
-              >
-                {/* Top accent bar */}
-                <div
-                  className="absolute top-0 left-0 right-0 h-1 z-20"
-                  style={{ background: `linear-gradient(90deg, ${accent.from}, ${accent.to})` }}
-                />
+                <Motion.div
+                  key={i}
+                  initial={{ y: 20, opacity: 0 }}
+                  whileInView={{ y: 0, opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: i * 0.1 }}
+                  className="relative rounded-3xl transition-all duration-500 hover:-translate-y-2 overflow-hidden group shrink-0 basis-[110%] sm:basis-[29%] lg:basis-[20%] snap-start"
+                  style={{
+                    background: "#ffffff",
+                    border: "1.5px solid rgba(148,163,184,0.15)",
+                    boxShadow: "0 2px 16px rgba(0,0,0,0.05)",
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.boxShadow = `0 20px 40px rgba(0,0,0,0.1), 0 0 0 2px ${accent.from}30`}
+                  onMouseLeave={e => e.currentTarget.style.boxShadow = "0 2px 16px rgba(0,0,0,0.05)"}
+                  data-project-index={i}
+                >
+                  {/* Top accent bar */}
+                  <div
+                    className="absolute top-0 left-0 right-0 h-1 z-20"
+                    style={{ background: `linear-gradient(90deg, ${accent.from}, ${accent.to})` }}
+                  />
 
-                {/* Thumbnail */}
-                <div className="relative overflow-hidden h-48 sm:h-52">
-                  <video
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    aria-label={proj.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-                  >
-                    <source src={gifToVideo(proj.img, "webm")} type="video/webm" />
-                    <source src={gifToVideo(proj.img, "mp4")} type="video/mp4" />
-                  </video>
+                  {/* Thumbnail */}
+                  <div className="relative overflow-hidden h-48 sm:h-52">
+                    <video
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      aria-label={proj.title}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                    >
+                      <source src={gifToVideo(proj.img, "webm")} type="video/webm" />
+                      <source src={gifToVideo(proj.img, "mp4")} type="video/mp4" />
+                    </video>
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-slate-900/15 to-transparent z-10" />
-                </div>
+                  </div>
 
-                {/* Content */}
-                <div className="p-6 relative">
-                  <h3
-                    className="font-extrabold text-lg mb-2 leading-snug"
-                    style={{
-                      background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      backgroundClip: "text",
-                    }}
-                  >
-                    {proj.title}
-                  </h3>
-                  <p className="text-slate-500 text-sm leading-relaxed group-hover:text-slate-700 transition-colors duration-300">
-                    {proj.desc}
-                  </p>
-                </div>
-              </Motion.div>
+                  {/* Content */}
+                  <div className="p-6 relative text-start">
+                    <h3
+                      className="font-extrabold text-lg mb-2 leading-snug"
+                      style={{
+                        background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                      }}
+                    >
+                      {t(`landing.studentProjects.${pKey}.title`)}
+                    </h3>
+                    <p className="text-slate-500 text-sm leading-relaxed group-hover:text-slate-700 transition-colors duration-300">
+                      {t(`landing.studentProjects.${pKey}.desc`)}
+                    </p>
+                  </div>
+                </Motion.div>
               );
             })}
           </div>
@@ -612,7 +591,7 @@ const Landing = () => {
               backgroundClip: "text",
             }}
           >
-            Why Choose Sparvi Lab?
+            {t("landing.why_choose.title")}
           </h2>
 
           {/* Two-column layout: Lottie left + features right */}
@@ -630,7 +609,7 @@ const Landing = () => {
               </div>
               <Link to="/signup" className="mx-auto">
                 <button className="inline-flex items-center gap-2 rounded-full bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 font-semibold px-8 py-3.5 shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 whitespace-nowrap">
-                  Secure your Seat!
+                  {t("landing.why_choose.cta")}
                 </button>
               </Link>
             </div>
@@ -638,6 +617,7 @@ const Landing = () => {
             {/* Right — 2-column grid of feature cards */}
             <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-5 order-1 lg:order-none">
               {features.map((feature, i) => {
+                const faKey = `f${i + 1}`;
                 const featureAccents = [
                   { icon: "linear-gradient(135deg, #1d4ed8, #06b6d4)", border: "#1d4ed820", glow: "rgba(29,78,216,0.12)" },
                   { icon: "linear-gradient(135deg, #7c3aed, #06b6d4)", border: "#7c3aed20", glow: "rgba(124,58,237,0.12)" },
@@ -648,57 +628,57 @@ const Landing = () => {
                 ];
                 const fa = featureAccents[i % featureAccents.length];
                 return (
-                <Motion.div
-                  key={i}
-                  initial={{ y: 20, opacity: 0 }}
-                  whileInView={{ y: 0, opacity: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: i * 0.08 }}
-                  className="relative rounded-3xl p-6 transition-all duration-500 hover:-translate-y-1.5 group overflow-hidden cursor-default"
-                  style={{
-                    background: "linear-gradient(145deg, #ffffff 0%, #f8faff 100%)",
-                    border: `1.5px solid ${fa.border}`,
-                    boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.boxShadow = `0 16px 40px ${fa.glow}, 0 2px 12px rgba(0,0,0,0.04)`;
-                    e.currentTarget.style.border = `1.5px solid ${fa.border.replace("20", "50")}`;
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.boxShadow = "0 2px 12px rgba(0,0,0,0.04)";
-                    e.currentTarget.style.border = `1.5px solid ${fa.border}`;
-                  }}
-                >
-                  {/* Decorative corner glow */}
-                  <div
-                    className="absolute -top-6 -right-6 w-24 h-24 rounded-full opacity-10 group-hover:opacity-20 transition-opacity duration-500 pointer-events-none"
-                    style={{ background: fa.icon }}
-                  />
-
-                  <div className="relative flex items-start gap-4 z-10">
-                    {/* Gradient icon box */}
+                  <Motion.div
+                    key={i}
+                    initial={{ y: 20, opacity: 0 }}
+                    whileInView={{ y: 0, opacity: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: i * 0.08 }}
+                    className="relative rounded-3xl p-6 transition-all duration-500 hover:-translate-y-1.5 group overflow-hidden cursor-default"
+                    style={{
+                      background: "linear-gradient(145deg, #ffffff 0%, #f8faff 100%)",
+                      border: `1.5px solid ${fa.border}`,
+                      boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.boxShadow = `0 16px 40px ${fa.glow}, 0 2px 12px rgba(0,0,0,0.04)`;
+                      e.currentTarget.style.border = `1.5px solid ${fa.border.replace("20", "50")}`;
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.boxShadow = "0 2px 12px rgba(0,0,0,0.04)";
+                      e.currentTarget.style.border = `1.5px solid ${fa.border}`;
+                    }}
+                  >
+                    {/* Decorative corner glow */}
                     <div
-                      className="shrink-0 flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:-rotate-6"
-                      style={{
-                        width: 54,
-                        height: 54,
-                        borderRadius: 16,
-                        background: fa.icon,
-                        boxShadow: `0 8px 20px ${fa.glow}`,
-                      }}
-                    >
-                      <feature.icon size={24} color="white" strokeWidth={2.2} />
+                      className={`absolute -top-6 ${i18n.language === "ar" ? "-left-6" : "-right-6"} w-24 h-24 rounded-full opacity-10 group-hover:opacity-20 transition-opacity duration-500 pointer-events-none`}
+                      style={{ background: fa.icon }}
+                    />
+
+                    <div className="relative flex items-start gap-4 z-10">
+                      {/* Gradient icon box */}
+                      <div
+                        className="shrink-0 flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:-rotate-6"
+                        style={{
+                          width: 54,
+                          height: 54,
+                          borderRadius: 16,
+                          background: fa.icon,
+                          boxShadow: `0 8px 20px ${fa.glow}`,
+                        }}
+                      >
+                        <feature.icon size={24} color="white" strokeWidth={2.2} />
+                      </div>
+                      <div className="flex-1 min-w-0 text-start">
+                        <h3 className="font-bold text-slate-800 mb-1.5 text-sm md:text-base leading-snug group-hover:text-slate-900 transition-colors duration-300">
+                          {t(`landing.features.${faKey}.title`)}
+                        </h3>
+                        <p className="text-slate-500 text-xs md:text-sm leading-relaxed group-hover:text-slate-600 transition-colors duration-300">
+                          {t(`landing.features.${faKey}.text`)}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-slate-800 mb-1.5 text-sm md:text-base leading-snug group-hover:text-slate-900 transition-colors duration-300">
-                        {feature.title}
-                      </h3>
-                      <p className="text-slate-500 text-xs md:text-sm leading-relaxed group-hover:text-slate-600 transition-colors duration-300">
-                        {feature.text}
-                      </p>
-                    </div>
-                  </div>
-                </Motion.div>
+                  </Motion.div>
                 );
               })}
             </div>
@@ -723,7 +703,7 @@ const Landing = () => {
         <div className="max-w-3xl mx-auto">
           {/* Heading */}
           <div className="text-center mb-12">
-           
+
             <h2
               className="text-2xl md:text-4xl font-display"
               style={{
@@ -736,10 +716,10 @@ const Landing = () => {
                 backgroundClip: "text",
               }}
             >
-              Frequently Asked Questions
+              {t("landing.faq.title")}
             </h2>
             <p className="text-slate-500 text-sm md:text-base mt-4 max-w-lg mx-auto leading-relaxed">
-              Everything you need to know about Sparvi Lab before getting started.
+              {t("landing.faq.subtitle")}
             </p>
           </div>
 
@@ -748,7 +728,10 @@ const Landing = () => {
               <FAQItem
                 key={i}
                 index={i}
-                item={item}
+                item={{
+                  question: t(`landing.faqs.q${i}.q`),
+                  answer: t(`landing.faqs.q${i}.a`)
+                }}
                 isOpen={openFAQ === i}
                 onToggle={() => setOpenFAQ(openFAQ === i ? -1 : i)}
               />
@@ -761,11 +744,11 @@ const Landing = () => {
               background: "linear-gradient(135deg, #0a1628, #1d4ed8)",
               boxShadow: "0 20px 50px rgba(29,78,216,0.2)",
             }}>
-            <p className="text-white font-semibold text-lg mb-1">Still have questions?</p>
-            <p className="text-white/60 text-sm mb-5">Our team is happy to help you out.</p>
+            <p className="text-white font-semibold text-lg mb-1">{t("landing.faq.still_have_questions")}</p>
+            <p className="text-white/60 text-sm mb-5">{t("landing.faq.team_happy_to_help")}</p>
             <a href="/contact">
               <button className="inline-flex items-center gap-2 rounded-full bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 font-bold px-7 py-3 transition-all duration-200 hover:-translate-y-0.5 shadow-lg text-sm">
-                Contact Us
+                {t("landing.faq.contact_us")}
               </button>
             </a>
           </div>
@@ -783,9 +766,8 @@ const Landing = () => {
             {/* Column 1: Logo & Info */}
             <div>
               <img src="/logo-white.png" alt="Sparvi Lab" width="133" height="70" className="h-10 mb-4" />
-              <p className="text-slate-400 text-sm leading-relaxed mb-5">
-                Hands-on learning that sparks creativity. Build robots, learn
-                circuits, and code your future.
+              <p className="text-slate-400 text-sm leading-relaxed mb-5 text-start">
+                {t("landing.footer.description")}
               </p>
               <div className="flex gap-3">
                 <a
@@ -805,12 +787,12 @@ const Landing = () => {
                   <Facebook size={16} />
                 </a>
                 <a
-                  href="https://www.tiktok.com/@sparvilab"
+                  href="https://www.tiktok.com/@sparvi.lab"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
                 >
-                  <FaTiktok size={16} />
+                  <FaTiktok size={14} />
                 </a>
                 <a
                   href="https://wa.me/201500077369"
@@ -824,52 +806,48 @@ const Landing = () => {
             </div>
 
             {/* Column 2: Main Menu */}
-            <div>
+            <div className="text-start">
               <h4 className="text-[#FBBF24] font-semibold text-sm tracking-wider uppercase mb-4">
-                Main Menu
+                {t("landing.footer.main_menu")}
               </h4>
               <nav className="flex flex-col gap-3">
-                <Link to="/" className="text-slate-400 hover:text-white text-sm transition-colors">Home</Link>
-                <Link to="/courses" className="text-slate-400 hover:text-white text-sm transition-colors">Courses</Link>
-                <Link to="/our-story" className="text-slate-400 hover:text-white text-sm transition-colors">Our Story</Link>
-                <Link to="/contact" className="text-slate-400 hover:text-white text-sm transition-colors">Contact Us</Link>
-                <Link to="/signup" className="text-slate-400 hover:text-white text-sm transition-colors">Join Us</Link>
+                <Link to="/" className="text-slate-400 hover:text-white text-sm transition-colors">{t("landing.footer.menu_home")}</Link>
+                <Link to="/courses" className="text-slate-400 hover:text-white text-sm transition-colors">{t("landing.footer.menu_courses")}</Link>
+                <Link to="/our-story" className="text-slate-400 hover:text-white text-sm transition-colors">{t("landing.footer.menu_story")}</Link>
+                <Link to="/contact" className="text-slate-400 hover:text-white text-sm transition-colors">{t("landing.footer.menu_contact")}</Link>
+                <Link to="/signup" className="text-slate-400 hover:text-white text-sm transition-colors">{t("landing.footer.menu_join")}</Link>
               </nav>
             </div>
 
             {/* Column 3: Join the Club */}
-            <div>
+            <div className="text-start">
               <h4 className="text-[#FBBF24] font-semibold text-sm tracking-wider uppercase mb-4">
-                Join the Club
+                {t("landing.footer.join_club")}
               </h4>
               <p className="text-slate-400 text-sm mb-4">
-                Get the latest robot kits news and exclusive discounts for young
-                inventors.
+                {t("landing.footer.club_desc")}
               </p>
               <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="email"
-                  placeholder="Enter your email"
-                  className="w-full sm:flex-1 rounded-lg bg-white/10 border border-white/20 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#FBBF24]"
+                  placeholder={t("landing.footer.placeholder")}
+                  className={`w-full sm:flex-1 rounded-lg bg-white/10 border border-white/20 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#FBBF24] text-start ${i18n.language === "ar" ? "pr-4 pl-4" : "px-4"}`}
                 />
                 <button className="w-full sm:w-auto rounded-lg bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 font-semibold px-5 py-2.5 text-sm flex items-center justify-center gap-1.5 transition-colors">
-                  Subscribe <Send size={14} />
+                  {t("landing.footer.subscribe")} <Send size={14} className={i18n.language === "ar" ? "rotate-180" : ""} />
                 </button>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Bottom bar */}
-        <div className="border-t border-white/10">
-          <div className="max-w-7xl mx-auto px-6 py-5 flex flex-col md:flex-row items-center justify-between gap-4">
+          {/* Bottom bar */}
+          <div className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-slate-500 text-xs">
-              © {new Date().getFullYear()} Sparvi Lab. All rights reserved.
-              <span className="block md:inline md:ml-2">
-                Designed for future innovators.
+              © {new Date().getFullYear()} Sparvi Lab. {t("landing.footer.rights")}
+              <span className="block md:inline md:mx-2">
+                {t("landing.footer.designed_for")}
               </span>
             </p>
-        
           </div>
         </div>
       </footer>

@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
 import axios, { AxiosError } from "axios";
 import { Mail, Lock, ArrowRight, Sparkles, Zap, Shield } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -32,6 +33,7 @@ const FloatingShape = ({ className, delay = 0, duration = 6 }) => (
 );
 
 const Login = () => {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [serverError, setServerError] = useState("");
 
@@ -145,7 +147,7 @@ const Login = () => {
         </div>
 
         {/* Content */}
-        <div className="relative z-10 flex flex-col justify-center flex-1 px-12 xl:px-16">
+        <div className="relative z-10 flex flex-col justify-center flex-1 px-12 xl:px-16" dir={i18n.language === "ar" ? "rtl" : "ltr"}>
           {/* Logo / brand */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}
@@ -162,18 +164,18 @@ const Login = () => {
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.7 }}
+            className="text-start"
           >
-            <p className="text-[#FBBF24] text-sm font-semibold tracking-[0.2em] uppercase mb-4">
-              Parent Portal
+            <p className="text-[#FBBF24] text-sm font-semibold tracking-[0.2em] uppercase mb-4 text-start">
+              {t("login.portal")}
             </p>
-            <h1 className="text-4xl xl:text-5xl font-extrabold text-white leading-tight mb-6 font-display">
-              Welcome back
+            <h1 className="text-4xl xl:text-5xl font-extrabold text-white leading-tight mb-6 font-display text-start">
+              {t("login.welcome_back")}
               <br />
-              <span className="text-[#FBBF24]">explorer!</span>
+              <span className="text-[#FBBF24]">{t("login.explorer")}</span>
             </h1>
-            <p className="text-slate-300 text-base leading-relaxed max-w-sm">
-              Sign in to see your child's upcoming on-site sessions and
-              track what they've been building in the lab.
+            <p className="text-slate-300 text-base leading-relaxed max-w-sm text-start">
+              {t("login.description")}
             </p>
           </motion.div>
 
@@ -185,9 +187,9 @@ const Login = () => {
             transition={{ delay: 0.8, duration: 0.6 }}
           >
             {[
-              { icon: Sparkles, text: "Track your child's progress" },
-              { icon: Shield, text: "Secure parent-only access" },
-              { icon: Zap, text: "Book sessions in seconds" },
+              { icon: Sparkles, text: t("login.track_progress") },
+              { icon: Shield, text: t("login.secure_access") },
+              { icon: Zap, text: t("login.book_sessions") },
             ].map((item, i) => (
               <div key={i} className="flex items-center gap-3">
                 <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
@@ -200,15 +202,15 @@ const Login = () => {
         </div>
 
         {/* Bottom branding */}
-        <div className="relative z-10 px-12 xl:px-16 pb-8">
+        <div className="relative z-10 px-12 xl:px-16 pb-8" dir={i18n.language === "ar" ? "rtl" : "ltr"}>
           <p className="text-slate-500 text-xs">
-            © {new Date().getFullYear()} Sparvi Lab. All rights reserved.
+            © {new Date().getFullYear()} Sparvi Lab. {t("login.rights")}.
           </p>
         </div>
       </motion.div>
 
       {/* ===== RIGHT — Login Form ===== */}
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-[#f8fafc] px-5 py-10 relative overflow-hidden">
+      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-[#f8fafc] px-5 py-10 relative overflow-hidden" dir={i18n.language === "ar" ? "rtl" : "ltr"}>
         {/* Subtle bg pattern */}
         <div className="absolute inset-0 opacity-[0.03]" style={{
           backgroundImage: "radial-gradient(#102a5a 1px, transparent 1px)",
@@ -232,10 +234,10 @@ const Login = () => {
           <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-[0_20px_60px_rgba(16,42,90,0.08)] border border-white/60 p-8 md:p-10">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-[#102a5a] font-display">
-                Sign in
+                {t("login.title")}
               </h2>
               <p className="text-sm text-slate-500 mt-1.5">
-                Enter your credentials to continue
+                {t("login.subtitle")}
               </p>
             </div>
 
@@ -255,16 +257,16 @@ const Login = () => {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Email address
+                <label className="block text-sm font-medium text-slate-700 mb-2 text-start">
+                  {t("login.email_label")}
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Mail className={`absolute top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 ${i18n.language === "ar" ? "right-4" : "left-4"}`} />
                   <input
                     type="email"
                     {...register("email")}
-                    className="w-full pl-11 pr-4 py-3.5 rounded-2xl border border-slate-200 bg-slate-50/50 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all placeholder:text-slate-400"
-                    placeholder="you@example.com"
+                    className={`w-full py-3.5 rounded-2xl border border-slate-200 bg-slate-50/50 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all placeholder:text-slate-400 text-start ${i18n.language === "ar" ? "pr-11 pl-4" : "pl-11 pr-4"}`}
+                    placeholder={t("login.email_placeholder")}
                     autoComplete="email"
                   />
                 </div>
@@ -277,16 +279,16 @@ const Login = () => {
 
               {/* Password */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Password
+                <label className="block text-sm font-medium text-slate-700 mb-2 text-start">
+                  {t("login.password_label")}
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Lock className={`absolute top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 ${i18n.language === "ar" ? "right-4" : "left-4"}`} />
                   <input
                     type="password"
                     {...register("password")}
-                    className="w-full pl-11 pr-4 py-3.5 rounded-2xl border border-slate-200 bg-slate-50/50 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all placeholder:text-slate-400"
-                    placeholder="••••••••"
+                    className={`w-full py-3.5 rounded-2xl border border-slate-200 bg-slate-50/50 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all placeholder:text-slate-400 text-start ${i18n.language === "ar" ? "pr-11 pl-4" : "pl-11 pr-4"}`}
+                    placeholder={t("login.password_placeholder")}
                     autoComplete="current-password"
                   />
                 </div>
@@ -303,7 +305,7 @@ const Login = () => {
                   type="button"
                   className="text-xs text-[#102a5a] hover:text-[#FBBF24] font-medium transition-colors"
                 >
-                  Forgot password?
+                  {t("login.forgot_password")}
                 </button>
               </div>
 
@@ -319,8 +321,8 @@ const Login = () => {
                   <div className="w-5 h-5 border-2 border-[#102a5a]/30 border-t-[#102a5a] rounded-full animate-spin" />
                 ) : (
                   <>
-                    Sign in
-                    <ArrowRight className="w-4 h-4" />
+                    {t("login.submit")}
+                    <ArrowRight className={`w-4 h-4 ${i18n.language === "ar" ? "rotate-180" : ""}`} />
                   </>
                 )}
               </motion.button>
@@ -329,12 +331,12 @@ const Login = () => {
             {/* Divider */}
             <div className="mt-6 pt-6 border-t border-slate-100 text-center">
               <p className="text-sm text-slate-500">
-                New to Sparvi Lab?{" "}
+                {t("login.new_user")}{" "}
                 <Link
                   to="/signup"
                   className="text-[#102a5a] font-semibold hover:text-[#FBBF24] transition-colors"
                 >
-                  Create an account →
+                  {t("login.create_account")}
                 </Link>
               </p>
             </div>

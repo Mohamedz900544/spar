@@ -7,13 +7,12 @@ import { motion } from "framer-motion";
 import axios from "axios";
 import toast from "react-hot-toast";
 import EgyptPhoneInput from "../components/EgyptPhoneInput";
+import { useTranslation } from "react-i18next";
 import {
   User,
   Mail,
-  Phone,
   Lock,
   ArrowRight,
-  Zap,
   CheckCircle2,
   BookOpen,
   Calendar,
@@ -55,14 +54,15 @@ const FloatingShape = ({ className, delay = 0, duration = 6 }) => (
   />
 );
 
-const features = [
-  { icon: Calendar, text: "Reserve and manage sessions" },
-  { icon: BookOpen, text: "Track learning progress" },
-  { icon: Bell, text: "Get updates on camps & events" },
-  { icon: CheckCircle2, text: "All children under one account" },
+const featuresKeys = [
+  { icon: Calendar, textKey: "signup.features.reserve" },
+  { icon: BookOpen, textKey: "signup.features.track" },
+  { icon: Bell, textKey: "signup.features.updates" },
+  { icon: CheckCircle2, textKey: "signup.features.all_children" },
 ];
 
 const SignUp = () => {
+  const { t, i18n } = useTranslation();
   useEffect(() => {
     document.title = "Enroll Your Child — Sparvi Lab | Reserve a Seat Today";
   }, []);
@@ -93,7 +93,7 @@ const SignUp = () => {
   };
 
   const inputBase =
-    "w-full pl-11 pr-4 py-3.5 rounded-2xl border border-slate-200 bg-slate-50/50 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all placeholder:text-slate-400";
+    `w-full py-3.5 rounded-2xl border border-slate-200 bg-slate-50/50 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all placeholder:text-slate-400 text-start ${i18n.language === "ar" ? "pr-11 pl-4" : "pl-11 pr-4"}`;
 
   return (
     <div className="min-h-screen flex">
@@ -120,7 +120,7 @@ const SignUp = () => {
         </div>
 
         {/* Content */}
-        <div className="relative z-10 flex flex-col justify-center flex-1 px-12 xl:px-16">
+        <div className="relative z-10 flex flex-col justify-center flex-1 px-12 xl:px-16" dir={i18n.language === "ar" ? "rtl" : "ltr"}>
           {/* Brand */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}
@@ -137,17 +137,18 @@ const SignUp = () => {
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.7 }}
+            className="text-start"
           >
-            <p className="text-[#FBBF24] text-sm font-semibold tracking-[0.2em] uppercase mb-4">
-              Join Sparvi Lab
+            <p className="text-[#FBBF24] text-sm font-semibold tracking-[0.2em] uppercase mb-4 text-start">
+              {t("signup.title")}
             </p>
-            <h1 className="text-4xl xl:text-5xl font-extrabold text-white leading-tight mb-6 font-display">
-              Start your child's
+            <h1 className="text-4xl xl:text-5xl font-extrabold text-white leading-tight mb-6 font-display text-start">
+              {t("signup.heading")}
               <br />
-              <span className="text-[#FBBF24]">STEM journey</span>
+              <span className="text-[#FBBF24]">{t("signup.journey")}</span>
             </h1>
-            <p className="text-slate-300 text-base leading-relaxed max-w-sm mb-10">
-              Create your parent account to book real electronics sessions and watch your kid build amazing projects.
+            <p className="text-slate-300 text-base leading-relaxed max-w-sm mb-10 text-start">
+              {t("signup.description")}
             </p>
           </motion.div>
 
@@ -158,7 +159,7 @@ const SignUp = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.8, duration: 0.6 }}
           >
-            {features.map((f, i) => (
+            {featuresKeys.map((f, i) => (
               <motion.div
                 key={i}
                 className="flex items-center gap-3"
@@ -169,22 +170,22 @@ const SignUp = () => {
                 <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
                   <f.icon className="w-4 h-4 text-[#FBBF24]" />
                 </div>
-                <span className="text-sm text-slate-300">{f.text}</span>
+                <span className="text-sm text-slate-300">{t(f.textKey)}</span>
               </motion.div>
             ))}
           </motion.div>
         </div>
 
         {/* Bottom */}
-        <div className="relative z-10 px-12 xl:px-16 pb-8">
+        <div className="relative z-10 px-12 xl:px-16 pb-8" dir={i18n.language === "ar" ? "rtl" : "ltr"}>
           <p className="text-slate-500 text-xs">
-            © {new Date().getFullYear()} Sparvi Lab. All rights reserved.
+            © {new Date().getFullYear()} Sparvi Lab. {t("login.rights")}.
           </p>
         </div>
       </motion.div>
 
       {/* ===== RIGHT — Form ===== */}
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-[#f8fafc] px-5 py-10 relative overflow-hidden">
+      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-[#f8fafc] px-5 py-10 relative overflow-hidden" dir={i18n.language === "ar" ? "rtl" : "ltr"}>
         {/* Subtle bg pattern */}
         <div
           className="absolute inset-0 opacity-[0.03]"
@@ -211,10 +212,10 @@ const SignUp = () => {
           <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-[0_20px_60px_rgba(16,42,90,0.08)] border border-white/60 p-8 md:p-10">
             <div className="text-center mb-7">
               <h2 className="text-2xl font-bold text-[#102a5a] font-display">
-                Create account
+                {t("signup.form_title")}
               </h2>
               <p className="text-sm text-slate-500 mt-1.5">
-                Set up your parent profile to get started
+                {t("signup.form_subtitle")}
               </p>
             </div>
 
@@ -234,16 +235,16 @@ const SignUp = () => {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {/* Name */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Full Name
+                <label className="block text-sm font-medium text-slate-700 mb-2 text-start">
+                  {t("signup.name_label")}
                 </label>
                 <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <User className={`absolute top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 ${i18n.language === "ar" ? "right-4" : "left-4"}`} />
                   <input
                     type="text"
                     {...register("parentName")}
                     className={inputBase}
-                    placeholder="Your full name"
+                    placeholder={t("signup.name_placeholder")}
                     autoComplete="name"
                   />
                 </div>
@@ -256,16 +257,16 @@ const SignUp = () => {
 
               {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Email
+                <label className="block text-sm font-medium text-slate-700 mb-2 text-start">
+                  {t("signup.email_label")}
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Mail className={`absolute top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 ${i18n.language === "ar" ? "right-4" : "left-4"}`} />
                   <input
                     type="email"
                     {...register("email")}
                     className={inputBase}
-                    placeholder="you@example.com"
+                    placeholder={t("signup.email_placeholder")}
                     autoComplete="email"
                   />
                 </div>
@@ -278,36 +279,38 @@ const SignUp = () => {
 
               {/* Phone */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Phone / WhatsApp
+                <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2 text-start">
+                  {t("signup.phone_label")}
                 </label>
                 <Controller
                   name="phone"
                   control={control}
                   defaultValue=""
                   render={({ field }) => (
-                    <EgyptPhoneInput
-                      value={field.value}
-                      onChange={field.onChange}
-                      error={errors.phone?.message}
-                      name="phone"
-                    />
+                    <div className="relative" dir="ltr">
+                      <EgyptPhoneInput
+                        value={field.value}
+                        onChange={field.onChange}
+                        error={errors.phone?.message}
+                        name="phone"
+                      />
+                    </div>
                   )}
                 />
               </div>
 
               {/* Password */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Password
+                <label className="block text-sm font-medium text-slate-700 mb-2 text-start">
+                  {t("signup.password_label")}
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Lock className={`absolute top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 ${i18n.language === "ar" ? "right-4" : "left-4"}`} />
                   <input
                     type="password"
                     {...register("password")}
                     className={inputBase}
-                    placeholder="Min 8 characters"
+                    placeholder={t("signup.password_placeholder")}
                     autoComplete="new-password"
                   />
                 </div>
@@ -330,8 +333,8 @@ const SignUp = () => {
                   <div className="w-5 h-5 border-2 border-[#102a5a]/30 border-t-[#102a5a] rounded-full animate-spin" />
                 ) : (
                   <>
-                    Create Account
-                    <ArrowRight className="w-4 h-4" />
+                    {t("signup.submit")}
+                    <ArrowRight className={`w-4 h-4 ${i18n.language === "ar" ? "rotate-180" : ""}`} />
                   </>
                 )}
               </motion.button>
@@ -340,12 +343,12 @@ const SignUp = () => {
             {/* Already have account */}
             <div className="mt-6 pt-6 border-t border-slate-100 text-center">
               <p className="text-sm text-slate-500">
-                Already have an account?{" "}
+                {t("signup.already_have_account")}{" "}
                 <Link
                   to="/login"
                   className="text-[#102a5a] font-semibold hover:text-[#FBBF24] transition-colors"
                 >
-                  Sign in →
+                  {t("signup.signin")}
                 </Link>
               </p>
             </div>
@@ -353,7 +356,7 @@ const SignUp = () => {
 
           {/* Terms */}
           <p className="text-center text-xs text-slate-400 mt-4">
-            By creating an account, you agree to our terms of service.
+            {t("signup.terms")}
           </p>
         </motion.div>
       </div>

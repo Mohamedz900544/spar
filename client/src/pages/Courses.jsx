@@ -21,178 +21,62 @@ import {
   BrainCircuit,
   Zap,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 /* -------------------------------------------------------
    DATA STRUCTURE
 --------------------------------------------------------*/
 
-const ageGroups = [
-  { id: "6-8", label: "Ages 6-7-8", icon: Sparkles, color: "#2dd4bf" },
-  { id: "9-11", label: "Ages 9-10-11", icon: Rocket, color: "#FBBF24" },
-  { id: "12-14", label: "Ages 12-13-14", icon: Lightbulb, color: "#a78bfa" },
-  { id: "15-17", label: "Ages 15-16-17", icon: GraduationCap, color: "#f472b6" },
+const ageGroupsRaw = [
+  { id: "6-8", key: "0", icon: Sparkles, color: "#2dd4bf" },
+  { id: "9-11", key: "1", icon: Rocket, color: "#FBBF24" },
+  { id: "12-14", key: "2", icon: Lightbulb, color: "#a78bfa" },
+  { id: "15-17", key: "3", icon: GraduationCap, color: "#f472b6" },
 ];
 
-const foundationCourses = [
-  {
-    name: "Tech Discovery",
-    duration: "Foundation Curriculum",
-    color: "#2dd4bf",
-    icon: Compass,
-    highlights: [
-      "Identify tech types in daily life",
-      "Explain daily tech benefits and uses",
-      "Spot computer parts and components",
-      "Hands-on interactive learning",
-    ],
-  },
-  {
-    name: "Creative Logic",
-    duration: "Foundation Curriculum",
-    color: "#FBBF24",
-    icon: Blocks,
-    highlights: [
-      "Apply basic logic and sequences",
-      "Play-based problem solving",
-      "Introduction to visual block coding",
-      "Build early digital confidence",
-    ],
-  },
+const foundationCoursesRaw = [
+  { color: "#2dd4bf", icon: Compass },
+  { color: "#FBBF24", icon: Blocks },
 ];
 
 // detailed list of courses for 6–8
-const courses6to8 = [
-  { name: "Technology Around Us", icon: MonitorSmartphone, color: "#2dd4bf" },
-  { name: "Creative Computing", icon: BrainCircuit, color: "#a78bfa" },
-  { name: "STEM Projects", icon: Rocket, color: "#FBBF24" },
-  { name: "Coding With Minecraft", icon: Gamepad, color: "#f472b6" },
-  { name: "Space Exploration with Minecraft", icon: Compass, color: "#60a5fa" },
-  { name: "Computational Thinking", icon: BrainCircuit, color: "#2dd4bf" },
-  { name: "Visual Algebra", icon: Blocks, color: "#a78bfa" },
-  { name: "Arithmetic Thinking", icon: Lightbulb, color: "#FBBF24" },
-  { name: "Coordinate Plane", icon: Target, color: "#f472b6" },
-  { name: "Proportional Reasoning", icon: Activity, color: "#60a5fa" },
-  { name: "Introduction to Functions", icon: Code, color: "#2dd4bf" },
-  { name: "Foundations for Algebra", icon: Zap, color: "#FBBF24" },
+const courses6to8Raw = [
+  { icon: MonitorSmartphone, color: "#2dd4bf" },
+  { icon: BrainCircuit, color: "#a78bfa" },
+  { icon: Rocket, color: "#FBBF24" },
+  { icon: Gamepad, color: "#f472b6" },
+  { icon: Compass, color: "#60a5fa" },
+  { icon: BrainCircuit, color: "#2dd4bf" },
+  { icon: Blocks, color: "#a78bfa" },
+  { icon: Lightbulb, color: "#FBBF24" },
+  { icon: Target, color: "#f472b6" },
+  { icon: Activity, color: "#60a5fa" },
+  { icon: Code, color: "#2dd4bf" },
+  { icon: Zap, color: "#FBBF24" },
 ];
 
 // tracks per age-range for the specialization phase
-const ageTracks = {
+const ageTracksRaw = {
   "9-11": [
-    {
-      id: "gamedev",
-      name: "Game Development",
-      description: "Build your first games, design levels, and learn game logic in a fun way.",
-      icon: Gamepad,
-      image:
-        "https://images.unsplash.com/photo-1556438064-2d7646166914?auto=format&fit=crop&q=80&w=800",
-    },
-    {
-      id: "genai",
-      name: "Gen AI",
-      description:
-        "Discover AI tools, create content with AI, and understand how smart systems work.",
-      icon: Cpu,
-      image:
-        "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800",
-    },
-    {
-      id: "uiux",
-      name: "UI/UX & Graphic Design",
-      description:
-        "Learn how to design beautiful screens, simple user journeys, and cool graphics.",
-      icon: Blocks,
-      image:
-        "https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&q=80&w=800",
-    },
+    { id: "gamedev", icon: Gamepad, image: "https://images.unsplash.com/photo-1556438064-2d7646166914?auto=format&fit=crop&q=80&w=800" },
+    { id: "genai", icon: Cpu, image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800" },
+    { id: "uiux", icon: Blocks, image: "https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&q=80&w=800" },
   ],
   "12-14": [
-    {
-      id: "mobileapp",
-      name: "Mobile App Development",
-      description:
-        "Design and build simple mobile apps that solve real problems and help people.",
-      icon: Code,
-      image:
-        "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&q=80&w=800",
-    },
-    {
-      id: "electronics-robotics",
-      name: "Electronics & Robotics",
-      description:
-        "Work with sensors, motors, and microcontrollers to build smart robotic projects.",
-      icon: Cpu,
-      image: "https://i.ibb.co/tgt5sxw/Gemini-Generated-Image-2h1f5p2h1f5p2h1f.webp",
-    },
-    {
-      id: "webdev",
-      name: "Web Development",
-      description:
-        "Create websites, animations, and interactive pages using modern web tools.",
-      icon: Code,
-      image: "https://i.ibb.co/Tx3S43Xw/9602bc4b-cfc4-410e-b291-611d478c9d6a.webp",
-    },
+    { id: "mobileapp", icon: Code, image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&q=80&w=800" },
+    { id: "electronics-robotics", icon: Cpu, image: "https://i.ibb.co/tgt5sxw/Gemini-Generated-Image-2h1f5p2h1f5p2h1f.webp" },
+    { id: "webdev", icon: Code, image: "https://i.ibb.co/Tx3S43Xw/9602bc4b-cfc4-410e-b291-611d478c9d6a.webp" },
   ],
   "15-17": [
-    {
-      id: "data-ai",
-      name: "Data Analysis & AI",
-      description:
-        "Work with data, understand patterns, and explore how AI makes smart decisions.",
-      icon: Activity,
-      image:
-        "https://images.unsplash.com/photo-1555949963-aa79dcee981c?auto=format&fit=crop&q=80&w=800",
-    },
-    {
-      id: "automation",
-      name: "Automation",
-      description:
-        "Automate tasks, connect tools together, and design efficient digital workflows.",
-      icon: Target,
-      image:
-        "https://images.unsplash.com/photo-1581092580348-6a5a9b040fd2?auto=format&fit=crop&q=80&w=800",
-    },
-    {
-      id: "cyber",
-      name: "Intro to Cyber Security",
-      description:
-        "Learn how to stay safe online, protect data, and understand basic security concepts.",
-      icon: ShieldCheck,
-      image:
-        "https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&q=80&w=800",
-    },
+    { id: "data-ai", icon: Activity, image: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?auto=format&fit=crop&q=80&w=800" },
+    { id: "automation", icon: Target, image: "https://images.unsplash.com/photo-1581092580348-6a5a9b040fd2?auto=format&fit=crop&q=80&w=800" },
+    { id: "cyber", icon: ShieldCheck, image: "https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&q=80&w=800" },
   ],
 };
 
-const standardPhases = [
-  {
-    id: "exploration",
-    name: "Phase 1: Exploration Period",
-    duration: "3 Months",
-    color: "#FBBF24",
-    icon: Compass,
-    description: "Try one different track each month to discover what you enjoy most.",
-    highlights: [
-      "Month 1: First Track Introduction",
-      "Month 2: Second Track Introduction",
-      "Month 3: Third Track Introduction",
-      "Find your true tech passion naturally",
-    ],
-  },
-  {
-    id: "indepth",
-    name: "Phase 2: In-Depth Track",
-    duration: "3 Months",
-    color: "#a78bfa",
-    icon: Target,
-    description: "Choose your favorite track from the exploration phase and master it.",
-    highlights: [
-      "Deep dive into your chosen specialty",
-      "Advanced project building",
-      "Focused skill development",
-      "Track-specific mentorship",
-    ],
-  },
+const standardPhasesRaw = [
+  { id: "exploration", color: "#FBBF24", icon: Compass },
+  { id: "indepth", color: "#a78bfa", icon: Target },
 ];
 
 /* -------------------------------------------------------
@@ -210,6 +94,7 @@ const FloatingShape = ({ className, delay = 0, duration = 6 }) => (
    MAIN COMPONENT
 --------------------------------------------------------*/
 export default function Courses() {
+  const { t, i18n } = useTranslation();
   useEffect(() => {
     document.title = "Courses — Sparvi Lab | STEM Programs for Ages 6–17";
   }, []);
@@ -218,7 +103,7 @@ export default function Courses() {
   const [openFoundation, setOpenFoundation] = useState(null);
 
   const tracksForSelectedAge =
-    selectedAge && selectedAge !== "6-8" ? ageTracks[selectedAge] || [] : [];
+    selectedAge && selectedAge !== "6-8" ? ageTracksRaw[selectedAge] || [] : [];
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#f8fafc] to-white font-sans">
@@ -256,12 +141,11 @@ export default function Courses() {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.7 }}
           >
-            <h1 className="text-4xl md:text-5xl font-extrabold text-white leading-tight mb-4 tracking-tight">
-              Discover Your <span className="text-[#FBBF24]">Path</span>
+            <h1 className="text-4xl md:text-5xl font-extrabold text-white leading-tight mb-4 tracking-tight text-center">
+              {t("courses.hero_title1")} <span className="text-[#FBBF24]">{t("courses.hero_title2")}</span>
             </h1>
-            <p className="text-slate-300 max-w-lg mx-auto text-sm md:text-base">
-              Select your age group below to see the personalized curriculum and
-              journey we offer.
+            <p className="text-slate-300 max-w-lg mx-auto text-sm md:text-base text-center">
+              {t("courses.hero_subtitle")}
             </p>
           </Motion.div>
         </div>
@@ -288,10 +172,10 @@ export default function Courses() {
             className="mb-12"
           >
             <h2 className="text-xl font-bold text-[#102a5a] mb-6 text-center">
-              Select Age Group
+              {t("courses.select_age_title")}
             </h2>
             <div className="flex flex-wrap justify-center gap-4">
-              {ageGroups.map((age) => (
+              {ageGroupsRaw.map((age) => (
                 <button
                   key={age.id}
                   onClick={() => {
@@ -306,7 +190,7 @@ export default function Courses() {
                 >
                   <age.icon className={`w-4 h-4 transition-colors ${selectedAge === age.id ? "text-[#FBBF24]" : "text-slate-400 group-hover:text-slate-600"
                     }`} />
-                  {age.label}
+                  {t(`courses.ages.a${age.key}`)}
                 </button>
               ))}
             </div>
@@ -322,7 +206,7 @@ export default function Courses() {
                 exit={{ opacity: 0 }}
                 className="text-center py-12 text-slate-400"
               >
-                Please select an age group above to view the curriculum.
+                {t("courses.empty_state")}
               </Motion.div>
             )}
 
@@ -337,20 +221,18 @@ export default function Courses() {
               >
                 <div className="text-center mb-8">
                   <span className="inline-block py-1 px-3 rounded-full bg-[#2dd4bf]/10 text-[#2dd4bf] font-bold text-xs tracking-widest uppercase mb-3">
-                    Early Learners
+                    {t("courses.foundation_badge")}
                   </span>
                   <h2 className="text-2xl font-bold text-[#102a5a]">
-                    Foundation Stage
+                    {t("courses.foundation_title")}
                   </h2>
                   <p className="text-slate-500 max-w-xl mx-auto mt-2 text-sm">
-                    A dedicated phase for our youngest learners featuring
-                    specialized courses designed to introduce technology in a
-                    fun, engaging, and play-based way.
+                    {t("courses.foundation_desc")}
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-10">
-                  {foundationCourses.map((course, idx) => (
+                  {foundationCoursesRaw.map((course, idx) => (
                     <Motion.div
                       key={course.name}
                       whileHover={{ y: -4 }}
@@ -373,7 +255,7 @@ export default function Courses() {
                       <div className="p-6">
                         <div className="flex items-center gap-4 mb-4">
                           <div
-                            className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm"
+                            className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm shrink-0"
                             style={{
                               background: `linear-gradient(135deg, ${course.color}20, ${course.color}08)`,
                               border: `1px solid ${course.color}30`,
@@ -381,12 +263,12 @@ export default function Courses() {
                           >
                             <course.icon className="w-6 h-6" style={{ color: course.color }} />
                           </div>
-                          <div>
+                          <div className="text-start">
                             <h3 className="text-xl font-bold text-[#102a5a]">
-                              {course.name}
+                              {t(`courses.fc.${idx}.name`)}
                             </h3>
                             <p className="text-xs font-semibold text-slate-400 mt-0.5">
-                              {course.duration}
+                              {t(`courses.fc.${idx}.duration`)}
                             </p>
                           </div>
                         </div>
@@ -400,16 +282,16 @@ export default function Courses() {
                         >
                           <div className="pt-2 pb-1 border-t border-slate-100">
                             <ul className="space-y-3 mt-3">
-                              {course.highlights.map((h, i) => (
+                              {[0, 1, 2, 3].map((i) => (
                                 <li
                                   key={i}
-                                  className="flex gap-2.5 items-start text-sm text-slate-600"
+                                  className="flex gap-2.5 items-start text-sm text-slate-600 text-start"
                                 >
                                   <CheckCircle2
                                     className="w-4 h-4 shrink-0 mt-0.5"
                                     style={{ color: course.color }}
                                   />
-                                  {h}
+                                  {t(`courses.fc.${idx}.highlights.${i}`)}
                                 </li>
                               ))}
                             </ul>
@@ -432,16 +314,15 @@ export default function Courses() {
                 {/* Detailed list of 6–8 courses */}
                 <div className="max-w-4xl mx-auto">
                   <h3 className="text-lg font-bold text-[#102a5a] mb-3 text-center">
-                    Courses in this Stage
+                    {t("courses.stage_courses_title")}
                   </h3>
                   <p className="text-sm text-slate-500 text-center mb-4">
-                    During the foundation stage, learners rotate through these
-                    themed courses to build strong math and tech basics.
+                    {t("courses.stage_courses_desc")}
                   </p>
                   <div className="flex flex-wrap justify-center gap-3">
-                    {courses6to8.map((course) => (
+                    {courses6to8Raw.map((course, idx) => (
                       <span
-                        key={course.name}
+                        key={idx}
                         className="inline-flex items-center gap-1.5 text-xs md:text-sm px-3.5 py-2 rounded-full border shadow-sm transition-all hover:shadow-md hover:-translate-y-px"
                         style={{
                           backgroundColor: `${course.color}08`,
@@ -450,7 +331,7 @@ export default function Courses() {
                         }}
                       >
                         <course.icon className="w-3.5 h-3.5" style={{ color: course.color }} />
-                        {course.name}
+                        {t(`courses.c6to8.${idx}`)}
                       </span>
                     ))}
                   </div>
@@ -469,21 +350,19 @@ export default function Courses() {
               >
                 <div className="text-center mb-10">
                   <span className="inline-block py-1 px-3 rounded-full bg-[#FBBF24]/10 text-[#D97706] font-bold text-xs tracking-widest uppercase mb-3">
-                    The Journey
+                    {t("courses.standard_badge")}
                   </span>
                   <h2 className="text-2xl font-bold text-[#102a5a]">
-                    Your Learning Path
+                    {t("courses.standard_title")}
                   </h2>
                   <p className="text-slate-500 max-w-xl mx-auto mt-2 text-sm">
-                    Students go through a 3-month exploration phase to try out
-                    different tracks, followed by 3 months of deep
-                    specialization based on their passion.
+                    {t("courses.standard_desc")}
                   </p>
                 </div>
 
                 {/* THE PHASES */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-16">
-                  {standardPhases.map((phase, idx) => (
+                  {standardPhasesRaw.map((phase, idx) => (
                     <Motion.div
                       key={phase.id}
                       whileHover={{ y: -4 }}
@@ -514,7 +393,7 @@ export default function Courses() {
                               color: phase.color,
                             }}
                           >
-                            {phase.duration}
+                            {t(`courses.phases.${phase.id}.duration`)}
                           </span>
                         </div>
 
@@ -529,12 +408,12 @@ export default function Courses() {
                             >
                               <phase.icon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: phase.color }} />
                             </div>
-                            <div className="min-w-0">
+                            <div className="min-w-0 text-start">
                               <h3 className="text-base sm:text-lg font-bold text-[#102a5a] leading-snug">
-                                {phase.name}
+                                {t(`courses.phases.${phase.id}.name`)}
                               </h3>
                               <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
-                                {phase.description}
+                                {t(`courses.phases.${phase.id}.desc`)}
                               </p>
                             </div>
                           </div>
@@ -546,7 +425,7 @@ export default function Courses() {
                               color: phase.color,
                             }}
                           >
-                            {phase.duration}
+                            {t(`courses.phases.${phase.id}.duration`)}
                           </span>
                         </div>
 
@@ -557,21 +436,21 @@ export default function Courses() {
                             : "max-h-0 opacity-0"
                             }`}
                         >
-                          <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-100 mb-2">
+                          <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-100 mb-2 text-start">
                             <h4 className="text-xs font-bold text-[#102a5a] mb-3 uppercase tracking-wider">
-                              What to Expect
+                              {t("courses.what_to_expect")}
                             </h4>
                             <ul className="space-y-2.5">
-                              {phase.highlights.map((h, i) => (
+                              {[0, 1, 2, 3].map((i) => (
                                 <li
                                   key={i}
-                                  className="flex gap-2 items-start text-sm text-slate-600"
+                                  className="flex gap-2 items-start text-sm text-slate-600 text-start"
                                 >
                                   <CheckCircle2
                                     className="w-4 h-4 shrink-0 mt-0.5"
                                     style={{ color: phase.color }}
                                   />
-                                  {h}
+                                  {t(`courses.phases.${phase.id}.highlights.${i}`)}
                                 </li>
                               ))}
                             </ul>
@@ -595,11 +474,10 @@ export default function Courses() {
                 <div className="pt-8 border-t border-slate-200">
                   <div className="text-center mb-8">
                     <h3 className="text-xl font-bold text-[#102a5a]">
-                      Available Tracks for Specialization
+                      {t("courses.available_tracks_title")}
                     </h3>
                     <p className="text-sm text-slate-500 mt-1">
-                      During Phase 2, you will choose one of these tracks for
-                      your age group to master.
+                      {t("courses.available_tracks_desc")}
                     </p>
                   </div>
 
@@ -617,21 +495,21 @@ export default function Courses() {
                           <img
                             src={track.image}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                            alt={track.name}
+                            alt={t(`courses.tracks.${track.id}.name`)}
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-[#071228]/90 via-[#071228]/30 to-transparent" />
-                          <div className="absolute bottom-4 left-4 flex items-center gap-3">
+                          <div className={`absolute bottom-4 ${i18n.language === "ar" ? "right-4" : "left-4"} flex items-center gap-3`}>
                             <div className="w-9 h-9 rounded-xl bg-[#FBBF24]/90 backdrop-blur-md flex items-center justify-center shadow-lg">
                               <track.icon className="w-4.5 h-4.5 text-[#102a5a]" />
                             </div>
-                            <span className="text-white font-bold text-sm tracking-wide drop-shadow-md">
-                              {track.name}
+                            <span className="text-white font-bold text-sm tracking-wide drop-shadow-md text-start">
+                              {t(`courses.tracks.${track.id}.name`)}
                             </span>
                           </div>
                         </div>
-                        <div className="p-5">
+                        <div className="p-5 text-start">
                           <p className="text-sm text-slate-500 leading-relaxed">
-                            {track.description}
+                            {t(`courses.tracks.${track.id}.desc`)}
                           </p>
                         </div>
                       </Motion.div>
@@ -639,7 +517,7 @@ export default function Courses() {
 
                     {tracksForSelectedAge.length === 0 && (
                       <p className="text-sm text-slate-400 text-center">
-                        Tracks for this age group are coming soon.
+                        {t("courses.coming_soon")}
                       </p>
                     )}
                   </div>

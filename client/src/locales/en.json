@@ -1,0 +1,436 @@
+{
+  "nav": {
+    "home": "Home",
+    "courses": "Courses",
+    "our_story": "Our Story",
+    "contact": "Contact Us",
+    "login": "Login",
+    "signup": "Sign Up"
+  },
+  "login": {
+    "portal": "Parent Portal",
+    "welcome_back": "Welcome back",
+    "explorer": "explorer!",
+    "description": "Sign in to see your child's upcoming on-site sessions and track what they've been building in the lab.",
+    "track_progress": "Track your child's progress",
+    "secure_access": "Secure parent-only access",
+    "book_sessions": "Book sessions in seconds",
+    "rights": "All rights reserved",
+    "title": "Sign in",
+    "subtitle": "Enter your credentials to continue",
+    "email_label": "Email address",
+    "email_placeholder": "you@example.com",
+    "password_label": "Password",
+    "password_placeholder": "••••••••",
+    "forgot_password": "Forgot password?",
+    "submit": "Sign in",
+    "new_user": "New to Sparvi Lab?",
+    "create_account": "Create an account →"
+  },
+  "signup": {
+    "title": "Join Sparvi Lab",
+    "heading": "Start your child's",
+    "journey": "STEM journey",
+    "description": "Create your parent account to book real electronics sessions and watch your kid build amazing projects.",
+    "features": {
+      "reserve": "Reserve and manage sessions",
+      "track": "Track learning progress",
+      "updates": "Get updates on camps & events",
+      "all_children": "All children under one account"
+    },
+    "form_title": "Create account",
+    "form_subtitle": "Set up your parent profile to get started",
+    "name_label": "Full Name",
+    "name_placeholder": "Your full name",
+    "email_label": "Email",
+    "email_placeholder": "you@example.com",
+    "phone_label": "Phone / WhatsApp",
+    "password_label": "Password",
+    "password_placeholder": "Min 8 characters",
+    "submit": "Create Account",
+    "already_have_account": "Already have an account?",
+    "signin": "Sign in →",
+    "terms": "By creating an account, you agree to our terms of service."
+  },
+  "landing": {
+    "hero": {
+      "title1": "Building the",
+      "title2": "Next Generation’s",
+      "title3": "Minds",
+      "subtitle": "Live, instructor-led STEM sessions for ages 6–17. Kids learn electronics, coding, robotics, and AI through structured hands-on projects — online and in-person.",
+      "cta_primary": "Secure your seat!",
+      "cta_secondary": "Our Story ➤",
+      "seo_text": "Sparvi Lab — Live STEM Education for Kids Ages 6–17. Coding, electronics, robotics, and AI through structured hands-on sessions."
+    },
+    "heroes": {
+      "title": "Hear from Our Heroes"
+    },
+    "projects": {
+      "title": "Discover Our Students' Projects",
+      "subtitle": "Explore out these incredible hands-on creations by Sparvi Lab makers."
+    },
+    "why_choose": {
+      "title": "Why Choose Sparvi Lab?",
+      "cta": "Secure your Seat!"
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "subtitle": "Everything you need to know about Sparvi Lab before getting started.",
+      "still_have_questions": "Still have questions?",
+      "team_happy_to_help": "Our team is happy to help you out.",
+      "contact_us": "Contact Us"
+    },
+    "footer": {
+      "description": "Hands-on learning that sparks creativity. Build robots, learn circuits, and code your future.",
+      "rights": "All rights reserved.",
+      "main_menu": "Main Menu",
+      "menu_home": "Home",
+      "menu_courses": "Courses",
+      "menu_story": "Our Story",
+      "menu_contact": "Contact Us",
+      "menu_join": "Join Us",
+      "join_club": "Join the Club",
+      "club_desc": "Get the latest robot kits news and exclusive discounts for young inventors.",
+      "placeholder": "Enter your email",
+      "subscribe": "Subscribe",
+      "designed_for": "Designed for future innovators."
+    },
+    "faqs": {
+      "q0": {
+        "q": "What exactly will my child learn at Sparvi Lab?",
+        "a": "Your child will learn the skills that make technology easier to understand long-term, not just one tool for a short time. We build strong foundations in problem-solving, logical reasoning, creativity, and learning agility, then apply them through hands-on learning across computational thinking, creative coding, electronics and robotics, game development, and early AI concepts. The goal is a child who can face new challenges confidently and learn new technologies faster."
+      },
+      "q1": {
+        "q": "What age groups do you offer, and how are levels decided?",
+        "a": "Sparvi Lab is designed for ages 6–17. Students are placed into age bands with a progressive curriculum that grows year by year. Placement is based on age and a simple onboarding check to understand the child's current level, attention span, and comfort with problem-solving. If a child is advanced, we can place them higher. If they need stronger foundations, we start from the right step without pressure."
+      },
+      "q2": {
+        "q": "Do students need any prior coding or robotics experience?",
+        "a": "No. Prior experience is not required. Many students join with zero background and start from the foundations. We teach concepts in an age-appropriate way that is designed for beginners. If your child already has experience, we do not repeat basics blindly. We challenge them with deeper tasks and more advanced projects."
+      },
+      "q3": {
+        "q": "Do parents need to attend or help during sessions?",
+        "a": "In most cases, parents do not need to sit next to the child during the session. Sessions are guided and structured, and we teach children to think independently. For ages 6–8, we recommend light support at the beginning (mainly for setup and focus). After that, we gradually reduce dependence so the child builds confidence and ownership. We also run parent guidance sessions so you know how to support your child without doing the work for them."
+      },
+      "q4": {
+        "q": "What happens if we miss a live class?",
+        "a": "If you miss a session, your child will not be left behind. We provide a clear catch-up plan based on what was missed. Depending on the program, you may receive a session recording or a guided summary with tasks to complete. If needed, we also offer support time to help the student catch up and rejoin confidently."
+      },
+      "q5": {
+        "q": "How do you track progress and measure improvement over time?",
+        "a": "We track progress using skill-based milestones, not just completed lessons. We focus on how the child is improving in areas such as problem-solving strategy, logical reasoning, debugging ability, creativity in solutions, and confidence during challenges. Parents receive progress updates that highlight strengths and what to work on next. This makes learning measurable and shows real growth, not just finished projects."
+      },
+      "q6": {
+        "q": "Is Sparvi Lab online, in-person, or both?",
+        "a": "Sparvi Lab can be delivered online and in-person depending on your location and the program schedule. Online sessions are interactive and hands-on, not passive watching. In-person sessions follow the same curriculum, with more physical collaboration. When you enroll, we confirm the available format options and schedules for your area."
+      },
+      "q7": {
+        "q": "How are lessons taught to match different learning styles?",
+        "a": "We use proven learning models such as SAVI, 4MAT, and Meier's learning phases, so every lesson includes multiple types of engagement. Students learn by building, discussing, experimenting, moving, and applying. This supports children who learn visually, practically, socially, or through exploration. It also keeps sessions active, reduces boredom, and improves understanding and retention."
+      },
+      "q8": {
+        "q": "How do you keep kids safe and focused with technology at home?",
+        "a": "We promote healthy tech habits as part of the learning journey. Students learn structured screen use, not endless screen time. We guide parents with simple routines to support focus and reduce distractions. We also design projects around purposeful creation, so the child uses technology to build and think, not just consume. If parents want extra support, we provide guidance sessions to help create a safe, balanced home setup."
+      },
+      "q9": {
+        "q": "How long is each program, and how often are sessions?",
+        "a": "Programs are structured to create real progress, not quick exposure. Session length and frequency depend on the age group and track. You will receive a clear schedule before starting, including how many sessions per month and what outcomes to expect by the end. For younger ages, sessions are shorter and more activity-based. For older ages, sessions are deeper and project-heavy."
+      },
+      "q10": {
+        "q": "What if my child is shy or lacks confidence?",
+        "a": "That is common, and it is one of the main areas we support. We use guided participation and safe challenges that gradually increase in difficulty. We encourage thinking out loud and celebrate effort and improvement, not just correct answers. Over time, children build confidence because they learn how to approach problems step by step and see themselves improving."
+      },
+      "q11": {
+        "q": "What equipment do we need at home for online learning?",
+        "a": "In most cases, you need a laptop or desktop computer and a stable internet connection. For some tracks, the electronics kit is required. We provide a short setup guide so everything is ready before the first session. If your child joins a hardware track, we also guide you through safe setup and handling."
+      },
+      "q12": {
+        "q": "Can my child switch tracks later?",
+        "a": "Yes, switching tracks is possible depending on the schedule and your child's readiness. We usually recommend finishing the current phase first, then switching with a clear plan. Because the curriculum is structured, we make sure the child does not miss key foundations when moving between tracks."
+      },
+      "q13": {
+        "q": "How do you ensure the curriculum is not just random activities?",
+        "a": "Every activity at Sparvi Lab is tied to a learning objective and a progression path. We do not teach random \"fun projects\" without a learning journey. Each level builds on the previous one and prepares the child for more advanced thinking and real-world relevance. That is what makes Sparvi Lab a curriculum-driven system, not a tool-based academy."
+      }
+    },
+    "features": {
+      "f1": {
+        "title": "Certified STEM & AI Curriculum",
+        "text": "We learn to code using professional tools."
+      },
+      "f2": {
+        "title": "1-on-1 Live Online",
+        "text": "Private, personalized sessions with expert instructors."
+      },
+      "f3": {
+        "title": "Elite Remote Learning Instructors",
+        "text": "Highly qualified educators."
+      },
+      "f4": {
+        "title": "Long-Term Progression Plan",
+        "text": "Complete clarity for your child's learning path."
+      },
+      "f5": {
+        "title": "Practical Hands-On Projects",
+        "text": "Apply knowledge by building real-world projects."
+      },
+      "f6": {
+        "title": "Engaging Learning Environment",
+        "text": "Learn coding through interactive play and exploration."
+      }
+    },
+    "studentProjects": {
+      "p1": {
+        "title": "Hand Generator",
+        "desc": "Building a generator to power a LED and electronic components"
+      },
+      "p2": {
+        "title": "Walking Robot",
+        "desc": "Kids build a walking robot and learn new concepts like equilibrium and motor mechanics"
+      },
+      "p3": {
+        "title": "Pacman",
+        "desc": "Pacman Escaping is an arcade style maze"
+      },
+      "p4": {
+        "title": "Real world simulation",
+        "desc": "Real-world simulation of living organisms growing from food"
+      },
+      "p5": {
+        "title": "Bouncing Ball",
+        "desc": "A ball that moves around the screen and bounces when it hits the edges"
+      },
+      "p6": {
+        "title": "Planet Saver",
+        "desc": "Save the earth from the aliens"
+      }
+    }
+  },
+  "contact": {
+    "hero_title1": "Get in ",
+    "hero_title2": "Touch",
+    "hero_subtitle": "Have a question about our sessions, want to enroll, or just want to say hi? We're here to help!",
+    "info_title": "Contact info",
+    "brand_title": "Kids Building the Future",
+    "brand_subtitle": "STEM • Electronics • Robotics",
+    "form_title": "Send us a message",
+    "form_subtitle": "Fill in the form and we'll get back to you within 24 hours.",
+    "success_title": "Message sent!",
+    "success_subtitle": "We'll get back to you soon. Thank you for reaching out!",
+    "send_another": "Send another message →",
+    "parent_name": "Parent name",
+    "parent_name_ph": "Your name",
+    "phone": "Phone / WhatsApp",
+    "child_age": "Child age",
+    "optional": "(optional)",
+    "child_age_ph": "e.g. 8",
+    "message": "Message",
+    "message_ph": "How can we help you?",
+    "submit": "Send Message",
+    "methods": {
+      "m0": {
+        "label": "Email",
+        "value": "hello@sparvilab.com"
+      },
+      "m1": {
+        "label": "Phone / WhatsApp",
+        "value": "+201500077369"
+      },
+      "m2": {
+        "label": "Location",
+        "value": "Cairo, Egypt"
+      },
+      "m3": {
+        "label": "Working Hours",
+        "value": "Sat – Thu, 10AM – 6PM"
+      }
+    }
+  },
+  "story": {
+    "hero_title1": "The Origin ",
+    "hero_title2": "Story",
+    "hero_subtitle": "We started with one simple belief — every child deserves the chance to build, create, and master the tools of tomorrow.",
+    "timeline_title": "How it all unfolded",
+    "timeline_subtitle": "The transition from a simple observation to a structured educational revolution.",
+    "curriculum_title1": "Engineered for ",
+    "curriculum_title2": "Deep Learning",
+    "curriculum_subtitle": "Sparvi Lab is not a one-off workshop or a scattered blend of tools. It is a curriculum-driven architecture designed around how children actually process information. We sequence experiences so the leap from early curiosity to real innovation is seamless.",
+    "checks": [
+      "Experiential first, conceptual second",
+      "Adaptable across multiple tools & frameworks",
+      "Aligned with international tech standards"
+    ],
+    "outcomes_title": "From Coding to Creating",
+    "outcomes_subtitle": "In Sparvi Lab, learners don't just \"complete activities\". They learn to see technology as a raw material they can shape, building a tolerance for trial, error, and debugging.",
+    "quote": "\"They learn to be comfortable with ambiguity, debugging both their code and their own logic.\"",
+    "cta_title1": "The future belongs to the ",
+    "cta_title2": "resilient.",
+    "cta_subtitle": "The tools will keep changing, but the ability to think, adapt, and build will last forever. Join us in shaping tomorrow's leaders.",
+    "btn_explore": "Explore Programs",
+    "btn_talk": "Talk to an Expert",
+    "timeline": [
+      {
+        "year": "The Spark",
+        "title": "A Widening Gap",
+        "desc": "We noticed children were immersed in technology, but strictly as consumers. While the tools of the future (like AI) were evolving exponentially, classroom approaches remained stagnant, prioritizing test scores over resilience and creative problem-solving."
+      },
+      {
+        "year": "The Vision",
+        "title": "Building the Foundation",
+        "desc": "We asked a simple question: 'What if we designed a learning journey that grows with the child?' We researched international standards, cognitive models, and combined them into a curriculum that prioritizes thinking first, coding second."
+      },
+      {
+        "year": "The Ecosystem",
+        "title": "Sparvi Lab Is Born",
+        "desc": "It wasn't just about offering classes; it was about creating a full ecosystem involving students, mentors, and parents. By building this partnership, we turned isolated workshops into a long-term developmental journey."
+      }
+    ],
+    "pillars": [
+      {
+        "title": "Age-Structured Path",
+        "desc": "Designed for specific developmental stages. They begin with block-based logic, transition to real syntax, and eventually build robust applications."
+      },
+      {
+        "title": "Skills Over Syntax",
+        "desc": "We focus on computational thinking, problem decomposition, and resilience before teaching the specific commands of any single language."
+      },
+      {
+        "title": "Progressive Mastery",
+        "desc": "Every level builds on the last. Students don't just collect certificates; they stack capabilities, growing year after year."
+      },
+      {
+        "title": "Proven Models",
+        "desc": "Our methodology is grounded in established learning models including SAVI, Meier's techniques, and 4MAT frameworks."
+      }
+    ],
+    "learnerOutcomes": [
+      "Break down complex problems into manageable steps",
+      "Write creative code, design games, and grasp early AI",
+      "Discuss ideas and confidently explain mechanisms",
+      "Persist through open-ended, ambiguous challenges"
+    ]
+  },
+  "courses": {
+    "hero_title1": "Discover Your ",
+    "hero_title2": "Path",
+    "hero_subtitle": "Select your age group below to see the personalized curriculum and journey we offer.",
+    "select_age_title": "Select Age Group",
+    "empty_state": "Please select an age group above to view the curriculum.",
+    "foundation_badge": "Early Learners",
+    "foundation_title": "Foundation Stage",
+    "foundation_desc": "A dedicated phase for our youngest learners featuring specialized courses designed to introduce technology in a fun, engaging, and play-based way.",
+    "stage_courses_title": "Courses in this Stage",
+    "stage_courses_desc": "During the foundation stage, learners rotate through these themed courses to build strong math and tech basics.",
+    "standard_badge": "The Journey",
+    "standard_title": "Your Learning Path",
+    "standard_desc": "Students go through a 3-month exploration phase to try out different tracks, followed by 3 months of deep specialization based on their passion.",
+    "what_to_expect": "What to Expect",
+    "available_tracks_title": "Available Tracks for Specialization",
+    "available_tracks_desc": "During Phase 2, you will choose one of these tracks for your age group to master.",
+    "coming_soon": "Tracks for this age group are coming soon.",
+    "ages": {
+      "a0": "Ages 6-7-8",
+      "a1": "Ages 9-10-11",
+      "a2": "Ages 12-13-14",
+      "a3": "Ages 15-16-17"
+    },
+    "fc": [
+      {
+        "name": "Tech Discovery",
+        "duration": "Foundation Curriculum",
+        "highlights": [
+          "Identify tech types in daily life",
+          "Explain daily tech benefits and uses",
+          "Spot computer parts and components",
+          "Hands-on interactive learning"
+        ]
+      },
+      {
+        "name": "Creative Logic",
+        "duration": "Foundation Curriculum",
+        "highlights": [
+          "Apply basic logic and sequences",
+          "Play-based problem solving",
+          "Introduction to visual block coding",
+          "Build early digital confidence"
+        ]
+      }
+    ],
+    "c6to8": [
+      "Technology Around Us",
+      "Creative Computing",
+      "STEM Projects",
+      "Coding With Minecraft",
+      "Space Exploration with Minecraft",
+      "Computational Thinking",
+      "Visual Algebra",
+      "Arithmetic Thinking",
+      "Coordinate Plane",
+      "Proportional Reasoning",
+      "Introduction to Functions",
+      "Foundations for Algebra"
+    ],
+    "tracks": {
+      "gamedev": {
+        "name": "Game Development",
+        "desc": "Build your first games, design levels, and learn game logic in a fun way."
+      },
+      "genai": {
+        "name": "Gen AI",
+        "desc": "Discover AI tools, create content with AI, and understand how smart systems work."
+      },
+      "uiux": {
+        "name": "UI/UX & Graphic Design",
+        "desc": "Learn how to design beautiful screens, simple user journeys, and cool graphics."
+      },
+      "mobileapp": {
+        "name": "Mobile App Development",
+        "desc": "Design and build simple mobile apps that solve real problems and help people."
+      },
+      "electronics-robotics": {
+        "name": "Electronics & Robotics",
+        "desc": "Work with sensors, motors, and microcontrollers to build smart robotic projects."
+      },
+      "webdev": {
+        "name": "Web Development",
+        "desc": "Create websites, animations, and interactive pages using modern web tools."
+      },
+      "data-ai": {
+        "name": "Data Analysis & AI",
+        "desc": "Work with data, understand patterns, and explore how AI makes smart decisions."
+      },
+      "automation": {
+        "name": "Automation",
+        "desc": "Automate tasks, connect tools together, and design efficient digital workflows."
+      },
+      "cyber": {
+        "name": "Intro to Cyber Security",
+        "desc": "Learn how to stay safe online, protect data, and understand basic security concepts."
+      }
+    },
+    "phases": {
+      "exploration": {
+        "name": "Phase 1: Exploration Period",
+        "duration": "3 Months",
+        "desc": "Try one different track each month to discover what you enjoy most.",
+        "highlights": [
+          "Month 1: First Track Introduction",
+          "Month 2: Second Track Introduction",
+          "Month 3: Third Track Introduction",
+          "Find your true tech passion naturally"
+        ]
+      },
+      "indepth": {
+        "name": "Phase 2: In-Depth Track",
+        "duration": "3 Months",
+        "desc": "Choose your favorite track from the exploration phase and master it.",
+        "highlights": [
+          "Deep dive into your chosen specialty",
+          "Advanced project building",
+          "Focused skill development",
+          "Track-specific mentorship"
+        ]
+      }
+    }
+  }
+}

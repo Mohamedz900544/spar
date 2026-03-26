@@ -8,6 +8,7 @@ import {
   HeartHandshake, Rocket, Users, Star, ArrowRight,
   Sparkles, CheckCircle2, ChevronDown
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 // ── Animation Helpers ── //
 const FloatingShape = ({ className, delay = 0, duration = 6 }) => (
@@ -48,35 +49,17 @@ const FloatingElement = ({ children, className = "", delay = 0, yOffset = 20, du
 };
 
 // ── Data Configs ── //
-const timelineSteps = [
-  {
-    year: "The Spark",
-    title: "A Widening Gap",
-    desc: "We noticed children were immersed in technology, but strictly as consumers. While the tools of the future (like AI) were evolving exponentially, classroom approaches remained stagnant, prioritizing test scores over resilience and creative problem-solving.",
-    color: "#f97316",
-    icon: Sparkles
-  },
-  {
-    year: "The Vision",
-    title: "Building the Foundation",
-    desc: "We asked a simple question: 'What if we designed a learning journey that grows with the child?' We researched international standards, cognitive models, and combined them into a curriculum that prioritizes thinking first, coding second.",
-    color: "#2dd4bf",
-    icon: Compass
-  },
-  {
-    year: "The Ecosystem",
-    title: "Sparvi Lab Is Born",
-    desc: "It wasn't just about offering classes; it was about creating a full ecosystem involving students, mentors, and parents. By building this partnership, we turned isolated workshops into a long-term developmental journey.",
-    color: "#a78bfa",
-    icon: Target
-  }
+const timelineStepsRaw = [
+  { color: "#f97316", icon: Sparkles },
+  { color: "#2dd4bf", icon: Compass },
+  { color: "#a78bfa", icon: Target }
 ];
 
-const pillars = [
-  { icon: Layers, color: "#2dd4bf", title: "Age-Structured Path", desc: "Designed for specific developmental stages. They begin with block-based logic, transition to real syntax, and eventually build robust applications." },
-  { icon: Brain, color: "#FBBF24", title: "Skills Over Syntax", desc: "We focus on computational thinking, problem decomposition, and resilience before teaching the specific commands of any single language." },
-  { icon: TrendingUp, color: "#a78bfa", title: "Progressive Mastery", desc: "Every level builds on the last. Students don't just collect certificates; they stack capabilities, growing year after year." },
-  { icon: BookOpen, color: "#f97316", title: "Proven Models", desc: "Our methodology is grounded in established learning models including SAVI, Meier's techniques, and 4MAT frameworks." },
+const pillarsRaw = [
+  { icon: Layers, color: "#2dd4bf" },
+  { icon: Brain, color: "#FBBF24" },
+  { icon: TrendingUp, color: "#a78bfa" },
+  { icon: BookOpen, color: "#f97316" },
 ];
 
 const learnerOutcomes = [
@@ -88,6 +71,7 @@ const learnerOutcomes = [
 
 // ── The Page Component ── //
 const OurStory = () => {
+  const { t, i18n } = useTranslation();
   useEffect(() => {
     document.title = "Our Story — Sparvi Lab | The Origin of Innovation";
   }, []);
@@ -119,11 +103,11 @@ const OurStory = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.7 }}
           >
-            <h1 className="text-3xl md:text-5xl font-extrabold text-white leading-tight mb-4 font-display">
-              The Origin <span className="text-[#FBBF24]">Story</span>
+            <h1 className="text-3xl md:text-5xl font-extrabold text-white leading-tight mb-4 font-display text-center">
+              {t("story.hero_title1")} <span className="text-[#FBBF24]">{t("story.hero_title2")}</span>
             </h1>
-            <p className="text-slate-300 max-w-lg mx-auto text-sm md:text-base mb-8">
-              We started with one simple belief — every child deserves the chance to build, create, and master the tools of tomorrow.
+            <p className="text-slate-300 max-w-lg mx-auto text-sm md:text-base mb-8 text-center">
+              {t("story.hero_subtitle")}
             </p>
 
             <div className="flex justify-center border-t border-white/10 pt-8 max-w-2xl mx-auto">
@@ -158,32 +142,34 @@ const OurStory = () => {
       {/* ────────────────── 2. THE TIMELINE FLOW ────────────────── */}
       <section className="py-24 md:py-40 px-6 relative max-w-5xl mx-auto">
         <FadeIn className="text-center mb-20 md:mb-32">
-          <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 tracking-tight">How it all unfolded</h2>
+          <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 tracking-tight">
+            {t("story.timeline_title")}
+          </h2>
           <p className="text-xl text-slate-500 max-w-2xl mx-auto">
-            The transition from a simple observation to a structured educational revolution.
+            {t("story.timeline_subtitle")}
           </p>
         </FadeIn>
 
         <div className="relative">
           {/* Timeline Center Line */}
-          <div className="absolute left-6 md:left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-[#f97316] via-[#2dd4bf] to-[#a78bfa] rounded-full opacity-20 -translate-x-1/2" />
+          <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-[#f97316] via-[#2dd4bf] to-[#a78bfa] rounded-full opacity-20" />
 
-          <div className="space-y-24">
-            {timelineSteps.map((step, idx) => (
-              <div key={idx} className={`relative flex flex-col md:flex-row items-center gap-10 md:gap-16 ${idx % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"}`}>
+          <div className="space-y-24 mt-12 md:mt-0">
+            {timelineStepsRaw.map((step, idx) => (
+              <div key={idx} className={`relative flex flex-col items-center gap-10 md:gap-16 ${idx % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"}`}>
 
                 {/* Timeline Dot */}
-                <div className="absolute left-6 md:left-1/2 top-0 md:top-1/2 w-16 h-16 rounded-full bg-white shadow-xl border-4 flex items-center justify-center -translate-x-1/2 md:-translate-y-1/2 z-10" style={{ borderColor: step.color }}>
+                <div className="absolute left-1/2 -translate-x-1/2 top-0 md:top-1/2 w-16 h-16 rounded-full bg-white shadow-xl border-4 flex items-center justify-center md:-translate-y-1/2 z-10" style={{ borderColor: step.color }}>
                   <step.icon className="w-6 h-6" style={{ color: step.color }} />
                 </div>
 
                 {/* Content */}
-                <FadeIn direction={idx % 2 === 0 ? "right" : "left"} className={`w-full pl-24 md:pl-0 md:w-1/2 ${idx % 2 === 0 ? "md:text-right" : "md:text-left"}`}>
+                <FadeIn direction={idx % 2 === 0 ? "right" : "left"} className={`w-full pt-20 md:pt-0 px-4 md:px-0 md:w-1/2 text-center ${idx % 2 === 0 ? "md:text-end" : "md:text-start"}`}>
                   <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6 font-bold text-sm`} style={{ color: step.color, backgroundColor: `${step.color}15` }}>
-                    {step.year}
+                    {t(`story.timeline.${idx}.year`)}
                   </div>
-                  <h3 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6 leading-tight">{step.title}</h3>
-                  <p className="text-lg text-slate-600 leading-relaxed">{step.desc}</p>
+                  <h3 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6 leading-tight">{t(`story.timeline.${idx}.title`)}</h3>
+                  <p className="text-lg text-slate-600 leading-relaxed">{t(`story.timeline.${idx}.desc`)}</p>
                 </FadeIn>
 
                 {/* Spacer for alternate side */}
@@ -205,25 +191,21 @@ const OurStory = () => {
                 <div className="w-16 h-16 rounded-2xl bg-[#071228] text-white flex items-center justify-center mb-8 shadow-xl">
                   <Brain className="w-8 h-8 text-[#2dd4bf]" />
                 </div>
-                <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 leading-tight">
-                  Engineered for <br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2dd4bf] to-[#3b82f6]">Deep Learning</span>
+                <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 leading-tight text-start">
+                  {t("story.curriculum_title1")} <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2dd4bf] to-[#3b82f6]">{t("story.curriculum_title2")}</span>
                 </h2>
-                <p className="text-lg text-slate-600 mb-8 leading-relaxed">
-                  Sparvi Lab is not a one-off workshop or a scattered blend of tools. It is a curriculum-driven architecture designed around how children actually process information. We sequence experiences so the leap from early curiosity to real innovation is seamless.
+                <p className="text-lg text-slate-600 mb-8 leading-relaxed text-start">
+                  {t("story.curriculum_subtitle")}
                 </p>
 
                 <div className="space-y-5">
-                  {[
-                    "Experiential first, conceptual second",
-                    "Adaptable across multiple tools & frameworks",
-                    "Aligned with international tech standards"
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100 text-start">
                       <div className="w-8 h-8 rounded-full bg-[#2dd4bf]/20 flex items-center justify-center flex-shrink-0">
                         <CheckCircle2 className="w-4 h-4 text-[#0d9488]" />
                       </div>
-                      <span className="font-medium text-slate-700">{item}</span>
+                      <span className="font-medium text-slate-700">{t(`story.checks.${i}`)}</span>
                     </div>
                   ))}
                 </div>
@@ -232,14 +214,14 @@ const OurStory = () => {
 
             {/* Right Grid */}
             <div className="lg:col-span-7 grid sm:grid-cols-2 gap-6">
-              {pillars.map((pillar, i) => (
+              {pillarsRaw.map((pillar, i) => (
                 <FadeIn key={i} delay={i * 0.1} direction="up">
-                  <div className="group h-full p-8 rounded-[2rem] bg-slate-50 border border-slate-100 hover:bg-white hover:shadow-2xl hover:shadow-[#2dd4bf]/10 transition-all duration-500 hover:-translate-y-2">
+                  <div className="group h-full p-8 rounded-[2rem] bg-slate-50 border border-slate-100 hover:bg-white hover:shadow-2xl hover:shadow-[#2dd4bf]/10 transition-all duration-500 hover:-translate-y-2 text-start">
                     <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3 shadow-md" style={{ backgroundColor: pillar.color, color: 'white' }}>
                       <pillar.icon className="w-6 h-6" />
                     </div>
-                    <h3 className="text-xl font-bold text-slate-900 mb-4">{pillar.title}</h3>
-                    <p className="text-slate-600 leading-relaxed text-sm md:text-base">{pillar.desc}</p>
+                    <h3 className="text-xl font-bold text-slate-900 mb-4">{t(`story.pillars.${i}.title`)}</h3>
+                    <p className="text-slate-600 leading-relaxed text-sm md:text-base">{t(`story.pillars.${i}.desc`)}</p>
                   </div>
                 </FadeIn>
               ))}
@@ -258,24 +240,24 @@ const OurStory = () => {
             <div className="absolute bottom-0 left-0 w-[30rem] h-[30rem] bg-gradient-to-tr from-[#2dd4bf]/20 to-transparent rounded-full blur-[80px]" />
 
             <div className="relative z-10 grid lg:grid-cols-2 gap-16 items-center">
-              <FadeIn>
-                <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">From Coding to Creating</h2>
-                <p className="text-xl text-slate-300 mb-8 leading-relaxed font-light">
-                  In Sparvi Lab, learners don't just "complete activities". They learn to see technology as a raw material they can shape, building a tolerance for trial, error, and debugging.
+              <FadeIn className="text-start">
+                <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">{t("story.outcomes_title")}</h2>
+                <p className="text-xl text-slate-300 mb-8 leading-relaxed font-light text-start">
+                  {t("story.outcomes_subtitle")}
                 </p>
-                <blockquote className="pl-6 border-l-4 border-[#2dd4bf] text-slate-400 italic text-lg pr-4">
-                  "They learn to be comfortable with ambiguity, debugging both their code and their own logic."
+                <blockquote className={`pl-6 border-l-4 border-[#2dd4bf] text-slate-400 italic text-lg pr-4 text-start ${i18n.language === "ar" ? "border-r-4 border-l-0 pr-6 pl-4" : ""}`}>
+                  {t("story.quote")}
                 </blockquote>
               </FadeIn>
 
               <div className="space-y-4">
-                {learnerOutcomes.map((item, i) => (
+                {[0, 1, 2, 3].map((i) => (
                   <FadeIn key={i} delay={i * 0.1}>
-                    <div className="flex items-start gap-5 p-5 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm hover:bg-white/10 transition-colors">
+                    <div className="flex items-start gap-5 p-5 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm hover:bg-white/10 transition-colors text-start">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2dd4bf] to-[#3b82f6] flex items-center justify-center flex-shrink-0 shadow-lg">
                         <Wrench className="w-4 h-4 text-white" />
                       </div>
-                      <p className="text-slate-200 mt-2 font-medium">{item.text}</p>
+                      <p className="text-slate-200 mt-2 font-medium">{t(`story.learnerOutcomes.${i}`)}</p>
                     </div>
                   </FadeIn>
                 ))}
@@ -298,24 +280,24 @@ const OurStory = () => {
           </div>
 
           <h2 className="text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tight leading-tight mb-8">
-            The future belongs to the <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#f97316] to-[#FBBF24]">resilient.</span>
+            {t("story.cta_title1")} <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#f97316] to-[#FBBF24]">{t("story.cta_title2")}</span>
           </h2>
 
           <p className="text-xl md:text-2xl text-slate-600 mb-12 max-w-2xl mx-auto leading-relaxed">
-            The tools will keep changing, but the ability to think, adapt, and build will last forever. Join us in shaping tomorrow's leaders.
+            {t("story.cta_subtitle")}
           </p>
 
           <div className="flex flex-col sm:flex-row justify-center items-center gap-5">
             <Link to="/courses" className="group relative px-8 py-5 w-full sm:w-auto rounded-full bg-[#071228] text-white font-bold text-lg overflow-hidden shadow-2xl hover:shadow-[#071228]/40 transition-shadow">
               <div className="absolute inset-0 bg-gradient-to-r from-[#2dd4bf] to-[#3b82f6] translate-y-[100%] group-hover:translate-y-0 transition-transform duration-300 ease-out" />
               <span className="relative flex items-center justify-center gap-3">
-                Explore Programs
-                <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                {t("story.btn_explore")}
+                <ArrowRight className={`w-5 h-5 transition-transform group-hover:translate-x-1 ${i18n.language === "ar" ? "rotate-180" : ""}`} />
               </span>
             </Link>
 
             <Link to="/contact" className="px-8 py-5 w-full sm:w-auto rounded-full bg-white border-2 border-slate-200 text-slate-700 hover:border-[#2dd4bf] hover:text-[#2dd4bf] text-center font-bold text-lg shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-              Talk to an Expert
+              {t("story.btn_talk")}
             </Link>
           </div>
         </FadeIn>
