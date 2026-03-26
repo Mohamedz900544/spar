@@ -9,7 +9,7 @@ const testimonials = [
   },
   {
     name: "Ms. Nadine Sami",
-    text: "Kids must learn about financial literacy at an early age. Many children today show interest in starting their own businesses",
+    text: "Kids must learn about technology at an early age. Many children today show interest in starting their own businesses",
   },
   {
     name: "Ms. Yusra Elimam",

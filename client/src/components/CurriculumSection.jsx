@@ -1,5 +1,4 @@
 import React, { useState, useRef } from "react";
-import { motion as Motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import {
   ChevronDown,
@@ -381,12 +380,7 @@ export default function CurriculumSection() {
   return (
     <div className="max-w-6xl mx-auto w-full">
       {/* AGE SELECTION */}
-      <Motion.div
-        initial={{ y: 20, opacity: 0 }}
-        whileInView={{ y: 0, opacity: 1 }}
-        viewport={{ once: true, amount: 0.2 }}
-        className="mb-14"
-      >
+      <div className="mb-14">
         <h2 className="text-xl md:text-2xl font-extrabold mb-8 text-center text-slate-800">
           {t("courses.select_age_title")}
         </h2>
@@ -442,7 +436,7 @@ export default function CurriculumSection() {
             );
           })}
         </div>
-      </Motion.div>
+      </div>
 
       {/* Desktop content — below all buttons */}
       <div className="hidden md:block">

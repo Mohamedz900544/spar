@@ -329,8 +329,10 @@ const Landing = () => {
   useEffect(() => {
     const track = projectTrackRef.current;
     if (!track) return;
-    const scrollPerCard = track.scrollWidth / projectCount;
-    track.scrollTo({ left: projectIndex * scrollPerCard, behavior: "smooth" });
+    const card = track.querySelector(`[data-project-index="${projectIndex}"]`);
+    if (card) {
+      track.scrollTo({ left: card.offsetLeft - track.offsetLeft, behavior: "smooth" });
+    }
   }, [projectIndex, projectCount]);
 
   return (
@@ -405,12 +407,8 @@ const Landing = () => {
       {/* ============================
          STUDENT PROJECTS
          ============================ */}
-      <Motion.section
-        className="py-16 md:py-24 px-6  from-slate-50 to-white"
-        initial={{ y: 40, opacity: 0 }}
-        whileInView={{ y: 0, opacity: 1 }}
-        viewport={{ once: true, amount: 0.15 }}
-        transition={{ duration: 0.7 }}
+      <section
+        className="py-16 md:py-24 px-6 from-slate-50 to-white"
       >
         <div className="max-w-7xl mx-auto">
 
@@ -438,6 +436,7 @@ const Landing = () => {
           {/* Project Cards — horizontal swiper */}
           <div
             ref={projectTrackRef}
+            dir="ltr"
             className="mt-12 flex gap-6 md:gap-8 overflow-x-auto pb-10 snap-x snap-mandatory scroll-smooth hide-scrollbar px-4"
           >
             {studentProjects.map((proj, i) => {
@@ -445,12 +444,8 @@ const Landing = () => {
               const accent = cardAccents[i % cardAccents.length];
               return (
 
-                <Motion.div
+                <div
                   key={i}
-                  initial={{ y: 20, opacity: 0 }}
-                  whileInView={{ y: 0, opacity: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: i * 0.1 }}
                   className="relative rounded-3xl transition-all duration-500 hover:-translate-y-2 overflow-hidden group shrink-0 basis-[110%] sm:basis-[29%] lg:basis-[20%] snap-start bg-white"
                   style={{
                     border: "1px solid rgba(226,232,240,0.8)",
@@ -499,7 +494,7 @@ const Landing = () => {
                       {t(`landing.studentProjects.${pKey}.desc`)}
                     </p>
                   </div>
-                </Motion.div>
+                </div>
               );
             })}
           </div>
@@ -528,7 +523,7 @@ const Landing = () => {
           </div>
 
         </div>
-      </Motion.section>
+      </section>
 
       {/* ============================
          WHY CHOOSE SPARVI LAB?

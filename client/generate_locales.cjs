@@ -119,7 +119,7 @@ features.forEach(f => {
 
 const projects = [
     { k: "p1", enT: "Hand Generator", enD: "Building a generator to power a LED and electronic components", arT: "المولد اليدوي", arD: "بناء مولد لتشغيل أضواء LED وعناصر الكترونية أخرى" },
-    { k: "p2", enT: "Walking Robot", enD: "Kids build a walking robot and learn new concepts like equilibrium and motor mechanics", arT: "الروبوت الماشي", arD: "يبني الأطفال روبوت قادرا على المشي ويتعلمون التوازن والميكانيكا" },
+    { k: "p2", enT: "Walking Robot", enD: "Kids build a walking robot and learn new concepts like equilibrium and motor mechanics", arT: "الروبوت المتحرك", arD: "يبني الأطفال روبوت قادرا على المشي ويتعلمون التوازن والميكانيكا" },
     { k: "p3", enT: "Pacman", enD: "Pacman Escaping is an arcade style maze", arT: "باك مان", arD: "لعبة كلاسيكية لمحاكاة متاهة باك مان بذكاء" },
     { k: "p4", enT: "Real world simulation", enD: "Real-world simulation of living organisms growing from food", arT: "محاكاة العالم الطبيعي", arD: "محاكاة واقعية لنمو الكائنات الحية اعتمادًا على مصادر الغذاء" },
     { k: "p5", enT: "Bouncing Ball", enD: "A ball that moves around the screen and bounces when it hits the edges", arT: "الكرة المرتدة", arD: "كرة تتحرك على الشاشة وترتد حال اصطدامها بالحواف" },
