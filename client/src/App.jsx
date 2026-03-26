@@ -78,11 +78,22 @@ function App() {
   });
 
   const { i18n } = useTranslation();
+  const location = useLocation();
 
   useEffect(() => {
-    document.documentElement.dir = i18n.language === "ar" ? "rtl" : "ltr";
-    document.documentElement.lang = i18n.language;
-  }, [i18n.language]);
+    const isDashboard = location.pathname.startsWith('/parent') ||
+      location.pathname.startsWith('/admin') ||
+      location.pathname.startsWith('/instructor') ||
+      location.pathname.startsWith('/blocks');
+
+    if (isDashboard) {
+      document.documentElement.dir = "ltr";
+      document.documentElement.lang = "en";
+    } else {
+      document.documentElement.dir = i18n.language === "ar" ? "rtl" : "ltr";
+      document.documentElement.lang = i18n.language;
+    }
+  }, [i18n.language, location.pathname]);
 
   return (
     <>
