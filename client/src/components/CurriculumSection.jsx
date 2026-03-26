@@ -56,19 +56,19 @@ const courses6to8Raw = [
 // tracks per age-range for the specialization phase
 const ageTracksRaw = {
   "9-11": [
-    { id: "gamedev", icon: Gamepad, image: "https://images.unsplash.com/photo-1556438064-2d7646166914?auto=format&fit=crop&q=80&w=800" },
-    { id: "genai", icon: Cpu, image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800" },
-    { id: "uiux", icon: Blocks, image: "https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&q=80&w=800" },
+    { id: "gamedev", icon: Gamepad, image: "https://i.ibb.co/M41wcFG/25645686.webp" },
+    { id: "genai", icon: Cpu, image: "https://i.ibb.co/2YYjyHp0/Gemini-Generated-Image-u6v74du6v74du6v7.webp" },
+    { id: "uiux", icon: Blocks, image: "https://i.ibb.co/8Lwh85JC/image-2.jpg" },
   ],
   "12-14": [
-    { id: "mobileapp", icon: Code, image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&q=80&w=800" },
-    { id: "electronics-robotics", icon: Cpu, image: "https://i.ibb.co/tgt5sxw/Gemini-Generated-Image-2h1f5p2h1f5p2h1f.webp" },
-    { id: "webdev", icon: Code, image: "https://i.ibb.co/Tx3S43Xw/9602bc4b-cfc4-410e-b291-611d478c9d6a.webp" },
+    { id: "mobileapp", icon: Code, image: "https://i.ibb.co/gMkpy95d/image-3.jpg" },
+    { id: "electronics-robotics", icon: Cpu, image: "https://i.ibb.co/27z9vNB0/Gemini-Generated-Image-jvudr8jvudr8jvud.webp" },
+    { id: "webdev", icon: Code, image: "https://i.ibb.co/WpyQyJ6f/Gemini-Generated-Image-7xuf9f7xuf9f7xuf.webp" },
   ],
   "15-17": [
-    { id: "data-ai", icon: Activity, image: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?auto=format&fit=crop&q=80&w=800" },
-    { id: "automation", icon: Target, image: "https://images.unsplash.com/photo-1581092580348-6a5a9b040fd2?auto=format&fit=crop&q=80&w=800" },
-    { id: "cyber", icon: ShieldCheck, image: "https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&q=80&w=800" },
+    { id: "data-ai", icon: Activity, image: "https://i.ibb.co/H6zN2Wb/846545.webp" },
+    { id: "automation", icon: Target, image: "https://i.ibb.co/xVTp1PK/2962489.webp" },
+    { id: "cyber", icon: ShieldCheck, image: "https://i.ibb.co/FL6Y97dQ/3818937.webp" },
   ],
 };
 
