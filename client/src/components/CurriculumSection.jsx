@@ -202,9 +202,7 @@ function ContentPanel({ selectedAge, tracksForSelectedAge, openFoundation, setOp
               <h3 className="text-2xl font-extrabold text-slate-800 tracking-tight">
                 {t("courses.available_tracks_title")}
               </h3>
-              <p className="text-base font-medium text-slate-500 mt-2 max-w-lg mx-auto">
-                {t("courses.available_tracks_desc")}
-              </p>
+           
             </div>
             <div className="flex flex-wrap justify-center gap-6 md:gap-8">
               {tracksForSelectedAge.map((track, i) => (
