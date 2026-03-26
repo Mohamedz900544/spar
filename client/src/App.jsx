@@ -134,7 +134,9 @@ function App() {
 
         </Routes>
       </Suspense>
-      <FloatingWhatsApp />
+      {!location.pathname.startsWith('/parent') &&
+       !location.pathname.startsWith('/admin') &&
+       !location.pathname.startsWith('/instructor') && <FloatingWhatsApp />}
     </>
   );
 }
