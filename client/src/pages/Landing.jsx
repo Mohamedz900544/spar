@@ -478,7 +478,7 @@ const Landing = () => {
                   </div>
 
                   {/* Content */}
-                  <div className="p-6 relative text-start from-white to-slate-50">
+                  <div className={`p-6 relative from-white to-slate-50 ${i18n.language === "ar" ? "text-right" : "text-left"}`}>
                     <h3
                       className="font-extrabold text-lg mb-2.5 leading-snug"
                       style={{

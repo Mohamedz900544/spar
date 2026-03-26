@@ -86,10 +86,7 @@ function ContentPanel({ selectedAge, tracksForSelectedAge, openFoundation, setOp
       {selectedAge === "6-8" && (
         <>
           <div className="text-center mb-10">
-            <span className="inline-flex items-center gap-1.5 py-1.5 px-4 rounded-full bg-teal-50 text-teal-600 font-extrabold text-xs tracking-widest uppercase mb-4 shadow-sm border border-teal-100">
-              <Sparkles size={14} />
-              {t("courses.foundation_badge")}
-            </span>
+            
             <h2 className="text-3xl font-extrabold text-slate-900 mb-3 tracking-tight">
               {t("courses.foundation_title")}
             </h2>
@@ -251,10 +248,7 @@ function ContentPanel({ selectedAge, tracksForSelectedAge, openFoundation, setOp
 
           {/* LEARNING PATH HEADER */}
           <div className="text-center mb-10 pt-12 border-t border-slate-200">
-            <span className="inline-flex items-center gap-1.5 py-1.5 px-4 rounded-full bg-amber-50 text-amber-600 font-extrabold text-xs tracking-widest uppercase mb-4 shadow-sm border border-amber-100">
-              <Rocket size={14} />
-              {t("courses.standard_badge")}
-            </span>
+           
             <h2 className="text-3xl font-extrabold text-slate-900 mb-3 tracking-tight">
               {t("courses.standard_title")}
             </h2>
