@@ -26,10 +26,10 @@ import {
 --------------------------------------------------------*/
 
 const ageGroupsRaw = [
-  { id: "6-8", key: "0", icon: Sparkles, color: "#2dd4bf" },
-  { id: "9-11", key: "1", icon: Rocket, color: "#FBBF24" },
-  { id: "12-14", key: "2", icon: Lightbulb, color: "#a78bfa" },
-  { id: "15-17", key: "3", icon: GraduationCap, color: "#f472b6" },
+  { id: "6-8", key: "0", icon: Sparkles, color: "#2dd4bf", image: "https://cdn.shopify.com/s/files/1/0636/7084/5509/files/toddler.svg?v=1764947251" },
+  { id: "9-11", key: "1", icon: Rocket, color: "#FBBF24", image: "https://cdn.shopify.com/s/files/1/0636/7084/5509/files/kid.svg?v=1764947250" },
+  { id: "12-14", key: "2", icon: Lightbulb, color: "#a78bfa", image: "https://cdn.shopify.com/s/files/1/0636/7084/5509/files/pre-teen_1bfb9f3d-9abc-4329-8733-8eb4d67addc5.svg?v=1764947328" },
+  { id: "15-17", key: "3", icon: GraduationCap, color: "#f472b6", image: "https://i.ibb.co/TB9j3RDg/creatvity.png" },
 ];
 
 const foundationCoursesRaw = [
@@ -99,7 +99,7 @@ export default function CurriculumSection() {
           {t("courses.select_age_title")}
         </h2>
         
-        <div className="flex flex-wrap justify-center gap-4 px-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 px-4 max-w-4xl mx-auto">
           {ageGroupsRaw.map((age) => {
             const isActive = selectedAge === age.id;
             return (
@@ -110,7 +110,7 @@ export default function CurriculumSection() {
                   setOpenPhase(null);
                   setOpenFoundation(null);
                 }}
-                className={`relative group flex items-center gap-3 px-6 md:px-8 py-3.5 md:py-4 rounded-2xl font-bold transition-all duration-300 text-sm md:text-base overflow-hidden border-2
+                className={`relative group flex items-center justify-center gap-3 px-4 py-3.5 md:py-4 rounded-2xl font-bold transition-all duration-300 text-sm md:text-base overflow-hidden border-2
                   ${isActive
                     ? "border-transparent text-white shadow-[0_12px_30px_rgba(37,99,235,0.25)] scale-105"
                     : "bg-white border-slate-200 text-slate-600 hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-lg hover:-translate-y-1"
@@ -126,11 +126,12 @@ export default function CurriculumSection() {
                   <div className="absolute inset-0 opacity-50 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2),transparent_50%)] z-0" />
                 )}
 
-                <age.icon
-                  className={`w-5 h-5 relative z-10 transition-colors duration-300 
-                    ${isActive ? "text-amber-400" : "text-slate-400 group-hover:text-blue-500"}`}
+                <img
+                  src={age.image}
+                  alt=""
+                  className="w-14 h-14 object-contain relative z-10 rounded-xl"
                 />
-                <span className="relative z-10 tracking-wide">
+                <span className="relative z-10 tracking-wide whitespace-nowrap">
                   {t(`courses.ages.a${age.key}`)}
                 </span>
               </button>
