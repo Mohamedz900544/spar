@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 const testimonials = [
   {
     name: "Ms. Eman Naguib",
-    text: "My daughter has many ideas, and I want her to bring them to life. Innova is building a solid foundation in this area.",
+    text: "My daughter has many ideas, and I want her to bring them to life. sparvi is building a solid foundation in this area.",
   },
   {
     name: "Ms. Nadine Sami",
