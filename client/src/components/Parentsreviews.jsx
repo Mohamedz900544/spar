@@ -4,18 +4,6 @@ import { useTranslation } from "react-i18next";
 // Expanded testimonials array to demonstrate the sliding capability
 const testimonials = [
   {
-    name: "Ms. Eman Naguib",
-    text: "My daughter has many ideas, and I want her to bring them to life. sparvi is building a solid foundation in this area",
-  },
-  {
-    name: "Ms. Nadine Sami",
-    text: "Kids must learn about technology at an early age. Many children today show interest in starting their own businesses",
-  },
-  {
-    name: "Ms. Yusra Elimam",
-    text: "This solution presents a great opportunity for children to learn and develop essential skills in a supportive environment",
-  },
-  {
     name: "Mr. Ahmed Hassan",
     text: "Seeing my son confidently present his project was incredible. The practical skills they learn here are unmatched",
   },
@@ -26,6 +14,18 @@ const testimonials = [
   {
     name: "Dr. Omar Zaki",
     text: "A highly structured program that actually delivers on its promises. I've seen a noticeable improvement in problem-solving",
+  },
+  {
+    name: "أ. إيمان نجيب",
+    text: "بنتي عندها أفكار كتير وعايزاها تحولها لحاجة حقيقية. سبارڤي بتبنيلها أساس قوي في المجال ده",
+  },
+  {
+    name: "أ. نادين سامي",
+    text: "الأطفال لازم يتعلموا التكنولوجيا من سن صغير. أولادي بقوا مهتمين بالبرمجة والإلكترونيات بشكل ملحوظ",
+  },
+  {
+    name: "أ. يسرا الإمام",
+    text: "الحل ده بيقدم فرصة ممتازة للأطفال إنهم يتعلموا ويطوروا مهارات أساسية في بيئة داعمة ومحفزة",
   },
 ];
 

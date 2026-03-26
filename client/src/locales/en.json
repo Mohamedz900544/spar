@@ -211,6 +211,34 @@
         "title": "Planet Saver",
         "desc": "Save the earth from the aliens"
       }
+    },
+    "pricing": {
+      "title": "Pricing Plans",
+      "subtitle": "Choose the right plan for your child's learning journey",
+      "popular": "Most Popular",
+      "cta_subscribe": "Subscribe Now",
+      "cta_free": "Ask About Free Session",
+      "plans": {
+        "starter": {
+          "name": "Starter",
+          "period": "Quarterly"
+        },
+        "pro": {
+          "name": "Professional",
+          "period": "Yearly"
+        },
+        "advanced": {
+          "name": "Advanced",
+          "period": "Semi-Annual"
+        }
+      },
+      "features": {
+        "certificate": "Level completion certificate",
+        "guidance": "Technical guidance",
+        "sessions": "Interactive 1-on-1 online sessions",
+        "duration": "{{period}} - {{count}} sessions",
+        "freeze": "Freeze up to {{count}} sessions"
+      }
     }
   },
   "contact": {

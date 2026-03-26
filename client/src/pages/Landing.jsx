@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Parentsreviews from "../components/Parentsreviews";
 import CurriculumSection from "../components/CurriculumSection";
+import PricingSection from "../components/PricingSection";
 import {
   Monitor,
   Cpu,
@@ -665,6 +666,11 @@ const Landing = () => {
       </Motion.section>
 
       <Parentsreviews />
+
+      {/* ============================
+         PRICING SECTION
+         ============================ */}
+      <PricingSection />
 
       {/* ============================
          FAQ SECTION
