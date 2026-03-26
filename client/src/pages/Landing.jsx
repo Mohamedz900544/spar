@@ -674,12 +674,8 @@ const Landing = () => {
       {/* ============================
          FAQ SECTION
          ============================ */}
-      <Motion.section
+      <section
         className="py-16 md:py-24 px-6 bg-slate-50"
-        initial={{ y: 40, opacity: 0 }}
-        whileInView={{ y: 0, opacity: 1 }}
-        viewport={{ once: true, amount: 0.2 }}
-        transition={{ duration: 0.7 }}
       >
         <div className="max-w-3xl mx-auto">
           {/* Heading */}
@@ -734,7 +730,7 @@ const Landing = () => {
             </a>
           </div>
         </div>
-      </Motion.section>
+      </section>
 
       {/* ============================
          FOOTER
