@@ -218,25 +218,27 @@
       "popular": "Most Popular",
       "cta_subscribe": "Subscribe Now",
       "cta_free": "Ask About Free Session",
+      "wa_subscribe": "Hello! I'd like to subscribe to the {{plan}} plan for {{price}} EGP / {{period}}",
+      "wa_free": "Hello! I'd like to know more details about the free session",
       "plans": {
         "starter": {
           "name": "Starter",
-          "period": "Quarterly"
+          "period": "3 Months"
         },
         "pro": {
           "name": "Professional",
-          "period": "Yearly"
+          "period": "12 Months"
         },
         "advanced": {
           "name": "Advanced",
-          "period": "Semi-Annual"
+          "period": "6 Months"
         }
       },
       "features": {
         "certificate": "Level completion certificate",
         "guidance": "Technical guidance",
         "sessions": "Interactive 1-on-1 online sessions",
-        "duration": "{{period}} - {{count}} sessions",
+        "duration": "{{count}} sessions - {{period}}",
         "freeze": "Freeze up to {{count}} sessions"
       }
     }

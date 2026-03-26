@@ -1,25 +1,24 @@
 import { useTranslation } from "react-i18next";
-import { Check, Star, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Check, ArrowRight } from "lucide-react";
 
 const plans = [
   {
     key: "starter",
-    price: "4800",
+    price: "3500",
     sessions: 12,
     freezable: 2,
     popular: false,
   },
   {
     key: "pro",
-    price: "16800",
+    price: "12250",
     sessions: 48,
     freezable: 8,
     popular: true,
   },
   {
     key: "advanced",
-    price: "9120",
+    price: "6600",
     sessions: 24,
     freezable: 4,
     popular: false,
@@ -115,8 +114,7 @@ export default function PricingSection() {
                 {plan.popular && (
                   <div className="flex justify-center pt-6 pb-2">
                     <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-amber-400 text-slate-900 font-extrabold text-xs tracking-wider uppercase shadow-md">
-                      <Star size={13} className="fill-slate-900" />
-                      {t("landing.pricing.popular")}
+                       {t("landing.pricing.popular")}
                     </span>
                   </div>
                 )}
@@ -129,8 +127,8 @@ export default function PricingSection() {
                 >
                   {/* Plan Name */}
                   <h3
-                    className={`text-2xl font-extrabold mb-5 ${
-                      plan.popular ? "text-white text-center" : ""
+                    className={`text-2xl font-extrabold mb-5 text-center ${
+                      plan.popular ? "text-white" : ""
                     }`}
                     style={
                       !plan.popular
@@ -148,9 +146,7 @@ export default function PricingSection() {
 
                   {/* Price */}
                   <div
-                    className={`mb-6 ${
-                      plan.popular ? "text-center" : ""
-                    }`}
+                    className="mb-6 text-center"
                   >
                     <span
                       className={`text-5xl font-black ${
@@ -222,7 +218,18 @@ export default function PricingSection() {
 
                   {/* CTA Buttons */}
                   <div className="space-y-3 mt-auto">
-                    <Link to="/signup" className="block">
+                    <a
+                      href={`https://wa.me/201500077369?text=${encodeURIComponent(
+                        t("landing.pricing.wa_subscribe", {
+                          plan: t(`landing.pricing.plans.${plan.key}.name`),
+                          price: plan.price,
+                          period: t(`landing.pricing.plans.${plan.key}.period`),
+                        })
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block"
+                    >
                       <button
                         className={`w-full flex items-center justify-center gap-2 rounded-2xl py-3.5 font-bold text-sm transition-all duration-300 hover:-translate-y-0.5 ${
                           plan.popular
@@ -245,8 +252,15 @@ export default function PricingSection() {
                           className={isRTL ? "rotate-180" : ""}
                         />
                       </button>
-                    </Link>
-                    <Link to="/contact" className="block">
+                    </a>
+                    <a
+                      href={`https://wa.me/201500077369?text=${encodeURIComponent(
+                        t("landing.pricing.wa_free")
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block"
+                    >
                       <button
                         className={`w-full rounded-2xl py-3 font-bold text-sm transition-all duration-300 ${
                           plan.popular
@@ -256,7 +270,7 @@ export default function PricingSection() {
                       >
                         {t("landing.pricing.cta_free")}
                       </button>
-                    </Link>
+                    </a>
                   </div>
                 </div>
               </div>

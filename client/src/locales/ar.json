@@ -218,25 +218,27 @@
             "popular": "الأكثر شعبية",
             "cta_subscribe": "اشترك الآن",
             "cta_free": "اسأل عن الحصة المجانية",
+            "wa_subscribe": "مرحباً! أريد الاشتراك في خطة {{plan}} بسعر {{price}} جنيه / {{period}}",
+            "wa_free": "مرحباً! أريد معرفة المزيد من التفاصيل حول الجلسة المجانية",
             "plans": {
                 "starter": {
                     "name": "مبتدئ",
-                    "period": "ربع سنوي"
+                    "period": "3 شهور"
                 },
                 "pro": {
                     "name": "احترافي",
-                    "period": "سنوي"
+                    "period": "12 شهر"
                 },
                 "advanced": {
                     "name": "متقدم",
-                    "period": "نصف سنوي"
+                    "period": "6 شهور"
                 }
             },
             "features": {
                 "certificate": "شهادة إتمام المستويات",
                 "guidance": "إرشاد تقني",
                 "sessions": "جلسات فردية تفاعلية عبر الإنترنت",
-                "duration": "{{period}} - {{count}} جلسة",
+                "duration": "{{count}} جلسة - {{period}}",
                 "freeze": "إتاحة تجميد {{count}} جلسات"
             }
         }
