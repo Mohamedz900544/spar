@@ -112,19 +112,10 @@ export default function CurriculumSection() {
                 }}
                 className={`relative group flex items-center justify-center gap-3 px-4 py-3.5 md:py-4 rounded-2xl font-bold transition-all duration-300 text-sm md:text-base overflow-hidden border-2
                   ${isActive
-                    ? "border-transparent text-white shadow-[0_12px_30px_rgba(37,99,235,0.25)] scale-105"
+                    ? "bg-white border-[#FBBF24] text-[#FBBF24] shadow-[0_12px_30px_rgba(251,191,36,0.25)] scale-105"
                     : "bg-white border-slate-200 text-slate-600 hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-lg hover:-translate-y-1"
                   }`}
               >
-                {/* Active Background Gradient */}
-                {isActive && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700 z-0" />
-                )}
-                
-                {/* Active Inner Glow */}
-                {isActive && (
-                  <div className="absolute inset-0 opacity-50 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2),transparent_50%)] z-0" />
-                )}
 
                 <img
                   src={age.image}
