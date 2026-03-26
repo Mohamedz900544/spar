@@ -129,14 +129,14 @@ const FAQItem = ({ item, isOpen, onToggle, index }) => (
     style={{
       borderRadius: 20,
       border: isOpen
-        ? "1.5px solid rgba(29,78,216,0.3)"
-        : "1.5px solid rgba(148,163,184,0.2)",
+        ? "1.5px solid rgba(59,130,246,0.4)" // Vibrant blue border
+        : "1.5px solid rgba(226,232,240,0.8)", // Softer border when closed
       background: isOpen
-        ? "linear-gradient(145deg, #ffffff 0%, #f0f5ff 100%)"
+        ? "linear-gradient(145deg, #ffffff 0%, #eff6ff 100%)" // Soft blue tint
         : "#ffffff",
       boxShadow: isOpen
-        ? "0 8px 32px rgba(29,78,216,0.1)"
-        : "0 2px 8px rgba(0,0,0,0.04)",
+        ? "0 12px 32px rgba(37,99,235,0.12)" // Richer shadow
+        : "0 2px 8px rgba(0,0,0,0.02)",
     }}
   >
     <button
@@ -145,12 +145,12 @@ const FAQItem = ({ item, isOpen, onToggle, index }) => (
     >
       {/* Number badge */}
       <div
-        className="shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black transition-all duration-300"
+        className="shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black transition-all duration-300 shadow-sm"
         style={{
           background: isOpen
-            ? "linear-gradient(135deg, #1d4ed8, #06b6d4)"
-            : "rgba(148,163,184,0.15)",
-          color: isOpen ? "#ffffff" : "#94a3b8",
+            ? "linear-gradient(135deg, #2563eb, #06b6d4)" // Bright gradient
+            : "rgba(241,245,249,1)",
+          color: isOpen ? "#ffffff" : "#64748b",
         }}
       >
         {index + 1}
@@ -158,23 +158,23 @@ const FAQItem = ({ item, isOpen, onToggle, index }) => (
 
       <span
         className="flex-1 font-bold text-sm md:text-base transition-colors duration-300 text-start"
-        style={{ color: isOpen ? "#1d4ed8" : "#1e293b" }}
+        style={{ color: isOpen ? "#1e3a8a" : "#1e293b" }}
       >
         {item.question}
       </span>
 
       {/* Toggle icon */}
       <div
-        className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300"
+        className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 shadow-sm"
         style={{
           background: isOpen
-            ? "linear-gradient(135deg, #1d4ed8, #06b6d4)"
-            : "rgba(148,163,184,0.12)",
-          color: isOpen ? "#ffffff" : "#94a3b8",
+            ? "linear-gradient(135deg, #2563eb, #06b6d4)"
+            : "rgba(241,245,249,1)",
+          color: isOpen ? "#ffffff" : "#64748b",
           transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
         }}
       >
-        <ChevronDown size={15} />
+        <ChevronDown size={15} strokeWidth={3} />
       </div>
     </button>
 
@@ -183,7 +183,7 @@ const FAQItem = ({ item, isOpen, onToggle, index }) => (
       style={{ maxHeight: isOpen ? 240 : 0, opacity: isOpen ? 1 : 0 }}
     >
       {/* Divider */}
-      <div className="mx-5 md:mx-6 h-px" style={{ background: "rgba(29,78,216,0.1)" }} />
+      <div className="mx-5 md:mx-6 h-px" style={{ background: "rgba(59,130,246,0.15)" }} />
       <p className="px-5 md:px-6 py-5 text-sm text-slate-600 leading-relaxed ps-[4.5rem] text-start">
         {item.answer}
       </p>
@@ -298,15 +298,14 @@ const VideoCard = ({ thumbnail, ytSrc, name, meta }) => {
   );
 };
 
+// Enhanced vibrant accents for cards
 const cardAccents = [
-  { from: "#7c3aed", to: "#06b6d4" },
-  { from: "#db2777", to: "#f59e0b" },
-  { from: "#7c3aed", to: "#06b6d4" },
-  { from: "#0891b2", to: "#10b981" },
-  { from: "#1d4ed8", to: "#7c3aed" },
-  { from: "#059669", to: "#06b6d4" },
-  { from: "#dc2626", to: "#f59e0b" },
-  { from: "#1d4ed8", to: "#06b6d4" },
+  { from: "#6366f1", to: "#a855f7" }, // Indigo to Purple
+  { from: "#ec4899", to: "#f43f5e" }, // Pink to Rose
+  { from: "#3b82f6", to: "#06b6d4" }, // Blue to Cyan
+  { from: "#10b981", to: "#14b8a6" }, // Emerald to Teal
+  { from: "#f59e0b", to: "#fbbf24" }, // Amber to Yellow
+  { from: "#8b5cf6", to: "#d946ef" }, // Violet to Fuchsia
 ];
 
 const Landing = () => {
@@ -335,14 +334,15 @@ const Landing = () => {
   }, [projectIndex, projectCount]);
 
   return (
-    <div className="min-h-screen bg-slate-50/50 text-slate-800 font-sans flex flex-col">
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col">
       <Navbar />
 
       {/* ============================
-          HERO SECTION
+         HERO SECTION
          ============================ */}
       <section className="relative w-full overflow-hidden" style={{
-        background: "linear-gradient(135deg, #0a1628 0%, #102a5a 40%, #1a4a8a 70%, #1565c0 100%)"
+        // Deeper, richer gradient for a more premium tech feel
+        background: "linear-gradient(135deg, #020617 0%, #0f172a 30%, #1e3a8a 70%, #2563eb 100%)"
       }}>
         <Sparkles />
         <div className="max-w-7xl mx-auto px-6 pt-20 pb-0 md:pt-28 md:pb-0 grid md:grid-cols-2 items-center relative z-10">
@@ -356,7 +356,7 @@ const Landing = () => {
             <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-[3.4rem] font-extrabold tracking-tight mb-4 md:mb-5 leading-[1.15] text-white font-display">
               <span className="block">{t("landing.hero.title1")}</span>
               <span className="block">{t("landing.hero.title2")}</span>
-              <span className="inline-block mt-2 bg-[#FBBF24] text-[#024f63] border-2 border-white px-3 py-1 rounded-md text-xl sm:text-2xl md:text-3xl font-bold transform -rotate-1">
+              <span className="inline-block mt-3 bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-900 border-2 border-white/90 px-4 py-1.5 rounded-lg text-xl sm:text-2xl md:text-3xl font-bold transform -rotate-2 shadow-lg">
                 {t("landing.hero.title3")}
               </span>
             </h1>
@@ -365,19 +365,19 @@ const Landing = () => {
               {t("landing.hero.seo_text")}
             </p>
 
-            <p className="max-w-xl mx-auto md:mx-0 text-xs sm:text-sm md:text-base text-slate-300 mb-6 md:mb-8 leading-relaxed">
+            <p className="max-w-xl mx-auto md:mx-0 text-xs sm:text-sm md:text-base text-blue-100/90 mb-6 md:mb-8 leading-relaxed font-medium">
               {t("landing.hero.subtitle")}
             </p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-row flex-nowrap justify-center md:justify-start items-center gap-2 sm:gap-4">
+            <div className="flex flex-row flex-nowrap justify-center md:justify-start items-center gap-3 sm:gap-4">
               <Link to="/signup">
-                <button className="inline-flex items-center justify-center gap-2 rounded-full px-4 sm:px-8 py-2.5 sm:py-3 text-xs sm:text-base font-semibold shadow-[0_8px_25px_rgba(251,191,36,0.4)] hover:shadow-[0_12px_35px_rgba(251,191,36,0.5)] bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 transition-all duration-200 hover:-translate-y-0.5 whitespace-nowrap min-w-0">
+                <button className="inline-flex items-center justify-center gap-2 rounded-full px-5 sm:px-8 py-3 text-xs sm:text-base font-bold shadow-[0_8px_25px_rgba(245,158,11,0.4)] hover:shadow-[0_12px_35px_rgba(245,158,11,0.6)] bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-slate-900 border border-yellow-300 transition-all duration-200 hover:-translate-y-0.5 whitespace-nowrap min-w-0">
                   {t("landing.hero.cta_primary")}
                 </button>
               </Link>
 
-              <Link to="/our-story" className="inline-flex items-center justify-center gap-2 rounded-full px-4 sm:px-8 py-2.5 sm:py-3 text-xs sm:text-base font-semibold border-2 border-white/30 text-white hover:bg-white/10 transition-all duration-200 whitespace-nowrap min-w-0">
+              <Link to="/our-story" className="inline-flex items-center justify-center gap-2 rounded-full px-5 sm:px-8 py-3 text-xs sm:text-base font-semibold border border-white/30 text-white hover:bg-white/10 hover:border-white/50 backdrop-blur-sm transition-all duration-200 whitespace-nowrap min-w-0">
                 {t("landing.hero.cta_secondary")}
               </Link>
             </div>
@@ -396,53 +396,17 @@ const Landing = () => {
               fetchpriority="high"
               width="900"
               height="496"
-              className="w-[130%] max-w-none drop-shadow-[0_20px_40px_rgba(0,0,0,0.3)]"
+              className="w-[130%] max-w-none drop-shadow-[0_20px_40px_rgba(0,0,0,0.4)] relative z-10"
             />
           </Motion.div>
         </div>
       </section>
 
       {/* ============================
-          HEAR FROM OUR HEROES
-         ============================ */}
-      {/* <Motion.section
-        className="py-16 md:py-20 px-6 bg-slate-50/50"
-        initial={{ y: 40, opacity: 0 }}
-        whileInView={{ y: 0, opacity: 1 }}
-        viewport={{ once: true, amount: 0.3 }}
-        transition={{ duration: 0.7 }}
-      >
-        <div className="max-w-4xl mx-auto text-center">
-          
-          <h2
-            className="text-2xl md:text-4xl font-display mb-10 text-center"
-            style={{
-              fontWeight: 800,
-              lineHeight: 1.15,
-              letterSpacing: "-0.03em",
-              background: "linear-gradient(135deg, #0f172a 0%, #1e3a8a 40%, #06b6d4 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
-          >
-            {t("landing.heroes.title")}
-          </h2>
-
-         
-          <div className="flex flex-wrap justify-center gap-6 mt-2">
-            {HERO_VIDEOS.map((v) => (
-              <VideoCard key={v.name} thumbnail={v.thumbnail} ytSrc={v.ytSrc} name={v.name} meta={v.meta} />
-            ))}
-          </div>
-        </div>
-      </Motion.section> */}
-
-      {/* ============================
-          STUDENT PROJECTS
+         STUDENT PROJECTS
          ============================ */}
       <Motion.section
-        className="py-16 md:py-20 px-6 bg-slate-50/50"
+        className="py-16 md:py-24 px-6  from-slate-50 to-white"
         initial={{ y: 40, opacity: 0 }}
         whileInView={{ y: 0, opacity: 1 }}
         viewport={{ once: true, amount: 0.15 }}
@@ -451,14 +415,14 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto">
 
           {/* Heading */}
-          <div className="text-center mb-6">
+          <div className="text-center mb-10">
             <h2
               className="text-2xl md:text-4xl font-display"
               style={{
                 fontWeight: 800,
                 lineHeight: 1.15,
-                letterSpacing: "-0.03em",
-                background: "linear-gradient(135deg, #0f172a 0%, #1e3a8a 40%, #06b6d4 100%)",
+                letterSpacing: "-0.02em",
+                background: "linear-gradient(135deg, #0f172a 0%, #2563eb 50%, #06b6d4 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -466,7 +430,7 @@ const Landing = () => {
             >
               {t("landing.projects.title")}
             </h2>
-            <p className="text-slate-500 text-sm md:text-base mt-4 max-w-xl mx-auto">
+            <p className="text-slate-500 font-medium text-sm md:text-base mt-4 max-w-xl mx-auto">
               {t("landing.projects.subtitle")}
             </p>
           </div>
@@ -474,7 +438,7 @@ const Landing = () => {
           {/* Project Cards — horizontal swiper */}
           <div
             ref={projectTrackRef}
-            className="mt-10 flex gap-6 md:gap-8 overflow-x-auto pb-8 snap-x snap-mandatory scroll-smooth hide-scrollbar px-4"
+            className="mt-12 flex gap-6 md:gap-8 overflow-x-auto pb-10 snap-x snap-mandatory scroll-smooth hide-scrollbar px-4"
           >
             {studentProjects.map((proj, i) => {
               const pKey = `p${i + 1}`;
@@ -487,19 +451,18 @@ const Landing = () => {
                   whileInView={{ y: 0, opacity: 1 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: i * 0.1 }}
-                  className="relative rounded-3xl transition-all duration-500 hover:-translate-y-2 overflow-hidden group shrink-0 basis-[110%] sm:basis-[29%] lg:basis-[20%] snap-start"
+                  className="relative rounded-3xl transition-all duration-500 hover:-translate-y-2 overflow-hidden group shrink-0 basis-[110%] sm:basis-[29%] lg:basis-[20%] snap-start bg-white"
                   style={{
-                    background: "#ffffff",
-                    border: "1.5px solid rgba(148,163,184,0.15)",
-                    boxShadow: "0 2px 16px rgba(0,0,0,0.05)",
+                    border: "1px solid rgba(226,232,240,0.8)",
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.03)",
                   }}
-                  onMouseEnter={e => e.currentTarget.style.boxShadow = `0 20px 40px rgba(0,0,0,0.1), 0 0 0 2px ${accent.from}30`}
-                  onMouseLeave={e => e.currentTarget.style.boxShadow = "0 2px 16px rgba(0,0,0,0.05)"}
+                  onMouseEnter={e => e.currentTarget.style.boxShadow = `0 20px 40px rgba(0,0,0,0.08), 0 0 0 2px ${accent.from}40`}
+                  onMouseLeave={e => e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.03)"}
                   data-project-index={i}
                 >
                   {/* Top accent bar */}
                   <div
-                    className="absolute top-0 left-0 right-0 h-1 z-20"
+                    className="absolute top-0 left-0 right-0 h-1.5 z-20"
                     style={{ background: `linear-gradient(90deg, ${accent.from}, ${accent.to})` }}
                   />
 
@@ -511,18 +474,18 @@ const Landing = () => {
                       muted
                       playsInline
                       aria-label={proj.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                     >
                       <source src={gifToVideo(proj.img, "webm")} type="video/webm" />
                       <source src={gifToVideo(proj.img, "mp4")} type="video/mp4" />
                     </video>
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-slate-900/15 to-transparent z-10" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/10 to-transparent z-10" />
                   </div>
 
                   {/* Content */}
-                  <div className="p-6 relative text-start">
+                  <div className="p-6 relative text-start from-white to-slate-50">
                     <h3
-                      className="font-extrabold text-lg mb-2 leading-snug"
+                      className="font-extrabold text-lg mb-2.5 leading-snug"
                       style={{
                         background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
                         WebkitBackgroundClip: "text",
@@ -532,7 +495,7 @@ const Landing = () => {
                     >
                       {t(`landing.studentProjects.${pKey}.title`)}
                     </h3>
-                    <p className="text-slate-500 text-sm leading-relaxed group-hover:text-slate-700 transition-colors duration-300">
+                    <p className="text-slate-500 font-medium text-sm leading-relaxed group-hover:text-slate-700 transition-colors duration-300">
                       {t(`landing.studentProjects.${pKey}.desc`)}
                     </p>
                   </div>
@@ -541,7 +504,7 @@ const Landing = () => {
             })}
           </div>
 
-          <div className="mt-4 flex justify-center items-center gap-2.5">
+          <div className="mt-2 flex justify-center items-center gap-3">
             {[...Array(projectCount)].map((_, i) => {
               const dotAccent = cardAccents[i % cardAccents.length];
               const isActive = projectIndex === i;
@@ -549,14 +512,14 @@ const Landing = () => {
                 <button
                   key={i}
                   onClick={() => setProjectIndex(i)}
-                  className="p-0 m-0 border-none min-h-0 min-w-0 h-2 rounded-full transition-all duration-500 ease-out focus:outline-none"
+                  className="p-0 m-0 border-none min-h-0 min-w-0 h-2.5 rounded-full transition-all duration-500 ease-out focus:outline-none"
                   style={isActive ? {
                     width: 40,
                     background: `linear-gradient(90deg, ${dotAccent.from}, ${dotAccent.to})`,
-                    boxShadow: `0 0 10px ${dotAccent.from}80`,
+                    boxShadow: `0 0 12px ${dotAccent.from}60`,
                   } : {
                     width: 10,
-                    background: "#cbd5e1",
+                    background: "#e2e8f0",
                   }}
                   aria-label={`Go to project ${i + 1}`}
                 />
@@ -567,12 +530,11 @@ const Landing = () => {
         </div>
       </Motion.section>
 
-
       {/* ============================
-          WHY CHOOSE SPARVI LAB?
+         WHY CHOOSE SPARVI LAB?
          ============================ */}
       <Motion.section
-        className="py-16 md:py-24 px-6 bg-slate-50/50"
+        className="py-16 md:py-24 px-6 bg-slate-50"
         initial={{ y: 40, opacity: 0 }}
         whileInView={{ y: 0, opacity: 1 }}
         viewport={{ once: true, amount: 0.15 }}
@@ -585,8 +547,8 @@ const Landing = () => {
             style={{
               fontWeight: 800,
               lineHeight: 1.15,
-              letterSpacing: "-0.03em",
-              background: "linear-gradient(135deg, #0f172a 0%, #1e3a8a 40%, #06b6d4 100%)",
+              letterSpacing: "-0.02em",
+              background: "linear-gradient(135deg, #0f172a 0%, #2563eb 50%, #06b6d4 100%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -599,17 +561,16 @@ const Landing = () => {
           <div className="flex flex-col lg:flex-row items-stretch gap-10 lg:gap-16">
 
             {/* Left — Lottie animation + CTA */}
-            <div className="flex flex-col items-center gap-4 lg:w-[340px] shrink-0 order-2 lg:order-none h-full">
-              <div className="w-90 h-90 sm:w-80 sm:h-80 lg:w-full lg:flex-1 lg:max-w-[340px] mx-auto">
+            <div className="flex flex-col items-center gap-6 lg:w-[360px] shrink-0 order-2 lg:order-none h-full">
                 <img
                   src="https://res.cloudinary.com/dipzvlfnt/image/upload/f_auto,q_auto,w_640/v1772832874/its_bqxp1i.webp"
                   alt="Student holding money"
                   loading="lazy"
-                  className="w-full h-full object-contain lg:object-cover rounded-3xl"
+                  className="w-full h-full object-contain lg:object-cover rounded-2xl"
                 />
-              </div>
-              <Link to="/signup" className="mx-auto">
-                <button className="inline-flex items-center gap-2 rounded-full bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 font-semibold px-8 py-3.5 shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 whitespace-nowrap">
+            
+              <Link to="/signup" className="mx-auto w-full lg:w-auto">
+                <button className="w-full inline-flex justify-center items-center gap-2 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 border border-yellow-300 text-slate-900 font-bold px-8 py-3.5 shadow-[0_8px_25px_rgba(245,158,11,0.3)] hover:shadow-[0_12px_30px_rgba(245,158,11,0.5)] transition-all duration-200 hover:-translate-y-0.5 whitespace-nowrap">
                   {t("landing.why_choose.cta")}
                 </button>
               </Link>
@@ -620,12 +581,12 @@ const Landing = () => {
               {features.map((feature, i) => {
                 const faKey = `f${i + 1}`;
                 const featureAccents = [
-                  { icon: "linear-gradient(135deg, #1d4ed8, #06b6d4)", border: "#1d4ed820", glow: "rgba(29,78,216,0.12)" },
-                  { icon: "linear-gradient(135deg, #7c3aed, #06b6d4)", border: "#7c3aed20", glow: "rgba(124,58,237,0.12)" },
-                  { icon: "linear-gradient(135deg, #0891b2, #10b981)", border: "#0891b220", glow: "rgba(8,145,178,0.12)" },
-                  { icon: "linear-gradient(135deg, #db2777, #f59e0b)", border: "#db277720", glow: "rgba(219,39,119,0.12)" },
-                  { icon: "linear-gradient(135deg, #1d4ed8, #7c3aed)", border: "#1d4ed820", glow: "rgba(29,78,216,0.12)" },
-                  { icon: "linear-gradient(135deg, #059669, #06b6d4)", border: "#05966920", glow: "rgba(5,150,105,0.12)" },
+                  { icon: "linear-gradient(135deg, #2563eb, #06b6d4)", border: "#2563eb20", glow: "rgba(37,99,235,0.15)" },
+                  { icon: "linear-gradient(135deg, #8b5cf6, #d946ef)", border: "#8b5cf620", glow: "rgba(139,92,246,0.15)" },
+                  { icon: "linear-gradient(135deg, #0ea5e9, #10b981)", border: "#0ea5e920", glow: "rgba(14,165,233,0.15)" },
+                  { icon: "linear-gradient(135deg, #f43f5e, #f59e0b)", border: "#f43f5e20", glow: "rgba(244,63,94,0.15)" },
+                  { icon: "linear-gradient(135deg, #3b82f6, #8b5cf6)", border: "#3b82f620", glow: "rgba(59,130,246,0.15)" },
+                  { icon: "linear-gradient(135deg, #10b981, #06b6d4)", border: "#10b98120", glow: "rgba(16,185,129,0.15)" },
                 ];
                 const fa = featureAccents[i % featureAccents.length];
                 return (
@@ -635,18 +596,17 @@ const Landing = () => {
                     whileInView={{ y: 0, opacity: 1 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: i * 0.08 }}
-                    className="relative rounded-3xl p-6 transition-all duration-500 hover:-translate-y-1.5 group overflow-hidden cursor-default"
+                    className="relative rounded-3xl p-6 transition-all duration-500 hover:-translate-y-1.5 group overflow-hidden cursor-default bg-white"
                     style={{
-                      background: "linear-gradient(145deg, #ffffff 0%, #f8faff 100%)",
                       border: `1.5px solid ${fa.border}`,
-                      boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
+                      boxShadow: "0 4px 15px rgba(0,0,0,0.02)",
                     }}
                     onMouseEnter={e => {
-                      e.currentTarget.style.boxShadow = `0 16px 40px ${fa.glow}, 0 2px 12px rgba(0,0,0,0.04)`;
-                      e.currentTarget.style.border = `1.5px solid ${fa.border.replace("20", "50")}`;
+                      e.currentTarget.style.boxShadow = `0 16px 40px ${fa.glow}, 0 4px 15px rgba(0,0,0,0.02)`;
+                      e.currentTarget.style.border = `1.5px solid ${fa.border.replace("20", "40")}`;
                     }}
                     onMouseLeave={e => {
-                      e.currentTarget.style.boxShadow = "0 2px 12px rgba(0,0,0,0.04)";
+                      e.currentTarget.style.boxShadow = "0 4px 15px rgba(0,0,0,0.02)";
                       e.currentTarget.style.border = `1.5px solid ${fa.border}`;
                     }}
                   >
@@ -671,10 +631,10 @@ const Landing = () => {
                         <feature.icon size={24} color="white" strokeWidth={2.2} />
                       </div>
                       <div className="flex-1 min-w-0 text-start">
-                        <h3 className="font-bold text-slate-800 mb-1.5 text-sm md:text-base leading-snug group-hover:text-slate-900 transition-colors duration-300">
+                        <h3 className="font-extrabold text-slate-800 mb-1.5 text-sm md:text-base leading-snug group-hover:text-slate-900 transition-colors duration-300">
                           {t(`landing.features.${faKey}.title`)}
                         </h3>
-                        <p className="text-slate-500 text-xs md:text-sm leading-relaxed group-hover:text-slate-600 transition-colors duration-300">
+                        <p className="text-slate-500 font-medium text-xs md:text-sm leading-relaxed group-hover:text-slate-600 transition-colors duration-300">
                           {t(`landing.features.${faKey}.text`)}
                         </p>
                       </div>
@@ -689,10 +649,10 @@ const Landing = () => {
       </Motion.section>
 
       {/* ============================
-          LEARNING PATH SECTION
+         LEARNING PATH SECTION
          ============================ */}
       <Motion.section
-        className="py-16 md:py-24 px-6 bg-slate-50/50"
+        className="py-16 md:py-24 px-6 bg-gradient-to-b from-white to-slate-50"
         initial={{ y: 40, opacity: 0 }}
         whileInView={{ y: 0, opacity: 1 }}
         viewport={{ once: true, amount: 0.2 }}
@@ -704,8 +664,8 @@ const Landing = () => {
             style={{
               fontWeight: 800,
               lineHeight: 1.15,
-              letterSpacing: "-0.03em",
-              background: "linear-gradient(135deg, #0f172a 0%, #1e3a8a 40%, #06b6d4 100%)",
+              letterSpacing: "-0.02em",
+              background: "linear-gradient(135deg, #0f172a 0%, #2563eb 50%, #06b6d4 100%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -720,11 +680,10 @@ const Landing = () => {
       <Parentsreviews />
 
       {/* ============================
-          FAQ SECTION
+         FAQ SECTION
          ============================ */}
       <Motion.section
-        className="py-16 md:py-24 px-6"
-        style={{ background: "rgba(248,250,252,0.5)" }}
+        className="py-16 md:py-24 px-6 bg-slate-50"
         initial={{ y: 40, opacity: 0 }}
         whileInView={{ y: 0, opacity: 1 }}
         viewport={{ once: true, amount: 0.2 }}
@@ -739,8 +698,8 @@ const Landing = () => {
               style={{
                 fontWeight: 800,
                 lineHeight: 1.15,
-                letterSpacing: "-0.03em",
-                background: "linear-gradient(135deg, #0f172a 0%, #1e3a8a 40%, #06b6d4 100%)",
+                letterSpacing: "-0.02em",
+                background: "linear-gradient(135deg, #0f172a 0%, #2563eb 50%, #06b6d4 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -748,12 +707,12 @@ const Landing = () => {
             >
               {t("landing.faq.title")}
             </h2>
-            <p className="text-slate-500 text-sm md:text-base mt-4 max-w-lg mx-auto leading-relaxed">
+            <p className="text-slate-500 font-medium text-sm md:text-base mt-4 max-w-lg mx-auto leading-relaxed">
               {t("landing.faq.subtitle")}
             </p>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             {faqItems.map((item, i) => (
               <FAQItem
                 key={i}
@@ -769,15 +728,15 @@ const Landing = () => {
           </div>
 
           {/* Bottom CTA */}
-          <div className="mt-12 text-center p-8 rounded-3xl"
+          <div className="mt-14 text-center p-10 rounded-[2rem]"
             style={{
-              background: "linear-gradient(135deg, #0a1628, #1d4ed8)",
-              boxShadow: "0 20px 50px rgba(29,78,216,0.2)",
+              background: "linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #2563eb 100%)",
+              boxShadow: "0 20px 50px rgba(37,99,235,0.25)",
             }}>
-            <p className="text-white font-semibold text-lg mb-1">{t("landing.faq.still_have_questions")}</p>
-            <p className="text-white/60 text-sm mb-5">{t("landing.faq.team_happy_to_help")}</p>
+            <p className="text-white font-extrabold text-xl mb-2">{t("landing.faq.still_have_questions")}</p>
+            <p className="text-blue-100/80 font-medium text-sm mb-6">{t("landing.faq.team_happy_to_help")}</p>
             <a href="/contact">
-              <button className="inline-flex items-center gap-2 rounded-full bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 font-bold px-7 py-3 transition-all duration-200 hover:-translate-y-0.5 shadow-lg text-sm">
+              <button className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 border border-yellow-300 text-slate-900 font-bold px-8 py-3.5 transition-all duration-200 hover:-translate-y-0.5 shadow-[0_8px_20px_rgba(245,158,11,0.3)] text-sm">
                 {t("landing.faq.contact_us")}
               </button>
             </a>
@@ -786,17 +745,18 @@ const Landing = () => {
       </Motion.section>
 
       {/* ============================
-          FOOTER
+         FOOTER
          ============================ */}
       <footer className="text-white" style={{
-        background: "linear-gradient(180deg, #0a1628 0%, #0d1f3c 100%)"
+        // Deeper, more sophisticated dark mode gradient for the footer
+        background: "linear-gradient(180deg, #020617 0%, #0f172a 100%)"
       }}>
         <div className="max-w-7xl mx-auto px-6 py-12 md:py-16">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-16">
             {/* Column 1: Logo & Info */}
             <div>
-              <img src="/logo-white.png" alt="Sparvi Lab" width="133" height="70" className="h-10 mb-4" />
-              <p className="text-slate-400 text-sm leading-relaxed mb-5 text-start">
+              <img src="/logo-white.png" alt="Sparvi Lab" width="133" height="70" className="h-10 mb-5" />
+              <p className="text-slate-400 font-medium text-sm leading-relaxed mb-6 text-start">
                 {t("landing.footer.description")}
               </p>
               <div className="flex gap-3">
@@ -804,75 +764,75 @@ const Landing = () => {
                   href="https://www.instagram.com/sparvilab"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                  className="w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:bg-white/20 hover:border-white/30 flex items-center justify-center transition-all duration-300"
                 >
-                  <Instagram size={16} />
+                  <Instagram size={18} />
                 </a>
                 <a
                   href="https://www.facebook.com/sparviIab"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                  className="w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:bg-white/20 hover:border-white/30 flex items-center justify-center transition-all duration-300"
                 >
-                  <Facebook size={16} />
+                  <Facebook size={18} />
                 </a>
                 <a
                   href="https://www.tiktok.com/@sparvi.lab"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                  className="w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:bg-white/20 hover:border-white/30 flex items-center justify-center transition-all duration-300"
                 >
-                  <FaTiktok size={14} />
+                  <FaTiktok size={16} />
                 </a>
                 <a
                   href="https://wa.me/201500077369"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                  className="w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:bg-white/20 hover:border-white/30 flex items-center justify-center transition-all duration-300"
                 >
-                  <FaWhatsapp size={16} />
+                  <FaWhatsapp size={18} />
                 </a>
               </div>
             </div>
 
             {/* Column 2: Main Menu */}
             <div className="text-start">
-              <h4 className="text-[#FBBF24] font-semibold text-sm tracking-wider uppercase mb-4">
+              <h4 className="text-amber-400 font-bold text-sm tracking-wider uppercase mb-5">
                 {t("landing.footer.main_menu")}
               </h4>
-              <nav className="flex flex-col gap-3">
-                <Link to="/" className="text-slate-400 hover:text-white text-sm transition-colors">{t("landing.footer.menu_home")}</Link>
-                <Link to="/courses" className="text-slate-400 hover:text-white text-sm transition-colors">{t("landing.footer.menu_courses")}</Link>
-                <Link to="/our-story" className="text-slate-400 hover:text-white text-sm transition-colors">{t("landing.footer.menu_story")}</Link>
-                <Link to="/contact" className="text-slate-400 hover:text-white text-sm transition-colors">{t("landing.footer.menu_contact")}</Link>
-                <Link to="/signup" className="text-slate-400 hover:text-white text-sm transition-colors">{t("landing.footer.menu_join")}</Link>
+              <nav className="flex flex-col gap-3.5">
+                <Link to="/" className="text-slate-400 hover:text-white font-medium text-sm transition-colors">{t("landing.footer.menu_home")}</Link>
+                <Link to="/courses" className="text-slate-400 hover:text-white font-medium text-sm transition-colors">{t("landing.footer.menu_courses")}</Link>
+                <Link to="/our-story" className="text-slate-400 hover:text-white font-medium text-sm transition-colors">{t("landing.footer.menu_story")}</Link>
+                <Link to="/contact" className="text-slate-400 hover:text-white font-medium text-sm transition-colors">{t("landing.footer.menu_contact")}</Link>
+                <Link to="/signup" className="text-slate-400 hover:text-white font-medium text-sm transition-colors">{t("landing.footer.menu_join")}</Link>
               </nav>
             </div>
 
             {/* Column 3: Join the Club */}
             <div className="text-start">
-              <h4 className="text-[#FBBF24] font-semibold text-sm tracking-wider uppercase mb-4">
+              <h4 className="text-amber-400 font-bold text-sm tracking-wider uppercase mb-5">
                 {t("landing.footer.join_club")}
               </h4>
-              <p className="text-slate-400 text-sm mb-4">
+              <p className="text-slate-400 font-medium text-sm mb-5 leading-relaxed">
                 {t("landing.footer.club_desc")}
               </p>
-              <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <input
                   type="email"
                   placeholder={t("landing.footer.placeholder")}
-                  className={`w-full sm:flex-1 rounded-lg bg-white/10 border border-white/20 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#FBBF24] text-start ${i18n.language === "ar" ? "pr-4 pl-4" : "px-4"}`}
+                  className={`w-full sm:flex-1 rounded-xl bg-white/5 border border-white/10 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all text-start ${i18n.language === "ar" ? "pr-4 pl-4" : "px-4"}`}
                 />
-                <button className="w-full sm:w-auto rounded-lg bg-[#FBBF24] hover:bg-[#F59E0B] text-slate-900 font-semibold px-5 py-2.5 text-sm flex items-center justify-center gap-1.5 transition-colors">
-                  {t("landing.footer.subscribe")} <Send size={14} className={i18n.language === "ar" ? "rotate-180" : ""} />
+                <button className="w-full sm:w-auto rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-slate-900 font-bold px-6 py-3 text-sm flex items-center justify-center gap-2 transition-all shadow-md">
+                  {t("landing.footer.subscribe")} <Send size={15} className={i18n.language === "ar" ? "rotate-180" : ""} />
                 </button>
               </div>
             </div>
           </div>
 
           {/* Bottom bar */}
-          <div className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-slate-500 text-xs">
+          <div className="mt-16 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-slate-500 font-medium text-xs">
               © {new Date().getFullYear()} Sparvi Lab. {t("landing.footer.rights")}
               <span className="block md:inline md:mx-2">
                 {t("landing.footer.designed_for")}
