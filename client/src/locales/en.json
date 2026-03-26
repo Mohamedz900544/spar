@@ -65,6 +65,10 @@
     "heroes": {
       "title": "Hear from Our Heroes"
     },
+    "reviews": {
+      "title1": "Trusted by Parents,",
+      "title2": "Loved by Students!"
+    },
     "projects": {
       "title": "Discover Our Students' Projects",
       "subtitle": "Explore out these incredible hands-on creations by Sparvi Lab makers."
@@ -72,6 +76,9 @@
     "why_choose": {
       "title": "Why Choose Sparvi Lab?",
       "cta": "Secure your Seat!"
+    },
+    "learning_path": {
+      "title": "Learning Path"
     },
     "faq": {
       "title": "Frequently Asked Questions",

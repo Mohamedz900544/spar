@@ -53,9 +53,28 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: 'Poppins', 'Inter', sans-serif;
+  font-family: 'Poppins', 'Inter', system-ui, sans-serif;
   font-weight: 700;
   color: #102a5a;
+}
+
+/* ============================
+   RTL FONT OVERRIDES
+   ============================ */
+[dir="rtl"] body {
+  font-family: 'Inter', system-ui, sans-serif !important;
+}
+
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] h3,
+[dir="rtl"] h4,
+[dir="rtl"] h5,
+[dir="rtl"] h6,
+[dir="rtl"] .font-display,
+[dir="rtl"] .font-extrabold {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-weight: 700 !important;
 }
 
 /* ============================
@@ -296,7 +315,9 @@ button {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sparkle { animation: none; }
+  .sparkle {
+    animation: none;
+  }
 }
 
 /* ============================
@@ -518,8 +539,9 @@ button {
   .sparvi-hero-text-overlay {
     bottom: 12px;
   }
-  .sparvi-hero-name{
-    font-size: 13px!important;
+
+  .sparvi-hero-name {
+    font-size: 13px !important;
   }
 
   .sparvi-hero-play-btn {

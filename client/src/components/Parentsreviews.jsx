@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Quote, Star } from "lucide-react";
+import { useTranslation } from "react-i18next";
 // Expanded testimonials array to demonstrate the sliding capability
 const testimonials = [
   {
@@ -32,6 +33,7 @@ export default function TestimonialsSection() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [itemsPerView, setItemsPerView] = useState(3);
   const [isHovered, setIsHovered] = useState(false);
+  const { t, i18n } = useTranslation();
 
   // Responsive items per view
   useEffect(() => {
@@ -80,7 +82,7 @@ export default function TestimonialsSection() {
   };
 
   return (
-      <section id="parents-reviews" className="py-8 sm:py-8 bg-slate-50/50">
+    <section id="parents-reviews" className="py-8 sm:py-8 bg-slate-50/50">
       <div
         className="
           relative min-h-[640px] md:min-h-[760px] lg:min-h-[820px]
@@ -109,27 +111,27 @@ export default function TestimonialsSection() {
 
         {/* Content Wrapper */}
         <div className="relative w-full px-4 sm:px-10 lg:px-14 py-12">
-          
+
           {/* Section Heading */}
           <div className="flex flex-col items-center text-center mb-12 sm:mb-16">
-       
+
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight leading-tight">
-              Trusted by Parents, <br className="hidden sm:block" />
+              {t("landing.reviews.title1")} <br className="hidden sm:block" />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-blue-300">
-                Loved by Students!
+                {t("landing.reviews.title2")}
               </span>
             </h2>
           </div>
 
           {/* Slider Container */}
           <div className="relative group/slider">
-            
+
             {/* Sliding Track Wrapper */}
             <div className="overflow-hidden px-2 py-4 -mx-2">
               <div
                 className="flex transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]"
                 style={{
-                  transform: `translateX(-${safeIndex * (100 / itemsPerView)}%)`,
+                  transform: `translateX(${document.documentElement.dir === "rtl" ? "" : "-"}${safeIndex * (100 / itemsPerView)}%)`,
                 }}
               >
                 {testimonials.map((t, idx) => (
@@ -138,8 +140,8 @@ export default function TestimonialsSection() {
                     className="shrink-0 px-3 sm:px-4"
                     style={{ width: `${100 / itemsPerView}%` }}
                   >
-                   <article
-  className="
+                    <article
+                      className="
     group
     bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.08)]
     border border-white/60
@@ -148,32 +150,32 @@ export default function TestimonialsSection() {
     transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:bg-white
     relative overflow-hidden
   "
->
-  {/* Quote top-right */}
-  <Quote className="absolute top-6 right-6 w-12 h-12 text-slate-100" />
+                    >
+                      {/* Quote top-right */}
+                      <Quote className="absolute top-6 right-6 w-12 h-12 text-slate-100" />
 
-  {/* Name */}
-  <h3 className="font-bold text-slate-900 text-base sm:text-lg">
-    {t.name}
-  </h3>
+                      {/* Name */}
+                      <h3 className="font-bold text-slate-900 text-base sm:text-lg">
+                        {t.name}
+                      </h3>
 
-  {/* Text */}
-  <p className="mt-4 text-slate-600 text-sm sm:text-[15px] leading-relaxed line-clamp-3">
-    {t.text}
-  </p>
+                      {/* Text */}
+                      <p className="mt-4 text-slate-600 text-sm sm:text-[15px] leading-relaxed line-clamp-3">
+                        {t.text}
+                      </p>
 
-  {/* Stars bottom-right */}
-  <div className="mt-auto flex justify-end pt-4">
-    <div className="flex">
-      {[...Array(5)].map((_, i) => (
-        <Star
-          key={i}
-          className="w-4 h-4 fill-amber-400 text-amber-400"
-        />
-      ))}
-    </div>
-  </div>
-</article>
+                      {/* Stars bottom-right */}
+                      <div className="mt-auto flex justify-end pt-4">
+                        <div className="flex">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className="w-4 h-4 fill-amber-400 text-amber-400"
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </article>
                   </div>
                 ))}
               </div>
