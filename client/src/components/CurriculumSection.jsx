@@ -165,13 +165,13 @@ function ContentPanel({ selectedAge, tracksForSelectedAge, openFoundation, setOp
           </div>
 
           <div className="max-w-4xl mx-auto bg-white rounded-[2rem] p-0 md:p-10 shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-slate-100">
-            <h3 className="text-xl font-extrabold text-slate-800 mb-2 text-center">
+            <h3 className="text-xl font-extrabold text-slate-800 mb-2 p-3 text-center">
               {t("courses.stage_courses_title")}
             </h3>
-            <p className="text-sm md:text-base font-medium text-slate-500 text-center mb-8 max-w-2xl mx-auto">
+            <p className="text-sm md:text-base font-medium text-slate-500 text-center mb-8 p-3 max-w-2xl mx-auto">
               {t("courses.stage_courses_desc")}
             </p>
-            <div className="flex flex-wrap justify-center gap-3 md:gap-4">
+            <div className="flex flex-wrap justify-center p-3 gap-3 md:gap-4">
               {courses6to8Raw.map((course, idx) => (
                 <span
                   key={idx}
