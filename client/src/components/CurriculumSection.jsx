@@ -81,7 +81,7 @@ const standardPhasesRaw = [
 --------------------------------------------------------*/
 function ContentPanel({ selectedAge, tracksForSelectedAge, openFoundation, setOpenFoundation, openPhase, setOpenPhase, t, i18n }) {
   return (
-    <div className="px-4 mt-8">
+    <div className="px-1 mt-8">
       {/* FOUNDATION STAGE (AGES 6-8) */}
       {selectedAge === "6-8" && (
         <>
