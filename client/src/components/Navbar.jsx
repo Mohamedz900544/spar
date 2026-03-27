@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 const navLinks = [
   { label: "nav.home", to: "/" },
   { label: "nav.courses", to: "/courses" },
-  { label: "nav.pricing", to: "/#pricing", isAnchor: true },
+  { label: "nav.pricing", to: "/pricing" },
   { label: "nav.our_story", to: "/our-story" },
   { label: "nav.contact", to: "/contact" },
 ];
@@ -14,23 +14,7 @@ const navLinks = [
 const Navbar = () => {
   const { t, i18n } = useTranslation();
   const location = useLocation();
-  const navigate = useNavigate();
   const isLanding = location.pathname === "/";
-
-  const handleAnchorClick = (e, item) => {
-    if (!item.isAnchor) return;
-    e.preventDefault();
-    const id = item.to.split("#")[1];
-    if (isLanding) {
-      document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-    } else {
-      navigate("/");
-      setTimeout(() => {
-        document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-      }, 400);
-    }
-    setOpen(false);
-  };
 
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -135,28 +119,17 @@ const Navbar = () => {
 
         {/* DESKTOP NAV */}
         <nav className="hidden md:flex items-center gap-8">
-          {navLinks.map((item) =>
-            item.isAnchor ? (
-              <a
-                key={item.to}
-                href={item.to}
-                onClick={(e) => handleAnchorClick(e, item)}
-                className={`${linkBase} ${linkInactive} cursor-pointer`}
-              >
-                {t(item.label)}
-              </a>
-            ) : (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  `${linkBase} ${isActive ? linkActive : linkInactive}`
-                }
-              >
-                {t(item.label)}
-              </NavLink>
-            )
-          )}
+          {navLinks.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                `${linkBase} ${isActive ? linkActive : linkInactive}`
+              }
+            >
+              {t(item.label)}
+            </NavLink>
+          ))}
 
           <NavLink
             to="/login"
@@ -227,30 +200,19 @@ const Navbar = () => {
 
           <div className="px-6 bg-white h-screen">
             <nav className="divide-y divide-slate-100">
-              {navLinks.map((item) =>
-                item.isAnchor ? (
-                  <a
-                    key={item.to}
-                    href={item.to}
-                    onClick={(e) => handleAnchorClick(e, item)}
-                    className={`${mobileLinkBase} ${mobileInactive} cursor-pointer`}
-                  >
-                    {t(item.label)}
-                  </a>
-                ) : (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    onClick={() => setOpen(false)}
-                    className={({ isActive }) =>
-                      `${mobileLinkBase} ${isActive ? mobileActive : mobileInactive
-                      }`
-                    }
-                  >
-                    {t(item.label)}
-                  </NavLink>
-                )
-              )}
+              {navLinks.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => setOpen(false)}
+                  className={({ isActive }) =>
+                    `${mobileLinkBase} ${isActive ? mobileActive : mobileInactive
+                    }`
+                  }
+                >
+                  {t(item.label)}
+                </NavLink>
+              ))}
 
               <NavLink
                 to="/login"
