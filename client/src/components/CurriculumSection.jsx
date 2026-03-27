@@ -377,7 +377,7 @@ export default function CurriculumSection() {
           {t("courses.select_age_title")}
         </h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 px-4 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 px-1 max-w-4xl mx-auto">
           {ageGroupsRaw.map((age) => {
             const isActive = selectedAge === age.id;
             return (
