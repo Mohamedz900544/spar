@@ -1,7 +1,8 @@
 {
   "nav": {
     "home": "Home",
-    "courses": "Courses",
+    "courses": "Curricula",
+    "pricing": "Pricing",
     "our_story": "Our Story",
     "contact": "Contact Us",
     "login": "Login",
