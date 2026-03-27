@@ -374,11 +374,11 @@ const Landing = () => {
 
             {/* CTA Buttons */}
             <div className="flex flex-row flex-nowrap justify-center md:justify-start items-center gap-3 sm:gap-4">
-              <Link to="/signup">
+              <a href={`https://wa.me/201500077369?text=${encodeURIComponent("مرحبا اريد المزيد من التفاصيل")}`} target="_blank" rel="noopener noreferrer">
                 <button className="inline-flex items-center justify-center gap-2 rounded-full px-5 sm:px-8 py-3 text-xs sm:text-base font-bold shadow-[0_8px_25px_rgba(245,158,11,0.4)] hover:shadow-[0_12px_35px_rgba(245,158,11,0.6)] bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-slate-900 border border-yellow-300 transition-all duration-200 hover:-translate-y-0.5 whitespace-nowrap min-w-0">
                   {t("landing.hero.cta_primary")}
                 </button>
-              </Link>
+              </a>
 
               <Link to="/our-story" className="inline-flex items-center justify-center gap-2 rounded-full px-5 sm:px-8 py-3 text-xs sm:text-base font-semibold border border-white/30 text-white hover:bg-white/10 hover:border-white/50 backdrop-blur-sm transition-all duration-200 whitespace-nowrap min-w-0">
                 {t("landing.hero.cta_secondary")}
@@ -561,11 +561,11 @@ const Landing = () => {
                   className="w-full h-full object-contain lg:object-cover rounded-2xl"
                 />
             
-              <Link to="/signup" className="mx-auto w-full lg:w-auto">
+              <a href={`https://wa.me/201500077369?text=${encodeURIComponent("مرحبا اريد المزيد من التفاصيل")}`} target="_blank" rel="noopener noreferrer" className="mx-auto w-full lg:w-auto">
                 <button className="w-full inline-flex justify-center items-center gap-2 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 border border-yellow-300 text-slate-900 font-bold px-8 py-3.5 shadow-[0_8px_25px_rgba(245,158,11,0.3)] hover:shadow-[0_12px_30px_rgba(245,158,11,0.5)] transition-all duration-200 hover:-translate-y-0.5 whitespace-nowrap">
                   {t("landing.why_choose.cta")}
                 </button>
-              </Link>
+              </a>
             </div>
 
             {/* Right — 2-column grid of feature cards */}
