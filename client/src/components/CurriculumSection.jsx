@@ -164,7 +164,7 @@ function ContentPanel({ selectedAge, tracksForSelectedAge, openFoundation, setOp
             })}
           </div>
 
-          <div className="max-w-4xl mx-auto bg-white rounded-[2rem] p-2 md:p-10 shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-slate-100">
+          <div className="max-w-4xl mx-auto bg-white rounded-[2rem] p-0 md:p-10 shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-slate-100">
             <h3 className="text-xl font-extrabold text-slate-800 mb-2 text-center">
               {t("courses.stage_courses_title")}
             </h3>
