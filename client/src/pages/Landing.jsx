@@ -639,12 +639,8 @@ const Landing = () => {
       {/* ============================
          LEARNING PATH SECTION
          ============================ */}
-      <Motion.section
+      <section
         className="py-16 md:py-24 px-6 bg-gradient-to-b from-white to-slate-50"
-        initial={{ y: 40, opacity: 0 }}
-        whileInView={{ y: 0, opacity: 1 }}
-        viewport={{ once: true, amount: 0.2 }}
-        transition={{ duration: 0.7 }}
       >
         <div className="max-w-6xl mx-auto mb-10 text-center">
           <h2
@@ -663,7 +659,7 @@ const Landing = () => {
           </h2>
         </div>
         <CurriculumSection />
-      </Motion.section>
+      </section>
 
       <Parentsreviews />
 
