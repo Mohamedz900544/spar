@@ -28,7 +28,7 @@ const ageGroupsRaw = [
   { id: "6-8", key: "0", icon: Sparkles, color: "#2dd4bf", image: "https://cdn.shopify.com/s/files/1/0636/7084/5509/files/toddler.svg?v=1764947251" },
   { id: "9-11", key: "1", icon: Rocket, color: "#FBBF24", image: "https://cdn.shopify.com/s/files/1/0636/7084/5509/files/kid.svg?v=1764947250" },
   { id: "12-14", key: "2", icon: Lightbulb, color: "#a78bfa", image: "https://cdn.shopify.com/s/files/1/0636/7084/5509/files/pre-teen_1bfb9f3d-9abc-4329-8733-8eb4d67addc5.svg?v=1764947328" },
-  { id: "15-17", key: "3", icon: GraduationCap, color: "#f472b6", image: "https://i.ibb.co/TB9j3RDg/creatvity.png" },
+  { id: "15-17", key: "3", icon: GraduationCap, color: "#f472b6", image: "https://i.ibb.co/9mKPdGGF/Gemini-Generated-Image-sgpceusgpceusgpc.webp" },
 ];
 
 const foundationCoursesRaw = [
