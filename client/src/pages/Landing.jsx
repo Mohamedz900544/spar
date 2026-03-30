@@ -380,9 +380,9 @@ const Landing = () => {
                 </button>
               </a>
 
-              <Link to="/our-story" className="inline-flex items-center justify-center gap-2 rounded-full px-5 sm:px-8 py-3 text-xs sm:text-base font-semibold border border-white/30 text-white hover:bg-white/10 hover:border-white/50 backdrop-blur-sm transition-all duration-200 whitespace-nowrap min-w-0">
+              <a href={`https://wa.me/201500077369?text=${encodeURIComponent("مرحباً! أريد معرفة المزيد من التفاصيل حول الجلسة المجانية")}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-full px-5 sm:px-8 py-3 text-xs sm:text-base font-semibold border border-white/30 text-white hover:bg-white/10 hover:border-white/50 backdrop-blur-sm transition-all duration-200 whitespace-nowrap min-w-0">
                 {t("landing.hero.cta_secondary")}
-              </Link>
+              </a>
             </div>
           </Motion.div>
 
