@@ -20,7 +20,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 /* ======= STAT CARD ======= */
 const StatCard = ({ icon: Icon, label, value, accent, extra }) => (
-  <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 p-5 shadow-sm hover:shadow-md transition-all group">
+  <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow group">
     <div className="flex items-center gap-4">
       <div
         className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform"
@@ -245,18 +245,10 @@ const InstructorDashboard = () => {
         }}
       >
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <Motion.div
-            className="absolute top-[18%] left-[8%] w-3 h-3 rounded-full bg-[#FBBF24]/30"
-            animate={{ y: [0, -10, 0], opacity: [0.3, 0.8, 0.3] }}
-            transition={{ duration: 5, repeat: Infinity }}
-          />
-          <Motion.div
-            className="absolute top-[35%] right-[12%] w-2 h-2 rounded-full bg-[#2dd4bf]/40"
-            animate={{ y: [0, -12, 0], opacity: [0.4, 0.9, 0.4] }}
-            transition={{ duration: 6, delay: 1, repeat: Infinity }}
-          />
-          <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-[#FBBF24]/5 blur-[100px]" />
-          <div className="absolute bottom-0 left-1/4 w-60 h-60 rounded-full bg-[#2dd4bf]/5 blur-[80px]" />
+          <div className="absolute top-[18%] left-[8%] w-3 h-3 rounded-full bg-[#FBBF24]/30" />
+          <div className="absolute top-[35%] right-[12%] w-2 h-2 rounded-full bg-[#2dd4bf]/40" />
+          <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-[#FBBF24]/5 opacity-60" />
+          <div className="absolute bottom-0 left-1/4 w-60 h-60 rounded-full bg-[#2dd4bf]/5 opacity-60" />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-5 pt-8 pb-20">
@@ -350,14 +342,9 @@ const InstructorDashboard = () => {
           {/* Main Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Left Sidebar */}
-            <div className="lg:col-span-4 space-y-5">
+              <div className="lg:col-span-4 space-y-5">
               {/* Link Round */}
-              <Motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.1 }}
-                className="bg-white/80 backdrop-blur-xl rounded-3xl border border-white/60 shadow-sm p-6"
-              >
+              <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-9 h-9 rounded-xl bg-[#FBBF24]/10 flex items-center justify-center">
                     <Link2 className="w-4 h-4 text-[#FBBF24]" />
@@ -390,14 +377,14 @@ const InstructorDashboard = () => {
                     )}
                   </Motion.button>
                 </form>
-              </Motion.div>
+              </div>
 
               {/* Round List */}
               <Motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.15 }}
-                className="bg-white/80 backdrop-blur-xl rounded-3xl border border-white/60 shadow-sm overflow-hidden flex flex-col max-h-[500px]"
+                className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col max-h-[500px]"
               >
                 <div className="p-5 border-b border-slate-100 flex items-center justify-between">
                   <h2 className="text-base font-bold text-[#102a5a]">
@@ -464,7 +451,7 @@ const InstructorDashboard = () => {
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.1 }}
-                  className="bg-white/80 backdrop-blur-xl rounded-3xl border border-white/60 shadow-sm overflow-hidden"
+                  className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden"
                 >
                   {/* Header */}
                   <div className="p-6 md:p-7 border-b border-slate-100">
@@ -641,7 +628,7 @@ const InstructorDashboard = () => {
                   </div>
                 </Motion.div>
               ) : (
-                <div className="bg-white/80 backdrop-blur-xl rounded-3xl border border-white/60 shadow-sm p-14 text-center min-h-[400px] flex flex-col items-center justify-center">
+                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-14 text-center min-h-[400px] flex flex-col items-center justify-center">
                   <div className="w-16 h-16 rounded-2xl bg-[#FBBF24]/10 flex items-center justify-center mb-4">
                     <ClipboardList className="w-7 h-7 text-[#FBBF24]" />
                   </div>
@@ -659,7 +646,7 @@ const InstructorDashboard = () => {
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.2 }}
-                className="bg-white/80 backdrop-blur-xl rounded-3xl border border-white/60 shadow-sm p-6"
+                className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6"
               >
                 <div className="flex items-center justify-between mb-5">
                   <div className="flex items-center gap-3">

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { motion as Motion, AnimatePresence } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 import {
   Users,
   CalendarClock,
@@ -95,7 +95,7 @@ const formatCountdown = (diffMs) => {
 
 /* ====== STAT CARD ====== */
 const StatCard = ({ icon: Icon, label, value, accent, subtext }) => (
-  <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 p-5 shadow-sm hover:shadow-md transition-all group">
+  <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow group">
     <div className="flex items-center gap-4">
       <div
         className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform"
@@ -295,20 +295,12 @@ const ParentDashboard = ({ parent, setParent }) => {
           background: "linear-gradient(135deg, #071228 0%, #102a5a 50%, #1a3a6b 100%)",
         }}
       >
-        {/* Floating shapes */}
+        {/* Decorative shapes (static – no GPU-heavy blur animations) */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <Motion.div
-            className="absolute top-[15%] left-[10%] w-3 h-3 rounded-full bg-[#FBBF24]/30"
-            animate={{ y: [0, -10, 0], opacity: [0.3, 0.8, 0.3] }}
-            transition={{ duration: 5, repeat: Infinity }}
-          />
-          <Motion.div
-            className="absolute top-[40%] right-[15%] w-2 h-2 rounded-full bg-[#2dd4bf]/40"
-            animate={{ y: [0, -12, 0], opacity: [0.4, 0.9, 0.4] }}
-            transition={{ duration: 6, delay: 1, repeat: Infinity }}
-          />
-          <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-[#FBBF24]/5 blur-[100px]" />
-          <div className="absolute bottom-0 left-1/4 w-60 h-60 rounded-full bg-[#2dd4bf]/5 blur-[80px]" />
+          <div className="absolute top-[15%] left-[10%] w-3 h-3 rounded-full bg-[#FBBF24]/30" />
+          <div className="absolute top-[40%] right-[15%] w-2 h-2 rounded-full bg-[#2dd4bf]/40" />
+          <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-[#FBBF24]/5 opacity-60" />
+          <div className="absolute bottom-0 left-1/4 w-60 h-60 rounded-full bg-[#2dd4bf]/5 opacity-60" />
         </div>
 
         <div className="relative z-10 max-w-6xl mx-auto px-5 pt-8 pb-20">
@@ -376,12 +368,7 @@ const ParentDashboard = ({ parent, setParent }) => {
 
           {/* Stats + Enrollment Row */}
           {!loading && (
-            <Motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5 }}
-              className="grid grid-cols-1 lg:grid-cols-3 gap-5"
-            >
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
               {/* Stats */}
               <StatCard
                 icon={CalendarClock}
@@ -405,17 +392,12 @@ const ParentDashboard = ({ parent, setParent }) => {
                 accent="#FBBF24"
                 subtext="In-person session photos"
               />
-            </Motion.div>
+            </div>
           )}
 
           {/* Enrollment Card */}
           {!loading && (
-            <Motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="bg-white/80 backdrop-blur-xl rounded-3xl border border-white/60 shadow-[0_20px_60px_rgba(16,42,90,0.06)] p-7 md:p-8"
-            >
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-7 md:p-8">
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-11 h-11 rounded-2xl bg-[#FBBF24]/10 flex items-center justify-center flex-shrink-0">
                   <KeyRound className="w-5 h-5 text-[#FBBF24]" />
@@ -519,17 +501,12 @@ const ParentDashboard = ({ parent, setParent }) => {
                   {linkErrorMessage}
                 </Motion.div>
               )}
-            </Motion.div>
+            </div>
           )}
 
           {/* Rounds List */}
           {!loading && visibleRounds.length > 0 && (
-            <Motion.section
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="space-y-4"
-            >
+            <section className="space-y-4">
               <div className="flex items-center justify-between px-1">
                 <h2 className="text-xl font-bold text-[#102a5a]">
                   Your Enrolled Rounds
@@ -548,9 +525,9 @@ const ParentDashboard = ({ parent, setParent }) => {
                   return (
                     <div
                       key={round.id || round.code}
-                      className={`bg-white/80 backdrop-blur-xl rounded-3xl border transition-all duration-300 overflow-hidden ${isSelected
-                        ? "border-[#FBBF24]/40 shadow-[0_12px_40px_rgba(251,191,36,0.08)]"
-                        : "border-white/60 shadow-sm hover:shadow-md"
+                      className={`bg-white rounded-3xl border transition-shadow duration-200 overflow-hidden ${isSelected
+                        ? "border-[#FBBF24]/50 shadow-md"
+                        : "border-slate-100 shadow-sm hover:shadow-md"
                         }`}
                     >
                       {/* Round Toggle Header */}
@@ -603,16 +580,8 @@ const ParentDashboard = ({ parent, setParent }) => {
                       </button>
 
                       {/* Expanded */}
-                      <AnimatePresence>
-                        {isSelected && (
-                          <Motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.3, ease: "easeInOut" }}
-                            className="overflow-hidden"
-                          >
-                            <div className="border-t border-slate-100 bg-slate-50/30 p-6 md:p-7 space-y-8">
+                      {isSelected && (
+                          <div className="overflow-hidden border-t border-slate-100 bg-slate-50/50 p-6 md:p-7 space-y-8">
                               {/* Students */}
                               <section>
                                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
@@ -669,9 +638,11 @@ const ParentDashboard = ({ parent, setParent }) => {
                                         <img
                                           src={photo.url}
                                           alt={photo.caption || "Lab Session"}
-                                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                          loading="lazy"
+                                          decoding="async"
+                                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end">
                                           {photo.caption && (
                                             <p className="text-xs text-white p-3 font-medium truncate">
                                               {photo.caption}
@@ -812,25 +783,18 @@ const ParentDashboard = ({ parent, setParent }) => {
                                   })}
                                 </div>
                               </section>
-                            </div>
-                          </Motion.div>
+                          </div>
                         )}
-                      </AnimatePresence>
                     </div>
                   );
                 })}
               </div>
-            </Motion.section>
+            </section>
           )}
 
           {/* Empty state */}
           {!loading && visibleRounds.length === 0 && (
-            <Motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="bg-white/80 backdrop-blur-xl rounded-3xl border border-white/60 p-14 text-center shadow-sm"
-            >
+            <div className="bg-white rounded-3xl border border-slate-100 p-14 text-center shadow-sm">
               <div className="w-16 h-16 rounded-2xl bg-[#FBBF24]/10 flex items-center justify-center mx-auto mb-4">
                 <KeyRound className="w-7 h-7 text-[#FBBF24]" />
               </div>
@@ -841,7 +805,7 @@ const ParentDashboard = ({ parent, setParent }) => {
                 Enter a valid round code above to unlock your child's schedule
                 and media gallery.
               </p>
-            </Motion.div>
+            </div>
           )}
         </div>
       </main>
