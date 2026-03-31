@@ -13,6 +13,13 @@ export const connectDB = async () => {
     console.log("✅ MongoDB connected");
 
     await ensureDefaultAdmin();
+
+    // Clean up old SiteVisit indexes (one-time migration)
+    try {
+      const col = mongoose.connection.collection("sitevisits");
+      await col.dropIndexes();
+      console.log("✅ SiteVisit indexes reset");
+    } catch (_) { /* collection may not exist yet */ }
   } catch (err) {
     console.error("MongoDB connection error:", err.message);
     process.exit(1);
