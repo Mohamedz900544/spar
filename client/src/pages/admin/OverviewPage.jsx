@@ -1,6 +1,7 @@
 // src/pages/OverviewPage.jsx
 import React from "react";
-import { Users, CalendarClock, Image as ImageIcon, Inbox } from "lucide-react";
+import { motion } from "framer-motion";
+import { Users, CalendarClock, Image as ImageIcon, Inbox, Eye } from "lucide-react";
 import { useAdminDashboard } from "./hooks/useAdminDashboard";
 
 const OverviewPage = () => {
@@ -8,6 +9,7 @@ const OverviewPage = () => {
     isLoading,
     loadError,
     totalKids,
+    todayVisitors,
     activeSessionsCount,
     activeRoundsCount,
     publishedPhotos,
@@ -48,8 +50,20 @@ const OverviewPage = () => {
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4 }}
-            className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6"
+            className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6"
           >
+            <div className="bg-white rounded-2xl border border-[#e2e8f0] p-4 shadow-sm flex flex-col gap-1 md:col-span-1">
+              <p className="text-xs uppercase tracking-wide text-slate-500">
+                Today's visitors
+              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-2xl font-bold text-slate-900">
+                  {todayVisitors}
+                </p>
+                <Eye className="w-7 h-7 text-[#102a5a]" />
+              </div>
+            </div>
+
             <div className="bg-white rounded-2xl border border-[#e2e8f0] p-4 shadow-sm flex flex-col gap-1 md:col-span-1">
               <p className="text-xs uppercase tracking-wide text-slate-500">
                 Total kids

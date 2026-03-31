@@ -10,6 +10,7 @@ import Message from "../models/Message.js";
 import ChildPhoto from "../models/ChildPhoto.js";
 import SessionRating from "../models/SessionRating.js";
 import User from "../models/User.js";
+import SiteVisit from "../models/SiteVisit.js";
 
 const router = express.Router();
 
@@ -101,9 +102,14 @@ router.get("/dashboard", authRequired, adminOnly, async (req, res) => {
     // const enrollmentsMap = Object.groupBy(enrollments, item => item.round)
 
 
+    /* ================= TODAY'S VISITORS ================= */
+    const todayStr = new Date().toLocaleDateString('en-CA');
+    const todayVisitors = await SiteVisit.countDocuments({ date: todayStr });
+
     /* ================= FINAL RESPONSE ================= */
     res.json({
       totalKids,        // ✅ correct kids count
+      todayVisitors,    // ✅ unique visitors today
       sessions: sessions,
       enrollments,      // still used for rounds
       rounds,

@@ -1,6 +1,7 @@
 // src/App.jsx
 import { lazy, Suspense, useState, useEffect, useRef } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
+import { trackVisit } from "./helpers/trackVisit";
 import ParentHeader from "./pages/admin/components/ParentHeader";
 import AdminHeader from "./pages/admin/components/AdminHeader";
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -48,6 +49,7 @@ const SignUp = lazy(() => import("./pages/SignUp"));
 const Login = lazy(() => import("./pages/Login"));
 const ParentDashboard = lazy(() => import("./pages/ParentDashboard"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminOverview = lazy(() => import("./pages/admin/OverviewPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const OurStory = lazy(() => import("./pages/OurStory"));
 const Contact = lazy(() => import("./pages/Contact"));
@@ -81,6 +83,11 @@ function App() {
   const { i18n } = useTranslation();
   const location = useLocation();
 
+  // Track visitor on first load
+  useEffect(() => {
+    trackVisit();
+  }, []);
+
   useEffect(() => {
     const isDashboard = location.pathname.startsWith('/parent') ||
       location.pathname.startsWith('/admin') ||
@@ -113,6 +120,7 @@ function App() {
 
           <Route element={<AdminHeader searchValue={searchValue} setSearchValue={setSearchValue} />}>
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/overview" element={<AdminOverview />} />
             <Route path="/admin/round/:roundId" element={<RoundSessionsPage />} />
             <Route path="/admin/round/:roundId/students" element={<RoundStudentsPage searchValue={searchValue} />} />
           </Route>

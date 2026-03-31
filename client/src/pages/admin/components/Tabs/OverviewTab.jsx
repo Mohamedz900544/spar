@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
-import { CalendarClock, ImageIcon, Users } from 'lucide-react'
+import { CalendarClock, ImageIcon, Users, Eye } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 const OverviewTab = ({
     averageOccupancy,
     totalKids,
@@ -10,6 +11,7 @@ const OverviewTab = ({
     messages
 }) => {
     const MotionContainer = motion.div
+    const navigate = useNavigate()
     return (
         <MotionContainer
             key="overview"
@@ -18,6 +20,17 @@ const OverviewTab = ({
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.4 }}
         >
+            {/* Full Overview link */}
+            <div className="flex justify-end mb-4">
+                <button
+                    onClick={() => navigate('/admin/overview')}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#102a5a] text-white text-sm font-semibold hover:bg-[#1a3a6b] transition-all shadow-sm"
+                >
+                    <Eye className="w-4 h-4" />
+                    Full Overview & Visitors
+                </button>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
                 <div className="bg-white rounded-2xl border border-[#e2e8f0] p-4 shadow-sm flex flex-col gap-1 md:col-span-1">
                     <p className="text-xs uppercase tracking-wide text-slate-500">

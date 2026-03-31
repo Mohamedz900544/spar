@@ -18,6 +18,7 @@ import instructorRoutes from "./routes/instructor.routes.js";
 import "./automatingUpdatingStatusOfSession.js"
 import enrollmentRoutes from "./routes/enrollment.routes.js";
 import fractionsRoutes from "./routes/fractions.js";
+import visitRoutes from "./routes/visit.routes.js";
 // import fractionsRoutes from './routes/fractions'
 
 
@@ -80,6 +81,7 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/blocks", publicBlocksRoutes); // <-- share is public
 app.use("/api/blocks", blocksRoutes);
 app.use("/api/fractions", fractionsRoutes);
+app.use("/api", visitRoutes);
 
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
