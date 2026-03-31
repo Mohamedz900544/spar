@@ -7,13 +7,20 @@ const router = express.Router();
 /**
  * POST /api/track-visit
  * Public endpoint — no auth required.
- * Every call creates one visit record for today.
+ * Upserts one record per visitor per day (unique visitors).
  */
 router.post("/track-visit", async (req, res) => {
   try {
+    const { visitorId } = req.body;
+    if (!visitorId) return res.status(400).json({ message: "Missing visitorId" });
+
     const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD
 
-    await SiteVisit.create({ date: today });
+    await SiteVisit.updateOne(
+      { date: today, visitorId },
+      { $setOnInsert: { date: today, visitorId } },
+      { upsert: true }
+    );
 
     return res.json({ ok: true });
   } catch (err) {

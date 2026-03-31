@@ -14,11 +14,14 @@ export const connectDB = async () => {
 
     await ensureDefaultAdmin();
 
-    // Clean up old SiteVisit indexes (one-time migration)
+    // Clean up old SiteVisit data without visitorId (one-time migration)
     try {
       const col = mongoose.connection.collection("sitevisits");
-      await col.dropIndexes();
-      console.log("✅ SiteVisit indexes reset");
+      const removed = await col.deleteMany({ visitorId: { $exists: false } });
+      if (removed.deletedCount > 0) {
+        console.log(`✅ Removed ${removed.deletedCount} old SiteVisit records without visitorId`);
+        await col.dropIndexes();
+      }
     } catch (_) { /* collection may not exist yet */ }
   } catch (err) {
     console.error("MongoDB connection error:", err.message);
