@@ -37,16 +37,10 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      console.log("🌍 Incoming Origin:", origin);
-
-      // طلبات من Postman أو health checks (من غير Origin)
       if (!origin) return callback(null, true);
-      console.log(origin)
       if (allowedOrigins.includes(origin)) {
-        return callback(null, true); // هيخلّي Access-Control-Allow-Origin = نفس origin بالظبط
+        return callback(null, true);
       }
-
-      console.warn("❌ Blocked by CORS:", origin);
       return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
@@ -62,11 +56,6 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.json({ message: "Sparvi Lab backend running 🚀" });
 });
-
-app.use((req, res, next) => {
-  console.log("request sent")
-  next()
-})
 
 // Routes
 app.use("/api/auth", authRoutes);
@@ -85,7 +74,6 @@ app.use("/api", visitRoutes);
 
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
-  console.log(err)
   res.status(500).json({ message: err.message })
 })
 

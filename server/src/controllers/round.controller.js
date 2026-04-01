@@ -11,7 +11,6 @@ export const getRounds = async (req, res) => {
         const rounds = await Round.find().sort({ createdAt: 'desc' });
         return res.json({ rounds })
     } catch (error) {
-        console.log(error.message)
         return res.sendStatus(500)
     }
 }
@@ -128,10 +127,7 @@ export const createRound = async (req, res) => {
 
     while (!isUnique) {
         code = generateRoundCode()
-        console.log(code)
         const existingRound = await Round.findOne({ code })
-        console.log(existingRound)
-        console.log(isUnique)
         if (!existingRound) {
             isUnique = true;
         };

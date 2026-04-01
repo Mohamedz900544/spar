@@ -32,7 +32,6 @@ export const uploadFromStream = (buffer) => {
 export const sendVerificationMail = (email, verificationToken) => {
     // 1. Construct the full link (Adjust CLIENT_URL to your frontend URL)
     const verificationUrl = `${process.env.CLIENT_URL}/verify-email?token=${verificationToken}`;
-    console.log('Sending Email')
     return new Promise((resolve, reject) => {
         return transporter.sendMail({
             from: `SPAV <${process.env.NODEMAILER_EMAIL}>`,
@@ -72,10 +71,8 @@ export const sendVerificationMail = (email, verificationToken) => {
             `,
         }, (err, info) => {
             if (err) {
-                console.log('Failed To Send Email', err.message)
                 reject(err);
             } else {
-                console.log('Email Sent Successfully')
                 resolve(info);
             }
         });

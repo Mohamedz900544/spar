@@ -8,7 +8,6 @@ export const getGalleryPhotos = async (req, res) => {
             return res.json(gallery)
         }
     } catch (error) {
-        console.log(error)
         res.status(500).json(error)
     }
 }

@@ -50,7 +50,6 @@ export const createProject = async (req, res) => {
   try {
     const { title, data } = req.body;
 
-    console.log(data)
     if (!data || typeof data !== "object") {
       return res.status(400).json({ message: "data is required" });
     }

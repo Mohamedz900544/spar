@@ -14,7 +14,6 @@ export const authRequired = async (req, res, next) => {
     if (type !== "Bearer" || !token) {
       return res.status(401).json({ message: "No token provided" });
     }
-    console.log('Authorizing')
     const payload = jwt.verify(token, JWT_SECRET);
 
     // يدعم كذا شكل للـ payload

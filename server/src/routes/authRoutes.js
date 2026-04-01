@@ -72,7 +72,7 @@ router.post("/signup", upload2.single('profilePhoto'), [
       try {
         parsedChild = JSON.parse(child);
       } catch (e) {
-        console.log("Child data is not a JSON string, keeping raw value", e.message);
+        // Child data is not a JSON string, keeping raw value
       }
     }
     const childrenArray =
@@ -84,7 +84,6 @@ router.post("/signup", upload2.single('profilePhoto'), [
       try {
         const result = await uploadFromStream(req.file.buffer);
         photoUrl = result.secure_url;
-        console.log("Upload success:", photoUrl);
 
       } catch (error) {
         console.error("Cloudinary Error:", error);
@@ -220,7 +219,6 @@ router.get("/me", authRequired, async (req, res) => {
 // email verification
 router.get('/verify-email', async (req, res) => {
   const { token } = req.query;
-  console.log('verification')
   if (!token) {
     return res.status(401).json({ message: "No Token Found" })
   }
@@ -238,7 +236,6 @@ router.get('/verify-email', async (req, res) => {
 
     return res.status(200).json({ message: "User has been verified successfully" });
   } catch (error) {
-    console.log(error.message)
     return res.status(400).json({ message: "Invalid or expired token" });
   }
 })

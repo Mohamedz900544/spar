@@ -8,9 +8,7 @@ const MONGO_URI =
 
 export const connectDB = async () => {
   try {
-    console.log(MONGO_URI)
     await mongoose.connect(MONGO_URI);
-    console.log("✅ MongoDB connected");
 
     await ensureDefaultAdmin();
 
@@ -19,7 +17,6 @@ export const connectDB = async () => {
       const col = mongoose.connection.collection("sitevisits");
       const removed = await col.deleteMany({ visitorId: { $exists: false } });
       if (removed.deletedCount > 0) {
-        console.log(`✅ Removed ${removed.deletedCount} old SiteVisit records without visitorId`);
         await col.dropIndexes();
       }
     } catch (_) { /* collection may not exist yet */ }
@@ -36,7 +33,6 @@ const ensureDefaultAdmin = async () => {
 
   const admin = await User.findOne({ email });
   if (admin) {
-    console.log("ℹ️ Admin user already exists:", email);
     return;
   }
 
@@ -49,6 +45,4 @@ const ensureDefaultAdmin = async () => {
     phone: "123456789",
     role: "admin",
   });
-
-  console.log("✅ Default admin user created:", email);
 };

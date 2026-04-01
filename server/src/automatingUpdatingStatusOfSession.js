@@ -4,7 +4,6 @@ import { connectDB } from './config/db.js';
 
 export async function updateStatusOfSession() {
     cron.schedule('* * * * *', async () => {
-        console.log("⏰ Running session status check...");
         await connectDB();
 
         try {
@@ -53,13 +52,12 @@ export async function updateStatusOfSession() {
 
             if (bulkOps.length > 0) {
                 await Session.bulkWrite(bulkOps);
-                console.log(`✅ Updated ${bulkOps.length} sessions.`);
             }
 
             return "welcome"
 
         } catch (error) {
-            console.log(error.message)
+            // silently handle
         }
     })
 }

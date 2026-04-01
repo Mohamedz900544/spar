@@ -290,9 +290,7 @@ export const rateSession = async (req, res) => {
 export const getParentProfile = async (req, res) => {
     const { name, phone, children: childrenStr, campusCode } = req.body
 
-    console.log(typeof childrenStr)
     const children = childrenStr ? JSON.parse(childrenStr) : undefined
-    console.log(typeof children)
 
     const userDoc = await User.findById(req.user._id, "-__v -createdAt -updatedAt -children -linkedRounds -linkedRoundCodes -role")
 
@@ -307,7 +305,6 @@ export const getParentProfile = async (req, res) => {
             const result = await uploadFromStream(req.file.buffer)
             userDoc.photoUrl = result.secure_url
         } catch (error) {
-            console.log(error)
             return res.status(500).json({ message: error.message })
         }
     }

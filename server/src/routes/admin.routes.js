@@ -19,7 +19,6 @@ const router = express.Router();
 ===================================================== */
 router.get("/dashboard", authRequired, adminOnly, async (req, res) => {
   try {
-    console.log("ADMIN DASHBOARD USER:", req.user?.email);
     const today = new Date().toLocaleDateString('en-CA');
     const [
       sessions,

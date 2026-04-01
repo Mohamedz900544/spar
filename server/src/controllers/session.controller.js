@@ -2,14 +2,11 @@ import Session from "../models/Session.js";
 
 export async function getAllSessions(req, res) {
     try {
-        console.log(req.query.date)
         const date = req.query?.date ? req.query.date.replace(/\//g, '-') : null;
-        console.log(date)
         const filter = date ? { date } : {}
         const sessions = await Session.find(filter).populate('round', { sessions: 0 }).sort();
         return res.json({ sessions })
     } catch (error) {
-        console.log(error.stack)
         return res.sendStatus(500)
     }
 }
@@ -60,7 +57,6 @@ export const updateSession = async (req, res) => {
 
 export const deleteSession = async (req, res) => {
     try {
-        console.log(req.params.id)
         const session = await Session.findById(req.params.id);
         if (!session) {
             return res.status(404).json({ message: "Session not found" });
@@ -71,7 +67,6 @@ export const deleteSession = async (req, res) => {
 
         res.json({ message: "Session deleted successfully", sessions });
     } catch (err) {
-        console.log(err.message)
         res.status(500).json({ message: "Server error" });
     }
 }

@@ -40,7 +40,6 @@ enrollmentRoutes.get('/', authRequired, async (req, res) => {
         ])
         return res.json({ enrollments })
     } catch (error) {
-        console.log(error.stack)
         return res.json({ message: "error" })
     }
 })

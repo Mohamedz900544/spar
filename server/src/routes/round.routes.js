@@ -47,7 +47,6 @@ router.post('/:roundId/students/:studentId/image', authRequired, upload2.array('
             return res.status(400).json({ message: "No files provided" });
         }
     } catch (error) {
-        console.log(error)
         return res.status(500).json({ message: "error" })
     }
 
