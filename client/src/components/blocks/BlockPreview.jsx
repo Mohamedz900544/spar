@@ -201,6 +201,7 @@ export default function BlockPreview({
 
     const commonTextStyle = {
       color: textColor,
+      whiteSpace: "pre-line",
     };
 
     const listItems = Array.isArray(block.items)
@@ -403,7 +404,7 @@ export default function BlockPreview({
     return (
       <div
         key={sectionId}
-        className={`mb-4 transition ${
+        className={`transition ${
           isHover ? "ring-2 ring-sky-300 rounded-3xl" : ""
         }`}
         onDragOver={handleCanvasDragOver}
@@ -416,7 +417,7 @@ export default function BlockPreview({
             isSelected ? "ring-2 ring-sky-400" : ""
           }`}
           style={{
-            margin: settings.margin ?? 12,
+            margin: settings.margin ?? 0,
             padding: settings.padding ?? 24,
             backgroundColor: settings.backgroundColor || "#ffffff",
             backgroundImage: settings.backgroundImage

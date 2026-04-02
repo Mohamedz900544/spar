@@ -1,4 +1,5 @@
 // src/components/blocks/BlockCanvas.jsx
+import { useState } from "react";
 import {
   ChevronRight,
   ChevronDown,
@@ -22,14 +23,66 @@ export default function BlockCanvas({
   onAddChildSection,
   onDuplicateBlock,
 }) {
+  const [collapsedSections, setCollapsedSections] = useState(
+    () => new Set()
+  );
+
   const isSelected = (kind, id) =>
     selection?.kind === kind && selection?.id === id;
 
-  const handleSelectSection = (id) =>
-    onSelect?.({ kind: "section", id: id || null });
+  const sectionToneClasses = [
+    "bg-emerald-50 border border-emerald-200",
+    "bg-amber-50 border border-amber-200",
+    "bg-violet-50 border border-violet-200",
+    "bg-rose-50 border border-rose-200",
+  ];
 
-  const handleSelectBlock = (id) =>
+  const sectionIconClasses = [
+    "text-emerald-600",
+    "text-amber-600",
+    "text-violet-600",
+    "text-rose-600",
+  ];
+
+  const sectionBorderColors = [
+    "#a7f3d0",
+    "#fde68a",
+    "#ddd6fe",
+    "#fecdd3",
+  ];
+
+  const getSectionTone = (depth, selected) => {
+    if (selected) return "bg-sky-50 border border-sky-300";
+    return sectionToneClasses[depth % sectionToneClasses.length];
+  };
+
+  const getSectionIconTone = (depth, selected) =>
+    selected ? "text-sky-600" : sectionIconClasses[depth % sectionIconClasses.length];
+
+  const getSectionBorderTone = (depth, selected) =>
+    selected ? "#7dd3fc" : sectionBorderColors[depth % sectionBorderColors.length];
+
+  const handleClearSelection = () => onSelect?.(null);
+
+  const handleSelectSection = (id, event) => {
+    event?.stopPropagation();
+    onSelect?.({ kind: "section", id: id || null });
+  };
+
+  const handleSelectBlock = (id, event) => {
+    event?.stopPropagation();
     onSelect?.({ kind: "block", id: id || null });
+  };
+
+  const handleToggleSection = (id, event) => {
+    event?.stopPropagation();
+    setCollapsedSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const getBlockIcon = (block) => {
     switch (block.type) {
@@ -81,7 +134,7 @@ export default function BlockCanvas({
       >
         <button
           type="button"
-          onClick={() => handleSelectBlock(blockId)}
+          onClick={(event) => handleSelectBlock(blockId, event)}
           className="flex items-center gap-1 flex-1 text-left"
         >
           <span className="text-[10px] text-slate-400">{depth + 1}</span>
@@ -93,14 +146,20 @@ export default function BlockCanvas({
         <div className="flex items-center gap-1">
           <button
             type="button"
-            onClick={() => onDuplicateBlock?.(blockId)}
+            onClick={(event) => {
+              event.stopPropagation();
+              onDuplicateBlock?.(blockId);
+            }}
             className="p-1 rounded-lg hover:bg-slate-100 text-slate-400"
           >
             <PlusSquare className="w-3 h-3" />
           </button>
           <button
             type="button"
-            onClick={() => onDeleteNode?.({ kind: "block", id: blockId })}
+            onClick={(event) => {
+              event.stopPropagation();
+              onDeleteNode?.({ kind: "block", id: blockId });
+            }}
             className="p-1 rounded-lg hover:bg-rose-50 text-rose-500"
           >
             <Trash2 className="w-3 h-3" />
@@ -114,23 +173,23 @@ export default function BlockCanvas({
     const section = builder.sections[sectionId];
     if (!section) return null;
 
-    const expanded = true;
+    const expanded = !collapsedSections.has(sectionId);
     const selected = isSelected("section", sectionId);
+    const toneClass = getSectionTone(depth, selected);
+    const iconClass = getSectionIconTone(depth, selected);
 
     return (
       <div key={sectionId} className="mt-1">
         <div
-          className={`flex items-center justify-between rounded-2xl px-2 py-1.5 text-xs ${
-            selected
-              ? "bg-sky-50 border border-sky-300"
-              : "bg-white border border-slate-100"
-          }`}
+          className={`flex items-center justify-between rounded-2xl px-2 py-1.5 text-xs ${toneClass}`}
         >
           <div className="flex items-center gap-1">
             <button
               type="button"
-              className="p-0.5 rounded-lg text-slate-500"
-              disabled
+              className="p-0.5 rounded-lg text-slate-500 hover:bg-white/60"
+              onClick={(event) =>
+                handleToggleSection(sectionId, event)
+              }
             >
               {expanded ? (
                 <ChevronDown className="w-3 h-3" />
@@ -140,10 +199,10 @@ export default function BlockCanvas({
             </button>
             <button
               type="button"
-              onClick={() => handleSelectSection(sectionId)}
+              onClick={(event) => handleSelectSection(sectionId, event)}
               className="flex items-center gap-1"
             >
-              <Layers className="w-3 h-3 text-sky-500" />
+              <Layers className={`w-3 h-3 ${iconClass}`} />
               <span className="font-semibold text-slate-800 truncate">
                 {section.label || "Section"}
               </span>
@@ -152,16 +211,20 @@ export default function BlockCanvas({
           <div className="flex items-center gap-1">
             <button
               type="button"
-              onClick={() => onAddChildSection?.(sectionId)}
+              onClick={(event) => {
+                event.stopPropagation();
+                onAddChildSection?.(sectionId);
+              }}
               className="p-1 rounded-lg hover:bg-slate-100 text-slate-400"
             >
               <PlusSquare className="w-3 h-3" />
             </button>
             <button
               type="button"
-              onClick={() =>
-                onDeleteNode?.({ kind: "section", id: sectionId })
-              }
+              onClick={(event) => {
+                event.stopPropagation();
+                onDeleteNode?.({ kind: "section", id: sectionId });
+              }}
               className="p-1 rounded-lg hover:bg-rose-50 text-rose-500"
             >
               <Trash2 className="w-3 h-3" />
@@ -170,7 +233,10 @@ export default function BlockCanvas({
         </div>
 
         {expanded && (
-          <div className="ps-4 mt-1 border-l border-slate-100">
+          <div
+            className="ps-4 mt-1 border-l-2"
+            style={{ borderColor: getSectionBorderTone(depth, selected) }}
+          >
             {section.children.map((child) =>
               child.kind === "section"
                 ? renderSectionNode(child.id, depth + 1)
@@ -183,7 +249,10 @@ export default function BlockCanvas({
   };
 
   return (
-    <div className="rounded-3xl bg-white border border-slate-100 shadow-sm p-3 flex flex-col h-full">
+    <div
+      className="rounded-3xl bg-white border border-slate-100 shadow-sm p-3 flex flex-col h-[360px] lg:h-[420px]"
+      onClick={handleClearSelection}
+    >
       <div className="flex items-center justify-between mb-2">
         <div>
           <h2 className="text-sm font-semibold text-slate-900">
@@ -195,7 +264,7 @@ export default function BlockCanvas({
         </div>
       </div>
 
-      <div className="mt-2 overflow-y-auto flex-1 min-h-[160px]">
+      <div className="mt-2 overflow-y-auto flex-1 min-h-[160px] blocks-scrollbar pr-1">
         {builder.rootSectionIds.length === 0 && (
           <div className="h-full min-h-[120px] rounded-2xl border border-dashed border-sky-200 bg-sky-50/40 flex items-center justify-center text-xs text-sky-600 text-center px-4">
             Your page is empty. Drag a Section from the

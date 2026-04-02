@@ -1,5 +1,84 @@
 // src/components/blocks/BlockPropertiesPanel.jsx
 
+const HEX_COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/;
+
+const getColorPickerValue = (value, fallback = "#ffffff") =>
+  HEX_COLOR_PATTERN.test(value || "") ? value : fallback;
+
+function ColorControl({
+  label,
+  value,
+  fallback = "#ffffff",
+  onChange,
+  allowTransparent = false,
+  helperText = "",
+}) {
+  const isTransparent = allowTransparent && value === "transparent";
+  const pickerValue = getColorPickerValue(value, fallback);
+
+  return (
+    <div>
+      <label className="block text-slate-600 mb-1">{label}</label>
+      <div className="rounded-3xl border border-slate-200 bg-white p-2 shadow-sm">
+        <div className="flex items-center gap-3">
+          <label className="relative flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-[linear-gradient(45deg,#f8fafc_25%,transparent_25%,transparent_75%,#f8fafc_75%,#f8fafc),linear-gradient(45deg,#f8fafc_25%,transparent_25%,transparent_75%,#f8fafc_75%,#f8fafc)] bg-[length:12px_12px] bg-[position:0_0,6px_6px] shadow-inner">
+            <span
+              className={`h-8 w-8 rounded-full border border-white/80 shadow-sm ${
+                isTransparent ? "bg-transparent" : ""
+              }`}
+              style={{
+                backgroundColor: isTransparent ? "transparent" : pickerValue,
+              }}
+            />
+            {isTransparent && (
+              <span className="pointer-events-none absolute h-0.5 w-7 rotate-[-35deg] rounded-full bg-rose-500" />
+            )}
+            <input
+              type="color"
+              value={pickerValue}
+              onChange={(e) => onChange?.(e.target.value)}
+              className="absolute inset-0 cursor-pointer opacity-0"
+              aria-label={label}
+            />
+          </label>
+
+          <div className="flex-1 space-y-2">
+            <input
+              type="text"
+              value={value ?? fallback}
+              onChange={(e) => onChange?.(e.target.value)}
+              className="w-full rounded-2xl border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-400"
+              placeholder={fallback}
+            />
+
+            {allowTransparent && (
+              <button
+                type="button"
+                onClick={() =>
+                  onChange?.(isTransparent ? fallback : "transparent")
+                }
+                className={`inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-semibold transition ${
+                  isTransparent
+                    ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+                    : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300"
+                }`}
+              >
+                {isTransparent
+                  ? "Transparent section on"
+                  : "Make section transparent"}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {helperText && (
+          <p className="mt-2 text-[10px] text-slate-400">{helperText}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /**
  * selection = { kind: "section"|"block", id: string } | null
  * builder = { sections, blocks, ... }
@@ -103,9 +182,9 @@ export default function BlockPropertiesPanel({
               <label className="block text-slate-600 mb-1">Width</label>
               <input
                 type="text"
-                value={settings.width || "100%"}
+                value={settings.width ?? "100%"}
                 onChange={(e) =>
-                  updateSettingsField("width", e.target.value || "100%")
+                  updateSettingsField("width", e.target.value)
                 }
                 className="w-full rounded-2xl border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-400"
                 placeholder="e.g. 100% or 900px"
@@ -115,9 +194,9 @@ export default function BlockPropertiesPanel({
               <label className="block text-slate-600 mb-1">Height</label>
               <input
                 type="text"
-                value={settings.height || "auto"}
+                value={settings.height ?? "auto"}
                 onChange={(e) =>
-                  updateSettingsField("height", e.target.value || "auto")
+                  updateSettingsField("height", e.target.value)
                 }
                 className="w-full rounded-2xl border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-400"
                 placeholder="e.g. auto or 400px"
@@ -132,14 +211,17 @@ export default function BlockPropertiesPanel({
               </label>
               <input
                 type="number"
-                value={settings.padding ?? 24}
+                value={settings.padding ?? ""}
                 onChange={(e) =>
                   updateSettingsField(
                     "padding",
-                    Number(e.target.value) || 0
+                    e.target.value === ""
+                      ? null
+                      : Number(e.target.value) || 0
                   )
                 }
                 className="w-full rounded-2xl border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-400"
+                placeholder="0"
               />
             </div>
             <div>
@@ -148,42 +230,32 @@ export default function BlockPropertiesPanel({
               </label>
               <input
                 type="number"
-                value={settings.margin ?? 12}
+                value={settings.margin ?? ""}
                 onChange={(e) =>
                   updateSettingsField(
                     "margin",
-                    Number(e.target.value) || 0
+                    e.target.value === ""
+                      ? null
+                      : Number(e.target.value) || 0
                   )
                 }
                 className="w-full rounded-2xl border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-400"
+                placeholder="0"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="block text-slate-600 mb-1">
-                Background color
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="color"
-                  value={settings.backgroundColor || "#ffffff"}
-                  onChange={(e) =>
-                    updateSettingsField("backgroundColor", e.target.value)
-                  }
-                  className="h-8 w-8 rounded-full border border-slate-200"
-                />
-                <input
-                  type="text"
-                  value={settings.backgroundColor || "#ffffff"}
-                  onChange={(e) =>
-                    updateSettingsField("backgroundColor", e.target.value)
-                  }
-                  className="flex-1 rounded-2xl border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-400"
-                />
-              </div>
-            </div>
+          <div className="grid grid-cols-1 gap-2">
+            <ColorControl
+              label="Background color"
+              value={settings.backgroundColor ?? "#ffffff"}
+              fallback="#ffffff"
+              onChange={(value) =>
+                updateSettingsField("backgroundColor", value)
+              }
+              allowTransparent
+              helperText=""
+            />
             <div>
               <label className="block text-slate-600 mb-1">
                 Background image URL
@@ -207,14 +279,17 @@ export default function BlockPropertiesPanel({
               </label>
               <input
                 type="number"
-                value={settings.borderRadius ?? 20}
+                value={settings.borderRadius ?? ""}
                 onChange={(e) =>
                   updateSettingsField(
                     "borderRadius",
-                    Number(e.target.value) || 0
+                    e.target.value === ""
+                      ? null
+                      : Number(e.target.value) || 0
                   )
                 }
                 className="w-full rounded-2xl border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-400"
+                placeholder="20"
               />
             </div>
             <div>
@@ -223,14 +298,17 @@ export default function BlockPropertiesPanel({
               </label>
               <input
                 type="number"
-                value={settings.borderWidth ?? 0}
+                value={settings.borderWidth ?? ""}
                 onChange={(e) =>
                   updateSettingsField(
                     "borderWidth",
-                    Number(e.target.value) || 0
+                    e.target.value === ""
+                      ? null
+                      : Number(e.target.value) || 0
                   )
                 }
                 className="w-full rounded-2xl border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-400"
+                placeholder="0"
               />
             </div>
           </div>
@@ -480,53 +558,19 @@ export default function BlockPropertiesPanel({
           {/* Generic block style (all types) */}
           <div className="border-t border-slate-100 pt-2 mt-1" />
 
-          <div>
-            <label className="block text-slate-600 mb-1">
-              Text color
-            </label>
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                value={block.textColor || "#0f172a"}
-                onChange={(e) =>
-                  updateField("textColor", e.target.value)
-                }
-                className="h-8 w-8 rounded-full border border-slate-200"
-              />
-              <input
-                type="text"
-                value={block.textColor || "#0f172a"}
-                onChange={(e) =>
-                  updateField("textColor", e.target.value)
-                }
-                className="flex-1 rounded-2xl border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-400"
-              />
-            </div>
-          </div>
+          <ColorControl
+            label="Text color"
+            value={block.textColor ?? "#0f172a"}
+            fallback="#0f172a"
+            onChange={(value) => updateField("textColor", value)}
+          />
 
-          <div>
-            <label className="block text-slate-600 mb-1">
-              Background color
-            </label>
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                value={block.backgroundColor || "#ffffff"}
-                onChange={(e) =>
-                  updateField("backgroundColor", e.target.value)
-                }
-                className="h-8 w-8 rounded-full border border-slate-200"
-              />
-              <input
-                type="text"
-                value={block.backgroundColor || "#ffffff"}
-                onChange={(e) =>
-                  updateField("backgroundColor", e.target.value)
-                }
-                className="flex-1 rounded-2xl border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-400"
-              />
-            </div>
-          </div>
+          <ColorControl
+            label="Background color"
+            value={block.backgroundColor ?? "#ffffff"}
+            fallback="#ffffff"
+            onChange={(value) => updateField("backgroundColor", value)}
+          />
 
           {/* NEW: padding + margin per block */}
           <div className="grid grid-cols-2 gap-2">

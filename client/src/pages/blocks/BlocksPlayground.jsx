@@ -18,8 +18,8 @@ const makeId = (prefix) =>
 const createDefaultSectionSettings = () => ({
   width: "100%",
   height: "auto",
-  padding: 24,
-  margin: 12,
+  padding: 0,
+  margin: 0,
   backgroundColor: "#ffffff",
   backgroundImage: "",
   borderRadius: 20,
