@@ -103,7 +103,16 @@ router.get("/dashboard", authRequired, adminOnly, async (req, res) => {
 
     /* ================= TODAY'S VISITORS ================= */
     const todayStr = new Date().toLocaleDateString('en-CA');
-    const todayVisitors = await SiteVisit.countDocuments({ date: todayStr });
+    const todayAgg = await SiteVisit.aggregate([
+      { $match: { date: todayStr } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: { $ifNull: ["$visits", 1] } },
+        },
+      },
+    ]);
+    const todayVisitors = todayAgg[0]?.total || 0;
 
     /* ================= FINAL RESPONSE ================= */
     res.json({

@@ -1,5 +1,6 @@
 // src/routes/visit.routes.js
 import express from "express";
+import crypto from "crypto";
 import SiteVisit from "../models/SiteVisit.js";
 
 const router = express.Router();
@@ -12,13 +13,21 @@ const router = express.Router();
 router.post("/track-visit", async (req, res) => {
   try {
     const { visitorId } = req.body;
-    if (!visitorId) return res.status(400).json({ message: "Missing visitorId" });
+    const safeVisitorId =
+      visitorId ||
+      crypto
+        .createHash("sha256")
+        .update(`${req.ip}|${req.get("user-agent") || ""}`)
+        .digest("hex");
 
     const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD
 
     await SiteVisit.updateOne(
-      { date: today, visitorId },
-      { $setOnInsert: { date: today, visitorId } },
+      { date: today, visitorId: safeVisitorId },
+      {
+        $setOnInsert: { date: today, visitorId: safeVisitorId },
+        $inc: { visits: 1 },
+      },
       { upsert: true }
     );
 

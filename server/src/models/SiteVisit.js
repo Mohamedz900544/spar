@@ -6,6 +6,8 @@ const siteVisitSchema = new mongoose.Schema({
   date: { type: String, required: true },
   // Unique browser visitor id (persisted in localStorage)
   visitorId: { type: String, required: true },
+  // Total visits from this visitor on this date
+  visits: { type: Number, default: 1 },
   createdAt: { type: Date, default: Date.now },
 });
 
