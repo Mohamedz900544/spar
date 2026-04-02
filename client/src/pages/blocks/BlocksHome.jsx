@@ -119,7 +119,6 @@ export default function BlocksHome() {
               </div>
             </div>
 
-            <div className="absolute -left-3 -bottom-3 h-16 w-16 rounded-3xl bg-amber-200/60 blur-xl" />
             <div className="absolute -right-4 -top-4 h-14 w-14 rounded-3xl bg-sky-200/60 blur-xl" />
           </div>
         </div>
