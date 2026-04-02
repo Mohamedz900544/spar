@@ -26,7 +26,7 @@ function getVisitorId() {
  */
 export function trackVisit() {
   const base = API_BASE_URL.replace(/\/$/, "");
-  const url = base ? `${base}/api/track-visit` : "/api/track-visit";
+  const url = base ? `${base}/api/page-hit` : "/api/page-hit";
   const payload = JSON.stringify({ visitorId: getVisitorId() });
 
   if (navigator.sendBeacon) {

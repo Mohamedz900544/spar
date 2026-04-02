@@ -5,12 +5,7 @@ import SiteVisit from "../models/SiteVisit.js";
 
 const router = express.Router();
 
-/**
- * POST /api/track-visit
- * Public endpoint — no auth required.
- * Upserts one record per visitor per day (unique visitors).
- */
-router.post("/track-visit", async (req, res) => {
+const handleTrackVisit = async (req, res) => {
   try {
     const { visitorId } = req.body;
     const safeVisitorId =
@@ -38,6 +33,15 @@ router.post("/track-visit", async (req, res) => {
     console.error("Track visit error:", err);
     return res.status(500).json({ message: "Server error" });
   }
-});
+};
+
+/**
+ * POST /api/track-visit
+ * POST /api/page-hit
+ * Public endpoint - no auth required.
+ * Upserts one record per visitor per day.
+ */
+router.post("/track-visit", handleTrackVisit);
+router.post("/page-hit", handleTrackVisit);
 
 export default router;
