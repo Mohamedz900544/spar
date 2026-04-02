@@ -629,6 +629,104 @@ export default function BlocksPlayground() {
     setSelection({ kind: "block", id: blockId });
   };
 
+  const moveNode = ({ kind, id, direction }) => {
+    updateBuilder((builder) => {
+      if (kind === "block") {
+        const block = builder.blocks[id];
+        if (!block || !block.parentId) return builder;
+        const parent = builder.sections[block.parentId];
+        if (!parent) return builder;
+
+        const index = parent.children.findIndex(
+          (child) => child.kind === "block" && child.id === id
+        );
+        if (index === -1) return builder;
+
+        const offset = direction === "up" ? -1 : 1;
+        const targetIndex = index + offset;
+        if (targetIndex < 0 || targetIndex >= parent.children.length) {
+          return builder;
+        }
+
+        const newChildren = [...parent.children];
+        const [moved] = newChildren.splice(index, 1);
+        newChildren.splice(targetIndex, 0, moved);
+
+        return {
+          ...builder,
+          sections: {
+            ...builder.sections,
+            [block.parentId]: {
+              ...parent,
+              children: newChildren,
+            },
+          },
+        };
+      }
+
+      if (kind === "section") {
+        const section = builder.sections[id];
+        if (!section) return builder;
+
+        const offset = direction === "up" ? -1 : 1;
+
+        if (!section.parentId) {
+          const index = builder.rootSectionIds.findIndex(
+            (sid) => sid === id
+          );
+          if (index === -1) return builder;
+
+          const targetIndex = index + offset;
+          if (
+            targetIndex < 0 ||
+            targetIndex >= builder.rootSectionIds.length
+          ) {
+            return builder;
+          }
+
+          const rootSectionIds = [...builder.rootSectionIds];
+          const [moved] = rootSectionIds.splice(index, 1);
+          rootSectionIds.splice(targetIndex, 0, moved);
+
+          return {
+            ...builder,
+            rootSectionIds,
+          };
+        }
+
+        const parent = builder.sections[section.parentId];
+        if (!parent) return builder;
+
+        const index = parent.children.findIndex(
+          (child) => child.kind === "section" && child.id === id
+        );
+        if (index === -1) return builder;
+
+        const targetIndex = index + offset;
+        if (targetIndex < 0 || targetIndex >= parent.children.length) {
+          return builder;
+        }
+
+        const newChildren = [...parent.children];
+        const [moved] = newChildren.splice(index, 1);
+        newChildren.splice(targetIndex, 0, moved);
+
+        return {
+          ...builder,
+          sections: {
+            ...builder.sections,
+            [section.parentId]: {
+              ...parent,
+              children: newChildren,
+            },
+          },
+        };
+      }
+
+      return builder;
+    });
+  };
+
   const isDescendant = (sectionId, candidateId, builder) => {
     if (sectionId === candidateId) return true;
     const section = builder.sections[sectionId];
@@ -1026,7 +1124,7 @@ export default function BlocksPlayground() {
         )}
 
         {/* Layout: toolbox | preview | right side */}
-        <div className="grid grid-cols-1 lg:grid-cols-[230px_minmax(0,2.1fr)_260px] gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-[230px_minmax(0,2.1fr)_320px] gap-4">
           {/* Left: toolbox */}
           <BlockToolbox
             onToolDragStart={setDragItem}
@@ -1068,15 +1166,16 @@ export default function BlocksPlayground() {
 
           {/* Right: Tree + settings */}
           <div className="space-y-4">
-            <div>
-              <BlockCanvas
-                builder={state.builder}
-                selection={selection}
-                onSelect={setSelection}
-                onDeleteNode={handleDeleteNode}
-                onAddChildSection={addChildSection}
-                onDuplicateBlock={duplicateBlock}
-              />
+          <div>
+            <BlockCanvas
+              builder={state.builder}
+              selection={selection}
+              onSelect={setSelection}
+              onDeleteNode={handleDeleteNode}
+              onAddChildSection={addChildSection}
+              onDuplicateBlock={duplicateBlock}
+              onMoveNode={moveNode}
+            />
               <div className="mt-4 flex justify-end">
                 <button
                   type="button"

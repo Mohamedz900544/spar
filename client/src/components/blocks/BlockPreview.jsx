@@ -30,6 +30,7 @@ export default function BlockPreview({
 }) {
   const [hoverSectionId, setHoverSectionId] = useState(null);
   const [hoverRoot, setHoverRoot] = useState(false);
+  const [draggingNodeId, setDraggingNodeId] = useState(null);
   const scrollRef = useRef(null);
 
   const startCanvasDrag = (payload) => {
@@ -38,12 +39,14 @@ export default function BlockPreview({
       kind: payload.kind,
       id: payload.id,
     });
+    setDraggingNodeId(payload.id);
   };
 
   const stopCanvasDrag = () => {
     setDragItem?.(null);
     setHoverSectionId(null);
     setHoverRoot(false);
+    setDraggingNodeId(null);
   };
 
   const handleCanvasDragOver = (e) => {
@@ -193,9 +196,9 @@ export default function BlockPreview({
         typeof block.padding === "number" ? `${block.padding}px` : undefined,
     };
 
-    const wrapperClass = `cursor-move w-full ${
+    const wrapperClass = `cursor-move w-full transition ${
       isSelected ? "ring-2 ring-sky-300 rounded-xl" : ""
-    }`;
+    } ${draggingNodeId === blockId ? "opacity-60 scale-[0.99]" : ""}`;
 
     const textColor = block.textColor || "#0f172a";
 
@@ -400,25 +403,29 @@ export default function BlockPreview({
     const isSelected =
       selection?.kind === "section" && selection.id === sectionId;
     const isHover = hoverSectionId === sectionId;
+    const showDropHint =
+      dragItem &&
+      (dragItem.kind === "block" || dragItem.kind === "section");
+    const isDraggingSection = draggingNodeId === sectionId;
 
     return (
       <div
         key={sectionId}
         className={`transition ${
           isHover ? "ring-2 ring-sky-300 rounded-3xl" : ""
-        }`}
+        } ${isDraggingSection ? "opacity-70" : ""}`}
         onDragOver={handleCanvasDragOver}
         onDrop={(e) => handleSectionDrop(e, sectionId)}
         onDragEnter={(e) => handleSectionDragEnter(e, sectionId)}
         onDragLeave={(e) => handleSectionDragLeave(e, sectionId)}
       >
         <div
-          className={`w-full ${
+          className={`w-full relative ${
             isSelected ? "ring-2 ring-sky-400" : ""
           }`}
           style={{
             margin: settings.margin ?? 0,
-            padding: settings.padding ?? 24,
+            padding: settings.padding ?? 0,
             backgroundColor: settings.backgroundColor || "#ffffff",
             backgroundImage: settings.backgroundImage
               ? `url(${settings.backgroundImage})`
@@ -444,6 +451,22 @@ export default function BlockPreview({
             onSelect?.({ kind: "section", id: sectionId });
           }}
         >
+          {showDropHint && (
+            <div
+              className={`pointer-events-none absolute inset-0 rounded-[inherit] border-2 border-dashed transition ${
+                isHover
+                  ? "border-sky-400 bg-sky-50/60"
+                  : "border-slate-200/70 bg-white/40"
+              }`}
+              style={{ borderRadius: settings.borderRadius ?? 20 }}
+            >
+              {isHover && (
+                <div className="absolute -top-3 left-3 rounded-full bg-sky-600 text-white text-[10px] px-2 py-0.5 shadow">
+                  Drop here
+                </div>
+              )}
+            </div>
+          )}
           <div
             className="w-full rounded-2xl p-3"
             style={{
@@ -499,12 +522,27 @@ export default function BlockPreview({
 
       <div
         ref={scrollRef}
-        className="rounded-2xl border border-slate-100 bg-gradient-to-b from-slate-50 to-slate-100 p-3 flex-1 overflow-auto"
+        className="rounded-2xl border border-slate-100 bg-gradient-to-b from-slate-50 to-slate-100 p-3 flex-1 overflow-auto relative"
         onDragOver={handleCanvasDragOver}
         onDrop={handleRootDrop}
         onDragEnter={handleRootDragEnter}
         onDragLeave={handleRootDragLeave}
       >
+        {dragItem?.kind === "section" && (
+          <div
+            className={`pointer-events-none absolute inset-3 rounded-2xl border-2 border-dashed transition ${
+              hoverRoot
+                ? "border-sky-400 bg-sky-50/60"
+                : "border-slate-200/70 bg-white/40"
+            }`}
+          >
+            {hoverRoot && (
+              <div className="absolute -top-3 left-4 rounded-full bg-sky-600 text-white text-[10px] px-2 py-0.5 shadow">
+                Drop section here
+              </div>
+            )}
+          </div>
+        )}
         <div className="flex gap-1 mb-3">
           <div className="h-2 w-2 rounded-full bg-rose-400" />
           <div className="h-2 w-2 rounded-full bg-amber-400" />

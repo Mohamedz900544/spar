@@ -1,6 +1,8 @@
 // src/components/blocks/BlockCanvas.jsx
 import { useState } from "react";
 import {
+  ArrowDown,
+  ArrowUp,
   ChevronRight,
   ChevronDown,
   Layers,
@@ -22,6 +24,7 @@ export default function BlockCanvas({
   onDeleteNode,
   onAddChildSection,
   onDuplicateBlock,
+  onMoveNode,
 }) {
   const [collapsedSections, setCollapsedSections] = useState(
     () => new Set()
@@ -84,6 +87,83 @@ export default function BlockCanvas({
     });
   };
 
+  const getSiblingInfo = (kind, id) => {
+    if (kind === "block") {
+      const block = builder.blocks[id];
+      if (!block || !block.parentId) return null;
+      const parent = builder.sections[block.parentId];
+      if (!parent) return null;
+      const index = parent.children.findIndex(
+        (child) => child.kind === "block" && child.id === id
+      );
+      return {
+        index,
+        total: parent.children.length,
+      };
+    }
+
+    if (kind === "section") {
+      const section = builder.sections[id];
+      if (!section) return null;
+      if (!section.parentId) {
+        const index = builder.rootSectionIds.findIndex(
+          (sid) => sid === id
+        );
+        return {
+          index,
+          total: builder.rootSectionIds.length,
+        };
+      }
+
+      const parent = builder.sections[section.parentId];
+      if (!parent) return null;
+      const index = parent.children.findIndex(
+        (child) => child.kind === "section" && child.id === id
+      );
+      return {
+        index,
+        total: parent.children.length,
+      };
+    }
+
+    return null;
+  };
+
+  const renderMoveButtons = (kind, id) => {
+    const info = getSiblingInfo(kind, id);
+    const canMoveUp = info && info.index > 0;
+    const canMoveDown = info && info.index >= 0 && info.index < info.total - 1;
+
+    return (
+      <>
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            if (canMoveUp) onMoveNode?.({ kind, id, direction: "up" });
+          }}
+          disabled={!canMoveUp}
+          className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 disabled:opacity-40 disabled:cursor-not-allowed"
+          aria-label="Move up"
+        >
+          <ArrowUp className="w-3 h-3" />
+        </button>
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            if (canMoveDown) onMoveNode?.({ kind, id, direction: "down" });
+          }}
+          disabled={!canMoveDown}
+          className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 disabled:opacity-40 disabled:cursor-not-allowed"
+          aria-label="Move down"
+        >
+          <ArrowDown className="w-3 h-3" />
+        </button>
+      </>
+    );
+  };
+
   const getBlockIcon = (block) => {
     switch (block.type) {
       case "heading":
@@ -144,6 +224,7 @@ export default function BlockCanvas({
           </span>
         </button>
         <div className="flex items-center gap-1">
+          {renderMoveButtons("block", blockId)}
           <button
             type="button"
             onClick={(event) => {
@@ -209,6 +290,7 @@ export default function BlockCanvas({
             </button>
           </div>
           <div className="flex items-center gap-1">
+            {renderMoveButtons("section", sectionId)}
             <button
               type="button"
               onClick={(event) => {
