@@ -3,13 +3,23 @@ import Session from './models/Session.js';
 import { connectDB } from './config/db.js';
 
 export async function updateStatusOfSession() {
+    let isRunning = false;
+
     cron.schedule('* * * * *', async () => {
-        await connectDB();
+        if (isRunning) {
+            console.warn("[node-cron] skipped run: previous job still running");
+            return;
+        }
+
+        isRunning = true;
+        const startedAt = Date.now();
 
         try {
+            await connectDB();
+
             const activeSessions = await Session.find({
                 status: { $ne: "Completed" }
-            });
+            }).select("date time status").lean();
 
             const bulkOps = [];
 
@@ -53,12 +63,19 @@ export async function updateStatusOfSession() {
             if (bulkOps.length > 0) {
                 await Session.bulkWrite(bulkOps);
             }
-
-            return "welcome"
-
         } catch (error) {
-            // silently handle
+            console.error("[node-cron] update status failed:", error);
+        } finally {
+            isRunning = false;
+            const durationMs = Date.now() - startedAt;
+            if (durationMs > 55000) {
+                console.warn(
+                    `[node-cron] run took ${durationMs}ms; consider reducing load`
+                );
+            }
         }
+    }, {
+        timezone: "Africa/Cairo",
     })
 }
 
