@@ -86,6 +86,10 @@ function App() {
   // Track visitor on first load
   useEffect(() => {
     trackVisit();
+    const intervalId = setInterval(() => {
+      trackVisit();
+    }, 60000);
+    return () => clearInterval(intervalId);
   }, []);
 
   useEffect(() => {

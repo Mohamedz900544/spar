@@ -113,11 +113,16 @@ router.get("/dashboard", authRequired, adminOnly, async (req, res) => {
       },
     ]);
     const todayVisitors = todayAgg[0]?.total || 0;
+    const liveSince = new Date(Date.now() - 5 * 60 * 1000);
+    const liveVisitors = await SiteVisit.countDocuments({
+      lastSeen: { $gte: liveSince },
+    });
 
     /* ================= FINAL RESPONSE ================= */
     res.json({
       totalKids,        // ✅ correct kids count
       todayVisitors,    // ✅ unique visitors today
+      liveVisitors,     // ✅ active visitors last 5 minutes
       sessions: sessions,
       enrollments,      // still used for rounds
       rounds,

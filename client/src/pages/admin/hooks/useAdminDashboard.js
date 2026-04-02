@@ -250,6 +250,7 @@ export const useAdminDashboard = () => {
   // stats
   const [totalKids, setTotalKids] = useState(0);
   const [todayVisitors, setTodayVisitors] = useState(0);
+  const [liveVisitors, setLiveVisitors] = useState(0);
 
   const [isSendingGalleryImage, setIsSendingGalleryImage] = useState(false)
 
@@ -618,6 +619,9 @@ export const useAdminDashboard = () => {
       // today's visitors
       if (typeof data.todayVisitors === "number") {
         setTodayVisitors(data.todayVisitors);
+      }
+      if (typeof data.liveVisitors === "number") {
+        setLiveVisitors(data.liveVisitors);
       }
     } catch (err) {
       console.error("Admin dashboard load error:", err);
@@ -1208,6 +1212,7 @@ export const useAdminDashboard = () => {
     // stats
     totalKids,
     todayVisitors,
+    liveVisitors,
     activeSessionsCount,
     activeRoundsCount,
     publishedPhotos,

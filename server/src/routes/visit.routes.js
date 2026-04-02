@@ -20,12 +20,14 @@ router.post("/track-visit", async (req, res) => {
         .update(`${req.ip}|${req.get("user-agent") || ""}`)
         .digest("hex");
 
-    const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD
+    const now = new Date();
+    const today = now.toLocaleDateString("en-CA"); // YYYY-MM-DD
 
     await SiteVisit.updateOne(
       { date: today, visitorId: safeVisitorId },
       {
         $setOnInsert: { date: today, visitorId: safeVisitorId },
+        $set: { lastSeen: now },
         $inc: { visits: 1 },
       },
       { upsert: true }

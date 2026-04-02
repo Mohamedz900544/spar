@@ -1,7 +1,11 @@
 // src/helpers/trackVisit.js
 // Sends a simple POST to the backend on every page load to record a unique visit.
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+const RAW_BASE = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL =
+  !RAW_BASE || RAW_BASE === "undefined" || RAW_BASE === "null"
+    ? ""
+    : RAW_BASE;
 
 function getVisitorId() {
   const key = "sparvi_visitor_id";

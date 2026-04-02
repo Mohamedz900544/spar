@@ -35,18 +35,24 @@ const allowedOrigins = [
   process.env.CLIENT_URL
 ];
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error("Not allowed by CORS"));
-    },
-    credentials: true,
-  })
-);
+app.use((req, res, next) => {
+  const isVisitRoute = req.path === "/api/track-visit";
+
+  const options = isVisitRoute
+    ? { origin: true, credentials: true }
+    : {
+        origin: (origin, callback) => {
+          if (!origin) return callback(null, true);
+          if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+          }
+          return callback(new Error("Not allowed by CORS"));
+        },
+        credentials: true,
+      };
+
+  return cors(options)(req, res, next);
+});
 
 // ❌ متحطّش app.options("*", cors()) مع Express 5
 // preflight بتتعالج أوتوماتيك من cors middleware اللي فوق
