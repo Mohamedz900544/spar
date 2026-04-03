@@ -23,10 +23,10 @@ export default function PublicPreview() {
 
   useEffect(() => {
     const updateScale = () => {
-      const padding = 32;
+      const padding = 24;
       const available = window.innerWidth - padding * 2;
-      const nextScale =
-        available > 0 ? Math.min(1, available / desktopWidth) : 1;
+      const rawScale = available > 0 ? available / desktopWidth : 1;
+      const nextScale = Math.min(1, Math.max(0.3, rawScale));
       setPreviewScale(Number.isFinite(nextScale) ? nextScale : 1);
     };
 
@@ -43,29 +43,36 @@ export default function PublicPreview() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
       <BlockHeader data={headerData} />
       <h1 className="text-xl font-bold text-center mb-4">
         {data.title}
       </h1>
 
       <div className="w-full mx-auto bg-white rounded-3xl p-4 shadow overflow-hidden">
-        <div className="flex justify-center">
+        <div className="flex justify-center overflow-x-auto">
           <div
-            className="origin-top"
             style={{
-              width: `${desktopWidth}px`,
-              transform: `scale(${previewScale})`,
-              transformOrigin: "top center",
+              width: `${Math.round(desktopWidth * previewScale)}px`,
             }}
           >
-            <BlockPreview
-              builder={data.builder}
-              selection={null}
-              dragItem={null}
-              setDragItem={() => { }}
-              zoom={data.zoom}
-            />
+            <div
+              className="origin-top-left"
+              style={{
+                width: `${desktopWidth}px`,
+                transform: `scale(${previewScale})`,
+                transformOrigin: "top left",
+              }}
+            >
+              <BlockPreview
+                builder={data.builder}
+                selection={null}
+                dragItem={null}
+                setDragItem={() => { }}
+                zoom={1}
+                frame={false}
+              />
+            </div>
           </div>
         </div>
       </div>

@@ -27,6 +27,7 @@ export default function BlockPreview({
   onMoveExistingNode,
   zoom = 1,
   breadcrumb,
+  frame = true,
 }) {
   const [hoverSectionId, setHoverSectionId] = useState(null);
   const [hoverRoot, setHoverRoot] = useState(false);
@@ -503,6 +504,37 @@ export default function BlockPreview({
 
   const zoomScale = zoom || 1;
 
+  const pageBody = (
+    <div
+      style={{
+        transform: `scale(${zoomScale})`,
+        transformOrigin: "top left",
+      }}
+    >
+      <div className="bg-white rounded-2xl border border-slate-100 px-4 py-5 min-h-[220px]">
+        {builder.rootSectionIds.length === 0 && (
+          <div
+            className={`flex items-center justify-center text-xs text-slate-400 text-center px-4 py-10 rounded-2xl border border-dashed ${
+              hoverRoot
+                ? "border-sky-400 bg-sky-50/60"
+                : "border-slate-200"
+            }`}
+          >
+            Drag a Section from the toolbox to start building your page.
+          </div>
+        )}
+
+        {builder.rootSectionIds.map((sectionId) =>
+          renderSection(sectionId, 0)
+        )}
+      </div>
+    </div>
+  );
+
+  if (!frame) {
+    return <div className="relative">{pageBody}</div>;
+  }
+
   return (
     <div className="rounded-3xl bg-white border border-slate-100 shadow-sm p-3 h-full flex flex-col">
       <div className="flex items-center justify-between mb-2">
@@ -549,30 +581,7 @@ export default function BlockPreview({
           <div className="h-2 w-2 rounded-full bg-emerald-400" />
         </div>
 
-        <div
-          style={{
-            transform: `scale(${zoomScale})`,
-            transformOrigin: "top left",
-          }}
-        >
-          <div className="bg-white rounded-2xl border border-slate-100 px-4 py-5 min-h-[220px]">
-            {builder.rootSectionIds.length === 0 && (
-              <div
-                className={`flex items-center justify-center text-xs text-slate-400 text-center px-4 py-10 rounded-2xl border border-dashed ${
-                  hoverRoot
-                    ? "border-sky-400 bg-sky-50/60"
-                    : "border-slate-200"
-                }`}
-              >
-                Drag a Section from the toolbox to start building your page.
-              </div>
-            )}
-
-            {builder.rootSectionIds.map((sectionId) =>
-              renderSection(sectionId, 0)
-            )}
-          </div>
-        </div>
+        {pageBody}
       </div>
     </div>
   );
