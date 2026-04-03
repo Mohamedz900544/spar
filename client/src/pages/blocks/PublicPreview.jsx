@@ -43,14 +43,14 @@ export default function PublicPreview() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6 overflow-x-hidden">
       <BlockHeader data={headerData} />
       <h1 className="text-xl font-bold text-center mb-4">
         {data.title}
       </h1>
 
       <div className="w-full mx-auto bg-white rounded-3xl p-4 shadow overflow-hidden">
-        <div className="flex justify-center overflow-x-auto">
+        <div className="flex justify-center overflow-hidden">
           <div
             style={{
               width: `${Math.round(desktopWidth * previewScale)}px`,
