@@ -16,13 +16,13 @@ const lessons = [
   },
   {
     id: 2,
-    title: "Play with Colors & Layout",
-    description: "Change colors, backgrounds and organise elements.",
+    title: "Play with Colors and Layout",
+    description: "Change colors, backgrounds and organize elements.",
     tag: "Level 2",
   },
   {
     id: 3,
-    title: "Buttons & Simple Actions",
+    title: "Buttons and Simple Actions",
     description: "Make buttons that feel alive on hover and click.",
     tag: "Level 3",
   },
@@ -30,21 +30,21 @@ const lessons = [
 
 export default function BlocksHome() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-amber-50">
-      <div className="max-w-6xl mx-auto px-4 pb-16 pt-28">
+    <div className="min-h-screen overflow-x-auto bg-gradient-to-b from-sky-50 via-white to-amber-50">
+      <div className="max-w-6xl mx-auto px-8 pb-16 pt-28 min-w-[1100px]">
         {/* Hero */}
-        <div className="grid md:grid-cols-2 gap-10 items-center mb-16">
+        <div className="grid grid-cols-2 gap-10 items-center mb-16">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full bg-sky-100 px-3 py-1 text-xs font-medium text-sky-700 mb-4">
               <Sparkles className="w-4 h-4" />
-              Brand new · Kids Frontend Lab
+              Brand new - Kids Frontend Lab
             </div>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4 leading-tight">
+            <h1 className="text-4xl font-extrabold text-slate-900 mb-4 leading-tight">
               Let kids design{" "}
-              <span className="text-sky-600">web pages with blocks</span> 🧱
+              <span className="text-sky-600">web pages with blocks</span>
             </h1>
-            <p className="text-slate-600 text-sm md:text-base mb-6 leading-relaxed">
-              No scary code. Kids drag colourful blocks to build a real web
+            <p className="text-slate-600 text-base mb-6 leading-relaxed">
+              No scary code. Kids drag colorful blocks to build a real web
               page, then see the code that powers it. Perfect for curious
               minds who love to create.
             </p>
@@ -60,10 +60,10 @@ export default function BlocksHome() {
 
               <div className="flex items-center gap-3 text-xs text-slate-500">
                 <div className="h-9 w-9 rounded-2xl bg-amber-100 flex items-center justify-center text-amber-700 text-lg">
-                  🙂
+                  :)
                 </div>
-                <p className="max-w-[180px] leading-snug">
-                  Designed for ages 7–11.
+                <p className="max-w-[200px] leading-snug">
+                  Designed for ages 7-11.
                   <br />
                   Safe, simple and playful.
                 </p>
@@ -73,7 +73,7 @@ export default function BlocksHome() {
 
           {/* Cute preview card */}
           <div className="relative">
-            <div className="rounded-3xl bg-white shadow-xl shadow-sky-100 border border-sky-50 p-4 md:p-5">
+            <div className="rounded-3xl bg-white shadow-xl shadow-sky-100 border border-sky-50 p-5">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <div className="h-8 w-8 rounded-2xl bg-sky-100 flex items-center justify-center">
@@ -84,7 +84,7 @@ export default function BlocksHome() {
                       Kids Page Builder
                     </p>
                     <p className="text-[10px] text-slate-400">
-                      Drag · Drop · Play
+                      Drag - Drop - Play
                     </p>
                   </div>
                 </div>
@@ -119,6 +119,7 @@ export default function BlocksHome() {
               </div>
             </div>
 
+            <div className="absolute -left-3 -bottom-3 h-16 w-16 rounded-3xl bg-amber-200/60 blur-xl" />
             <div className="absolute -right-4 -top-4 h-14 w-14 rounded-3xl bg-sky-200/60 blur-xl" />
           </div>
         </div>
@@ -132,7 +133,7 @@ export default function BlocksHome() {
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             {lessons.map((lesson) => (
               <div
                 key={lesson.id}
@@ -158,14 +159,14 @@ export default function BlocksHome() {
         </div>
 
         {/* CTA bar */}
-        <div className="mt-8 rounded-3xl bg-sky-600 text-white px-5 py-4 flex flex-col md:flex-row items-center justify-between gap-3 shadow-lg shadow-sky-200">
-          <div className="text-sm md:text-base font-semibold">
+        <div className="mt-8 rounded-3xl bg-sky-600 text-white px-5 py-4 flex flex-row items-center justify-between gap-3 shadow-lg shadow-sky-200">
+          <div className="text-base font-semibold">
             Ready for your child to build their first website?
           </div>
           <div className="flex gap-3">
             <Link
               to="/blocks/play"
-              className="rounded-2xl bg-white/95 text-sky-700 text-xs md:text-sm px-4 py-2 font-semibold hover:bg-white transition"
+              className="rounded-2xl bg-white/95 text-sky-700 text-xs px-4 py-2 font-semibold hover:bg-white transition"
             >
               Open the playground
             </Link>
