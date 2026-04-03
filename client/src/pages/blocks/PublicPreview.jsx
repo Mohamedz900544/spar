@@ -37,9 +37,14 @@ export default function PublicPreview() {
 
   if (!data) return <div className="p-10 text-center">Loading preview...</div>;
 
+  const headerData = {
+    ...(data.user || {}),
+    name: data.childName || data.user?.name || "Shared page",
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 p-6">
-      <BlockHeader data={data.user} />
+      <BlockHeader data={headerData} />
       <h1 className="text-xl font-bold text-center mb-4">
         {data.title}
       </h1>
