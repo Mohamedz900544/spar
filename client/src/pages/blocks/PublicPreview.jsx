@@ -50,20 +50,23 @@ export default function PublicPreview() {
       </h1>
 
       <div className="w-full mx-auto bg-white rounded-3xl p-4 shadow overflow-hidden">
-        <div
-          className="origin-top-left"
-          style={{
-            width: `${desktopWidth}px`,
-            transform: `scale(${previewScale})`,
-          }}
-        >
-          <BlockPreview
-            builder={data.builder}
-            selection={null}
-            dragItem={null}
-            setDragItem={() => { }}
-            zoom={data.zoom}
-          />
+        <div className="flex justify-center">
+          <div
+            className="origin-top"
+            style={{
+              width: `${desktopWidth}px`,
+              transform: `scale(${previewScale})`,
+              transformOrigin: "top center",
+            }}
+          >
+            <BlockPreview
+              builder={data.builder}
+              selection={null}
+              dragItem={null}
+              setDragItem={() => { }}
+              zoom={data.zoom}
+            />
+          </div>
         </div>
       </div>
     </div>
