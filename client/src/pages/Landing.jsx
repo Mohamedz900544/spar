@@ -202,6 +202,12 @@ const HERO_VIDEOS = [
     name: "Mostafa Fouda",
     meta: "Grade 5 | Egypt",
   },
+  {
+    thumbnail: "https://i.ibb.co/TBS3Rh2Q/image.png",
+    ytSrc: "https://www.youtube.com/embed/Kt8t_SFfsv8?autoplay=1&playsinline=1&rel=0&modestbranding=1",
+    name: "Berry Amr",
+    meta: "Grade 5 | Egypt",
+  },
 ];
 
 const gifToVideo = (gifUrl, ext) =>
@@ -402,6 +408,42 @@ const Landing = () => {
               className="w-[130%] max-w-none drop-shadow-[0_20px_40px_rgba(0,0,0,0.4)] relative z-10"
             />
           </Motion.div>
+        </div>
+      </section>
+
+      {/* ============================
+         HEAR FROM OUR HEROES
+         ============================ */}
+      <section className="py-14 md:py-20 px-6 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-8 md:mb-10">
+            <h2
+              className="text-2xl md:text-4xl font-display"
+              style={{
+                fontWeight: 800,
+                lineHeight: 1.15,
+                letterSpacing: "-0.02em",
+                background: "linear-gradient(135deg, #0f172a 0%, #2563eb 50%, #06b6d4 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              {t("landing.heroes.title")}
+            </h2>
+          </div>
+
+          <div className="flex flex-wrap justify-center gap-5 md:gap-8">
+            {HERO_VIDEOS.map((video, index) => (
+              <VideoCard
+                key={`${video.name}-${index}`}
+                thumbnail={video.thumbnail}
+                ytSrc={video.ytSrc}
+                name={video.name}
+                meta={video.meta}
+              />
+            ))}
+          </div>
         </div>
       </section>
 
