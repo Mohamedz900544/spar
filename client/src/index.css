@@ -443,7 +443,7 @@ button {
 .sparvi-hero-video-wrapper {
   position: relative;
   width: 160px !important;
-  margin: 0 auto;
+  /* margin: 0 auto; */
 }
 
 /* Thumbnail layer */
