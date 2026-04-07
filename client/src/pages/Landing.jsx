@@ -256,8 +256,7 @@ const VideoCard = ({ thumbnail, ytSrc, name, meta }) => {
     <div className="sparvi-hero-video-wrapper">
       {/* ── Thumbnail layer ── */}
       <div
-        className="sparvi-hero-thumbnail"
-        style={{ display: playing ? "none" : undefined }}
+        className={`sparvi-hero-thumbnail${playing ? " is-hidden" : ""}`}
         onClick={() => setPlaying(true)}
       >
         <img

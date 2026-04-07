@@ -443,18 +443,27 @@ button {
 .sparvi-hero-video-wrapper {
   position: relative;
   width: 160px !important;
+  aspect-ratio: 9 / 16;
+  background: transparent;
+  border-radius: 28px;
+  overflow: hidden;
   /* margin: 0 auto; */
 }
 
 /* Thumbnail layer */
 .sparvi-hero-thumbnail {
-  position: relative;
+  position: absolute;
+  inset: 0;
   overflow: hidden;
   border-radius: 28px;
   cursor: pointer;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
-  aspect-ratio: 9 / 16;
-  background: #111;
+  transition: opacity 0.25s ease;
+}
+
+.sparvi-hero-thumbnail.is-hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* The actual thumbnail img */
@@ -615,11 +624,14 @@ button {
   inset: 0;
   border-radius: 28px;
   overflow: hidden;
-  display: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
 }
 
 .sparvi-hero-iframe.active {
-  display: block;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .sparvi-hero-iframe-el {
