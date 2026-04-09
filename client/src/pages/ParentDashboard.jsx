@@ -18,6 +18,8 @@ import {
   LayoutDashboard,
   RefreshCw,
   BookOpen,
+  Settings,
+  Play,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import PropTypes from "prop-types";
@@ -319,15 +321,15 @@ const ParentDashboard = ({ parent, setParent }) => {
     <div className="min-h-screen bg-gradient-to-b from-[#f8fafc] to-white flex flex-col font-sans">
       {/* ===== Sticky Navbar ===== */}
       <nav
-        className="sticky top-0 z-50 border-b border-white/10"
-        style={{ background: "linear-gradient(135deg, #071228 0%, #102a5a 50%, #1a3a6b 100%)" }}
+        className="sticky top-0 z-50 border-b border-white/10 shadow-lg"
+        style={{ background: "linear-gradient(135deg, #071228 0%, #102a5a 55%, #1a3a6b 100%)" }}
       >
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             {/* Left: Logo */}
             <Link to="/" className="flex items-center gap-3 shrink-0">
-              <img src="/logo-white.png" alt="Sparvi Lab" className="h-7" />
-              <span className="hidden md:inline text-xs font-semibold text-[#FBBF24] border border-[#FBBF24]/30 rounded-full px-2.5 py-0.5" style={{ background: "rgba(251,191,36,0.08)" }}>
+              <img src="/logo-white.png" alt="Sparvi Lab" className="h-8" />
+              <span className="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border border-[#FBBF24]/30 text-[#FBBF24]" style={{ background: "rgba(251,191,36,0.08)" }}>
                 Parent Portal
               </span>
             </Link>
@@ -341,7 +343,7 @@ const ParentDashboard = ({ parent, setParent }) => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`relative flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                    className={`relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                       isActive
                         ? "bg-white/15 text-white shadow-sm"
                         : "text-white/50 hover:text-white/80 hover:bg-white/5"
@@ -361,27 +363,64 @@ const ParentDashboard = ({ parent, setParent }) => {
               })}
             </div>
 
-            {/* Right: Actions */}
-            <div className="flex items-center gap-2 shrink-0">
-              {parent?.name && (
-                <span className="hidden lg:inline text-xs text-white/60 font-medium">
-                  {parent.name.split(" ")[0]}
-                </span>
-              )}
+            {/* Right: User Info + Avatar Dropdown */}
+            <div className="flex items-center gap-3 shrink-0">
+              {/* Refresh */}
               <button
                 onClick={loadDashboard}
                 disabled={loading}
-                className="flex items-center gap-1.5 text-xs text-white/60 hover:text-white px-2.5 py-2 rounded-xl hover:bg-white/5 transition-all"
+                className="flex items-center text-white/50 hover:text-white p-2 rounded-xl hover:bg-white/5 transition-all"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+                <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
               </button>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-1.5 text-xs text-white/60 hover:text-white px-2.5 py-2 rounded-xl hover:bg-white/5 transition-all"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Sign Out</span>
-              </button>
+
+              {/* User name (desktop) */}
+              <div className="text-right hidden md:block">
+                <p className="text-sm font-bold text-white">{parent?.name || "Parent"}</p>
+                <p className="text-[10px] text-[#FBBF24] font-semibold uppercase tracking-widest">Parent</p>
+              </div>
+
+              {/* Avatar + Dropdown */}
+              <div className="relative group cursor-pointer">
+                <div className="w-10 h-10 rounded-full border-2 border-[#FBBF24]/40 shadow-md overflow-hidden bg-white/10 ring-2 ring-white/10">
+                  <div className="w-full h-full flex items-center justify-center bg-white/10 text-white">
+                    <User className="w-5 h-5" />
+                  </div>
+                </div>
+
+                {/* Dropdown Menu */}
+                <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-xl border border-slate-100 p-2 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all transform origin-top-right z-50">
+                  <Link
+                    to="/parent/"
+                    className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50 rounded-lg font-medium transition-colors"
+                  >
+                    <LayoutDashboard className="w-4 h-4 text-[#102a5a]" />
+                    Dashboard
+                  </Link>
+                  <Link
+                    to="/parent/profile"
+                    className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50 rounded-lg font-medium transition-colors"
+                  >
+                    <Settings className="w-4 h-4 text-slate-500" />
+                    Settings
+                  </Link>
+                  <Link
+                    to="/blocks/"
+                    className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50 rounded-lg font-medium transition-colors"
+                  >
+                    <Play className="w-4 h-4 text-[#FBBF24]" />
+                    Blocks
+                  </Link>
+                  <div className="my-1 border-t border-slate-100" />
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Logout
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
