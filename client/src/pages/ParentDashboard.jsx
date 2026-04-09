@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { motion as Motion } from "framer-motion";
+import { motion as Motion, AnimatePresence } from "framer-motion";
 import {
   Users,
   CalendarClock,
@@ -15,11 +15,22 @@ import {
   Zap,
   ArrowRight,
   User,
+  LayoutDashboard,
+  RefreshCw,
+  BookOpen,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import PropTypes from "prop-types";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+/* ====== TABS ====== */
+const TABS = [
+  { id: "overview", label: "Overview", icon: LayoutDashboard },
+  { id: "rounds", label: "My Rounds", icon: BookOpen },
+  { id: "gallery", label: "Gallery", icon: ImageIcon },
+  { id: "feedback", label: "Feedback", icon: Star },
+];
 
 /* ====== RATING STARS ====== */
 const RatingStars = ({ value, onChange, disabled }) => (
@@ -28,14 +39,12 @@ const RatingStars = ({ value, onChange, disabled }) => (
       <button
         key={star}
         type="button"
-        onClick={() => {
-          if (!disabled) onChange(star);
-        }}
+        onClick={() => { if (!disabled) onChange(star); }}
         disabled={disabled}
         className={`focus:outline-none transform transition-all duration-200 p-1 hover:scale-110 active:scale-90 flex-shrink-0 ${disabled ? "opacity-70 cursor-not-allowed hover:scale-100 active:scale-100" : ""}`}
       >
         <Star
-          className={`w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 transition-all duration-300 ${value && star <= value
+          className={`w-4 h-4 sm:w-5 sm:h-5 transition-all duration-300 ${value && star <= value
             ? "fill-[#FBBF24] text-[#FBBF24] drop-shadow-[0_2px_4px_rgba(251,191,36,0.4)]"
             : "fill-slate-200 text-slate-300 hover:text-[#FBBF24]/60"
             }`}
@@ -74,7 +83,7 @@ const getCountdownLabel = (diffMs) => {
   const hour = 60 * minute;
   const day = 24 * hour;
   const week = 7 * day;
-  if (diffMs <= 30 * minute) return "in 30 minutes";
+  if (diffMs <= 30 * minute) return "in 30 min";
   if (diffMs <= hour) return "in 1 hour";
   if (diffMs <= day) return "in 1 day";
   if (diffMs <= week) return "in 1 week";
@@ -94,8 +103,12 @@ const formatCountdown = (diffMs) => {
 };
 
 /* ====== STAT CARD ====== */
-const StatCard = ({ icon: Icon, label, value, accent, subtext }) => (
-  <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow group">
+const StatCard = ({ icon: Icon, label, value, accent, subtext, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-all group text-left w-full"
+  >
     <div className="flex items-center gap-4">
       <div
         className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform"
@@ -114,7 +127,7 @@ const StatCard = ({ icon: Icon, label, value, accent, subtext }) => (
         )}
       </div>
     </div>
-  </div>
+  </button>
 );
 
 /* ================= PARENT DASHBOARD ================= */
@@ -128,7 +141,6 @@ const ParentDashboard = ({ parent, setParent }) => {
 
   const [roundCodeInput, setRoundCodeInput] = useState("");
   const [linkedRounds, setLinkedRounds] = useState([]);
-  const [selectedRoundCode, setSelectedRoundCode] = useState(null);
   const [linkErrorMessage, setLinkErrorMessage] = useState("");
 
   const [sessionRatings, setSessionRatings] = useState({});
@@ -138,15 +150,12 @@ const ParentDashboard = ({ parent, setParent }) => {
 
   const [selectedChildId, setSelectedChildId] = useState("");
   const [isEnrollingChild, setIsEnrollingChild] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
 
   const getToken = () =>
-    typeof window !== "undefined"
-      ? localStorage.getItem("sparvi_token")
-      : null;
+    typeof window !== "undefined" ? localStorage.getItem("sparvi_token") : null;
   const getRole = () =>
-    typeof window !== "undefined"
-      ? localStorage.getItem("sparvi_role")
-      : null;
+    typeof window !== "undefined" ? localStorage.getItem("sparvi_role") : null;
 
   const hasCompletedProfile = (user) => {
     const firstChild = user?.children?.[0];
@@ -158,12 +167,11 @@ const ParentDashboard = ({ parent, setParent }) => {
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
+  const loadDashboard = async () => {
     const token = getToken();
     const role = getRole();
     if (!token || role !== "parent") { navigate("/login"); return; }
 
-    const controller = new AbortController();
     const enrichRoundsWithAllPhotos = (apiData) => {
       const { rounds, enrollments, studentPhotos } = apiData;
       return rounds.map((round) => {
@@ -173,37 +181,36 @@ const ParentDashboard = ({ parent, setParent }) => {
       });
     };
 
-    const loadDashboard = async () => {
-      try {
-        setLoading(true);
-        setGlobalError("");
-        const res = await fetch(`${API_BASE_URL}/api/parent/dashboard`, {
-          headers: { Authorization: `Bearer ${token}` },
-          signal: controller.signal,
-        });
-        if (res.status === 401) {
-          localStorage.removeItem("sparvi_token");
-          localStorage.removeItem("sparvi_role");
-          localStorage.removeItem("sparvi_user");
-          navigate("/login");
-          return;
-        }
-        const json = await res.json();
-        if (!res.ok) throw new Error(json.message || "Failed to load dashboard");
-        if (!hasCompletedProfile(json.parent)) { navigate("/parent/profile"); return; }
-        setParent(json.parent);
-        setEnrollments(json.enrollments || []);
-        setRounds(enrichRoundsWithAllPhotos(json));
-        setLinkedRounds((json.rounds || []).map((r) => r.code));
-      } catch (err) {
-        if (err?.name === "AbortError") return;
-        setGlobalError(err.message || "Could not load dashboard data.");
-      } finally {
-        setLoading(false);
+    try {
+      setLoading(true);
+      setGlobalError("");
+      const res = await fetch(`${API_BASE_URL}/api/parent/dashboard`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.status === 401) {
+        localStorage.removeItem("sparvi_token");
+        localStorage.removeItem("sparvi_role");
+        localStorage.removeItem("sparvi_user");
+        navigate("/login");
+        return;
       }
-    };
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || "Failed to load dashboard");
+      if (!hasCompletedProfile(json.parent)) { navigate("/parent/profile"); return; }
+      setParent(json.parent);
+      setEnrollments(json.enrollments || []);
+      setRounds(enrichRoundsWithAllPhotos(json));
+      setLinkedRounds((json.rounds || []).map((r) => r.code));
+    } catch (err) {
+      if (err?.name === "AbortError") return;
+      setGlobalError(err.message || "Could not load dashboard data.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     loadDashboard();
-    return () => controller.abort();
   }, [navigate, setParent]);
 
   const handleLinkRound = async (e) => {
@@ -227,11 +234,11 @@ const ParentDashboard = ({ parent, setParent }) => {
       if (json.round) {
         setRounds((prev) => prev.some((r) => r.code === json.round.code) ? prev : [...prev, json.round]);
         setLinkedRounds((prev) => prev.includes(json.round.code) ? prev : [...prev, json.round.code]);
-        setSelectedRoundCode(json.round.code);
       }
       if (Array.isArray(json.enrollments)) setEnrollments(json.enrollments);
       toast.success("Child enrolled successfully");
       setRoundCodeInput("");
+      setActiveTab("rounds");
     } catch (err) {
       setLinkErrorMessage(err.message || "Could not link this round.");
     } finally {
@@ -244,6 +251,27 @@ const ParentDashboard = ({ parent, setParent }) => {
     [linkedRounds, rounds]
   );
   const getChildrenForRound = (roundCode) => enrollments.filter((e) => e.roundCode === roundCode);
+
+  const allPhotos = useMemo(() => {
+    return visibleRounds.flatMap((round) =>
+      (round.photos || []).map((photo) => ({ ...photo, roundName: round.name, roundCode: round.code }))
+    );
+  }, [visibleRounds]);
+
+  const allSessions = useMemo(() => {
+    return visibleRounds.flatMap((round) =>
+      (round.sessions || []).map((session) => ({
+        ...session,
+        roundCode: round.code,
+        roundName: round.name,
+      }))
+    );
+  }, [visibleRounds]);
+
+  const completedSessions = useMemo(
+    () => allSessions.filter((s) => s.status === "Completed"),
+    [allSessions]
+  );
 
   const handleSessionRatingChange = (roundCode, sessionId, rating) => {
     setSessionRatings((prev) => ({ ...prev, [`${roundCode}-${sessionId}`]: rating }));
@@ -270,7 +298,7 @@ const ParentDashboard = ({ parent, setParent }) => {
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || "Could not save rating");
       setRatingSubmitted((prev) => ({ ...prev, [key]: true }));
-      toast.success("Feedback submitted successfully!");
+      toast.success("Feedback submitted!");
     } catch {
       toast.error("Failed to submit feedback.");
     }
@@ -286,532 +314,535 @@ const ParentDashboard = ({ parent, setParent }) => {
     navigate("/login");
   };
 
+  /* ================================================================== */
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#f8fafc] to-white flex flex-col font-sans">
-      {/* ===== Top Banner ===== */}
-      <div
-        className="relative overflow-hidden"
-        style={{
-          background: "linear-gradient(135deg, #071228 0%, #102a5a 50%, #1a3a6b 100%)",
-        }}
+      {/* ===== Sticky Navbar ===== */}
+      <nav
+        className="sticky top-0 z-50 border-b border-white/10"
+        style={{ background: "linear-gradient(135deg, #071228 0%, #102a5a 50%, #1a3a6b 100%)" }}
       >
-        {/* Decorative shapes (static – no GPU-heavy blur animations) */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-[15%] left-[10%] w-3 h-3 rounded-full bg-[#FBBF24]/30" />
-          <div className="absolute top-[40%] right-[15%] w-2 h-2 rounded-full bg-[#2dd4bf]/40" />
-          <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-[#FBBF24]/5 opacity-60" />
-          <div className="absolute bottom-0 left-1/4 w-60 h-60 rounded-full bg-[#2dd4bf]/5 opacity-60" />
-        </div>
-
-        <div className="relative z-10 max-w-6xl mx-auto px-5 pt-8 pb-20">
-          {/* Top bar */}
-          {/* <div className="flex items-center justify-between mb-8">
-            <Link to="/" className="inline-flex items-center gap-2">
-              <div className="w-9 h-9 rounded-xl bg-[#FBBF24] flex items-center justify-center">
-                <Zap className="w-4 h-4 text-[#102a5a]" />
-              </div>
-              <span className="text-white font-bold text-lg tracking-tight">
-                Sparvi Lab
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-between h-16">
+            {/* Left: Logo */}
+            <Link to="/" className="flex items-center gap-3 shrink-0">
+              <img src="/logo-white.png" alt="Sparvi Lab" className="h-7" />
+              <span className="hidden md:inline text-xs font-semibold text-[#FBBF24] border border-[#FBBF24]/30 rounded-full px-2.5 py-0.5" style={{ background: "rgba(251,191,36,0.08)" }}>
+                Parent Portal
               </span>
             </Link>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Sign Out</span>
-            </button>
-          </div> */}
 
-          {/* Welcome text */}
-          <Motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6 }}
-          >
+            {/* Center: Tab Navigation */}
+            <div className="flex items-center gap-1">
+              {TABS.map((tab) => {
+                const isActive = activeTab === tab.id;
+                const TabIcon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`relative flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                      isActive
+                        ? "bg-white/15 text-white shadow-sm"
+                        : "text-white/50 hover:text-white/80 hover:bg-white/5"
+                    }`}
+                  >
+                    <TabIcon className="w-4 h-4" />
+                    <span className="hidden sm:inline">{tab.label}</span>
+                    {isActive && (
+                      <Motion.div
+                        layoutId="parentTabIndicator"
+                        className="absolute -bottom-[1px] left-3 right-3 h-0.5 bg-[#FBBF24] rounded-full"
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
 
-            <h1 className="text-3xl md:text-4xl font-extrabold text-white leading-tight mb-3">
-              Welcome back
-              {parent?.name ? <>, <span className="text-[#FBBF24]">{parent.name.split(" ")[0]}</span></> : ""}
-              <span className="text-[#FBBF24]">!</span>
-            </h1>
-            <p className="text-slate-300 text-base max-w-lg">
-              Track sessions, browse project photos, and share feedback — all
-              in one place.
-            </p>
-          </Motion.div>
+            {/* Right: Actions */}
+            <div className="flex items-center gap-2 shrink-0">
+              {parent?.name && (
+                <span className="hidden lg:inline text-xs text-white/60 font-medium">
+                  {parent.name.split(" ")[0]}
+                </span>
+              )}
+              <button
+                onClick={loadDashboard}
+                disabled={loading}
+                className="flex items-center gap-1.5 text-xs text-white/60 hover:text-white px-2.5 py-2 rounded-xl hover:bg-white/5 transition-all"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-1.5 text-xs text-white/60 hover:text-white px-2.5 py-2 rounded-xl hover:bg-white/5 transition-all"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Sign Out</span>
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      </nav>
 
       {/* ===== Main Content ===== */}
-      <main className="flex-1 px-4 sm:px-6 lg:px-8 -mt-10 pb-12 relative z-10">
-        <div className="max-w-6xl mx-auto space-y-8">
-          {/* Global Error */}
-          {globalError && (
-            <div className="bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-2xl px-5 py-3.5 flex items-start gap-3 shadow-sm">
-              <svg className="w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p>{globalError}</p>
-            </div>
-          )}
+      <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-6xl mx-auto space-y-6">
+          {/* Error */}
+          <AnimatePresence>
+            {globalError && (
+              <Motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-2xl px-5 py-3.5 flex items-start gap-3 shadow-sm"
+              >
+                <svg className="w-5 h-5 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p>{globalError}</p>
+                <button onClick={() => setGlobalError("")} className="ml-auto text-rose-400 hover:text-rose-600 text-lg font-bold leading-none">&times;</button>
+              </Motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Loading */}
           {loading && (
-            <div className="bg-white/80 backdrop-blur-xl rounded-3xl border border-white/60 p-16 text-center shadow-lg flex flex-col items-center">
+            <div className="bg-white rounded-2xl border border-slate-100 p-16 text-center shadow-sm flex flex-col items-center">
               <div className="w-10 h-10 border-3 border-[#FBBF24]/30 border-t-[#FBBF24] rounded-full animate-spin mb-4" />
-              <p className="text-sm font-medium text-slate-500">
-                Loading your dashboard…
-              </p>
+              <p className="text-sm font-medium text-slate-500">Loading your dashboard…</p>
             </div>
           )}
 
-          {/* Stats + Enrollment Row */}
-          {!loading && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-              {/* Stats */}
-              <StatCard
-                icon={CalendarClock}
-                label="Linked Rounds"
-                value={linkedRounds.length}
-                accent="#102a5a"
-              />
-              <StatCard
-                icon={Users}
-                label="Active Children"
-                value={
-                  visibleRounds.length
-                    ? enrollments.filter((e) => linkedRounds.includes(e.roundCode)).length
-                    : 0
-                }
-                accent="#10b981"
-              />
-              <StatCard
-                icon={ImageIcon}
-                label="Media Gallery"
-                accent="#FBBF24"
-                subtext="In-person session photos"
-              />
-            </div>
-          )}
-
-          {/* Enrollment Card */}
-          {!loading && (
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-7 md:p-8">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-11 h-11 rounded-2xl bg-[#FBBF24]/10 flex items-center justify-center flex-shrink-0">
-                  <KeyRound className="w-5 h-5 text-[#FBBF24]" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold text-[#102a5a]">
-                    Enroll a Child
-                  </h2>
-                  <p className="text-sm text-slate-500">
-                    Enter the round code from the lab
-                  </p>
-                </div>
+          {/* ===== TAB: OVERVIEW ===== */}
+          {!loading && activeTab === "overview" && (
+            <Motion.div key="overview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+              {/* Welcome */}
+              <div
+                className="rounded-2xl p-6 md:p-8 relative overflow-hidden"
+                style={{ background: "linear-gradient(135deg, #071228 0%, #102a5a 50%, #1a3a6b 100%)" }}
+              >
+                <div className="absolute top-4 right-6 w-20 h-20 rounded-full bg-[#FBBF24]/10" />
+                <div className="absolute bottom-2 left-1/3 w-12 h-12 rounded-full bg-[#2dd4bf]/10" />
+                <h1 className="text-2xl md:text-3xl font-extrabold text-white leading-tight mb-2 relative z-10">
+                  Welcome back{parent?.name ? <>, <span className="text-[#FBBF24]">{parent.name.split(" ")[0]}</span></> : ""}!
+                </h1>
+                <p className="text-slate-300 text-sm max-w-lg relative z-10">
+                  Track sessions, browse project photos, and share feedback — all in one place.
+                </p>
               </div>
 
-              <form
-                onSubmit={handleLinkRound}
-                className="flex flex-col sm:flex-row gap-3"
-              >
-                <div className="relative flex-1">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <select
-                    value={selectedChildId}
-                    onChange={(e) => setSelectedChildId(e.target.value)}
-                    className="w-full appearance-none rounded-2xl border border-slate-200 bg-slate-50/50 pl-11 pr-10 py-3.5 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all"
+              {/* Stats Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <StatCard icon={BookOpen} label="Linked Rounds" value={linkedRounds.length} accent="#102a5a" onClick={() => setActiveTab("rounds")} />
+                <StatCard icon={Users} label="Active Children" value={visibleRounds.length ? enrollments.filter((e) => linkedRounds.includes(e.roundCode)).length : 0} accent="#10b981" onClick={() => setActiveTab("rounds")} />
+                <StatCard icon={ImageIcon} label="Photos" value={allPhotos.length} accent="#FBBF24" onClick={() => setActiveTab("gallery")} />
+                <StatCard icon={Star} label="Sessions to Rate" value={completedSessions.filter((s) => !s.userRating).length} accent="#8b5cf6" onClick={() => setActiveTab("feedback")} />
+              </div>
+
+              {/* Enroll Card */}
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 md:p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-[#FBBF24]/10 flex items-center justify-center shrink-0">
+                    <KeyRound className="w-5 h-5 text-[#FBBF24]" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-[#102a5a]">Enroll a Child</h2>
+                    <p className="text-xs text-slate-500">Enter the round code provided by the lab</p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleLinkRound} className="flex flex-col sm:flex-row gap-2">
+                  <div className="relative flex-1">
+                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <select
+                      value={selectedChildId}
+                      onChange={(e) => setSelectedChildId(e.target.value)}
+                      className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-10 py-2.5 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24]"
+                    >
+                      <option value="" disabled>Select child…</option>
+                      {parent?.children?.map((child, i) => (
+                        <option key={child._id || child.id || i} value={child._id || child.id}>
+                          {child.name || child.childName}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  </div>
+
+                  <div className="relative flex-1">
+                    <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="text"
+                      value={roundCodeInput}
+                      onChange={(e) => setRoundCodeInput(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] uppercase font-mono tracking-wide"
+                      placeholder="SPRV-101"
+                    />
+                  </div>
+
+                  <Motion.button
+                    type="submit"
+                    disabled={isEnrollingChild}
+                    className="flex items-center justify-center gap-2 rounded-xl bg-[#FBBF24] hover:bg-[#F59E0B] text-[#102a5a] font-bold px-6 py-2.5 shadow-sm hover:shadow-md transition-all disabled:opacity-60 text-sm whitespace-nowrap"
+                    whileTap={{ scale: 0.97 }}
                   >
-                    <option value="" disabled>
-                      Select child…
-                    </option>
-                    {parent?.children?.map((child, i) => (
-                      <option
-                        key={child._id || child.id || i}
-                        value={child._id || child.id}
-                      >
-                        {child.name || child.childName}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                </div>
+                    {isEnrollingChild ? (
+                      <div className="w-5 h-5 border-2 border-[#102a5a]/30 border-t-[#102a5a] rounded-full animate-spin" />
+                    ) : (
+                      <>Enroll <ArrowRight className="w-4 h-4" /></>
+                    )}
+                  </Motion.button>
+                </form>
 
-                <div className="relative flex-1">
-                  <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type="text"
-                    value={roundCodeInput}
-                    onChange={(e) => setRoundCodeInput(e.target.value)}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-11 pr-4 py-3.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all uppercase font-mono tracking-wide"
-                    placeholder="SPRV-101"
-                  />
-                </div>
-
-                <Motion.button
-                  type="submit"
-                  disabled={isEnrollingChild}
-                  className="flex items-center justify-center gap-2 rounded-2xl bg-[#FBBF24] hover:bg-[#F59E0B] text-[#102a5a] font-bold px-8 py-3.5 shadow-[0_8px_25px_rgba(251,191,36,0.3)] hover:shadow-[0_12px_35px_rgba(251,191,36,0.4)] transition-all disabled:opacity-60 text-sm whitespace-nowrap"
-                  whileTap={{ scale: 0.97 }}
-                  whileHover={{ y: -2 }}
-                >
-                  {isEnrollingChild ? (
-                    <div className="w-5 h-5 border-2 border-[#102a5a]/30 border-t-[#102a5a] rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      Enroll <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
-                </Motion.button>
-              </form>
-
-              {/* Helper note */}
-              <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-2 text-sm text-slate-500">
-                <div className="flex items-center gap-1.5">
-                  <svg className="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span>Please enter the round code provided by the lab.</span>
-                </div>
-                <span className="hidden sm:inline text-slate-300">•</span>
-                <span className="flex items-center gap-1.5 flex-wrap">
-                  Don't have one?
+                <div className="mt-3 flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-slate-500">
+                  <span>Don't have a code?</span>
                   <a
                     href="https://wa.me/201500077369"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white transition-all hover:brightness-110 hover:-translate-y-px shadow-sm"
+                    className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white transition-all hover:brightness-110 shadow-sm"
                     style={{ background: "#25D366" }}
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
-                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                    </svg>
-                    Contact us on WhatsApp
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                    WhatsApp
                   </a>
-                </span>
+                </div>
+
+                {linkErrorMessage && (
+                  <Motion.div
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-3 bg-rose-50 border border-rose-100 rounded-xl p-3 text-sm text-rose-600 text-center"
+                  >
+                    {linkErrorMessage}
+                  </Motion.div>
+                )}
               </div>
 
-              {linkErrorMessage && (
-                <Motion.div
-                  initial={{ opacity: 0, y: -8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-4 bg-rose-50 border border-rose-100 rounded-2xl p-3 text-sm text-rose-600 text-center"
-                >
-                  {linkErrorMessage}
-                </Motion.div>
+              {/* Quick nav to tabs */}
+              {visibleRounds.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {TABS.filter((t) => t.id !== "overview").map((tab) => {
+                    const TabIcon = tab.icon;
+                    const count = tab.id === "rounds" ? visibleRounds.length
+                      : tab.id === "gallery" ? allPhotos.length
+                      : tab.id === "feedback" ? completedSessions.length
+                      : 0;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 hover:shadow-md hover:border-[#FBBF24]/30 transition-all text-left group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-[#102a5a]/5 flex items-center justify-center group-hover:bg-[#FBBF24]/10 transition-colors">
+                            <TabIcon className="w-4 h-4 text-[#102a5a] group-hover:text-[#FBBF24] transition-colors" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-[#102a5a]">{tab.label}</p>
+                            <p className="text-xs text-slate-500">{count} items</p>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               )}
-            </div>
+
+              {/* Empty state */}
+              {visibleRounds.length === 0 && (
+                <div className="bg-white rounded-2xl border border-slate-100 p-14 text-center shadow-sm">
+                  <div className="w-14 h-14 rounded-2xl bg-[#FBBF24]/10 flex items-center justify-center mx-auto mb-4">
+                    <KeyRound className="w-6 h-6 text-[#FBBF24]" />
+                  </div>
+                  <h3 className="text-lg font-bold text-[#102a5a] mb-2">No Rounds Linked Yet</h3>
+                  <p className="text-sm text-slate-500 max-w-sm mx-auto">
+                    Enter a round code above to unlock your child's schedule and media gallery.
+                  </p>
+                </div>
+              )}
+            </Motion.div>
           )}
 
-          {/* Rounds List */}
-          {!loading && visibleRounds.length > 0 && (
-            <section className="space-y-4">
-              <div className="flex items-center justify-between px-1">
-                <h2 className="text-xl font-bold text-[#102a5a]">
-                  Your Enrolled Rounds
-                </h2>
+          {/* ===== TAB: MY ROUNDS ===== */}
+          {!loading && activeTab === "rounds" && (
+            <Motion.div key="rounds" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold text-[#102a5a]">Your Enrolled Rounds</h2>
                 <span className="text-xs font-medium text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
                   {visibleRounds.length} round{visibleRounds.length !== 1 && "s"}
                 </span>
               </div>
 
-              <div className="space-y-4">
-                {visibleRounds.map((round) => {
+              {visibleRounds.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-slate-100 p-14 text-center shadow-sm">
+                  <KeyRound className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                  <p className="text-sm text-slate-500">No rounds linked yet.</p>
+                  <button onClick={() => setActiveTab("overview")} className="mt-4 rounded-xl bg-[#102a5a] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#1a3a6b] transition-all">
+                    Enroll Now
+                  </button>
+                </div>
+              ) : (
+                visibleRounds.map((round) => {
                   const children = getChildrenForRound(round.code);
-                  const isSelected = selectedRoundCode === round.code;
                   const upcomingSessionId = getUpcomingSessionId(round.sessions, now);
 
                   return (
-                    <div
-                      key={round.id || round.code}
-                      className={`bg-white rounded-3xl border transition-shadow duration-200 overflow-hidden ${isSelected
-                        ? "border-[#FBBF24]/50 shadow-md"
-                        : "border-slate-100 shadow-sm hover:shadow-md"
-                        }`}
-                    >
-                      {/* Round Toggle Header */}
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setSelectedRoundCode((prev) =>
-                            prev === round.code ? null : round.code
-                          )
-                        }
-                        className="w-full flex items-center justify-between text-left p-6 md:p-7 hover:bg-slate-50/30 transition-colors group"
-                      >
-                        <div className="flex-1 pr-4">
-                          <div className="flex items-center gap-3 mb-1.5">
-                            <h3 className="text-lg font-bold text-[#102a5a]">
-                              {round.name}
-                            </h3>
-                            <span
-                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${round.status === "Active"
-                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                : "bg-slate-100 text-slate-700 border-slate-200"
+                    <div key={round.id || round.code} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                      {/* Round Header */}
+                      <div className="p-5 border-b border-slate-100">
+                        <div className="flex items-center gap-3 mb-1.5">
+                          <h3 className="text-lg font-bold text-[#102a5a]">{round.name}</h3>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${round.status === "Active" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-700 border-slate-200"}`}>
+                            {round.status}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
+                          <span className="font-mono text-xs bg-[#102a5a]/5 px-2 py-0.5 rounded-lg border border-[#102a5a]/10">{round.code}</span>
+                          <span className="w-1 h-1 rounded-full bg-slate-300" />
+                          <span>{round.level}</span>
+                          <span className="w-1 h-1 rounded-full bg-slate-300" />
+                          <span>{round.campus}</span>
+                        </div>
+                      </div>
+
+                      {/* Students */}
+                      <div className="p-5 border-b border-slate-100">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
+                          <Users className="w-4 h-4 text-slate-400" />
+                          Enrolled ({children.length})
+                        </h4>
+                        <div className="flex flex-wrap gap-3">
+                          {children.map((child) => (
+                            <div key={child.id || child._id} className="flex items-center gap-3 bg-slate-50 rounded-xl px-4 py-2.5 border border-slate-100">
+                              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#102a5a] to-[#1a3a6b] flex items-center justify-center text-white font-bold text-sm shrink-0">
+                                {(child.childName || child.name || "?")[0].toUpperCase()}
+                              </div>
+                              <div>
+                                <p className="font-semibold text-sm text-[#102a5a]">{child.childName || child.name}</p>
+                                <p className="text-xs text-slate-500">{child.level || "Beginner"}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Sessions Timeline */}
+                      <div className="p-5">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
+                          <CalendarClock className="w-4 h-4 text-slate-400" />
+                          Sessions ({round.sessions?.length || 0})
+                        </h4>
+                        <div className="space-y-2">
+                          {round.sessions?.map((session) => {
+                            const sessionId = session.id || session._id;
+                            const isUpcoming = upcomingSessionId === sessionId;
+                            const sessionDateTime = isUpcoming ? getSessionDateTime(session) : null;
+                            const diffMs = sessionDateTime ? sessionDateTime.getTime() - now.getTime() : null;
+                            const countdownLabel = diffMs != null ? getCountdownLabel(diffMs) : null;
+                            const isCompleted = session.status === "Completed";
+
+                            return (
+                              <div
+                                key={sessionId}
+                                className={`flex items-center gap-4 rounded-xl p-3 border transition-colors ${
+                                  isUpcoming ? "border-[#FBBF24]/30 bg-[#FBBF24]/5" : isCompleted ? "border-slate-100 bg-white" : "border-slate-100 bg-slate-50/50"
                                 }`}
-                            >
-                              {round.status}
-                            </span>
-                          </div>
-                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500">
-                            <span className="text-[#102a5a] bg-[#102a5a]/5 px-2 py-0.5 rounded-lg border border-[#102a5a]/10 font-mono text-xs">
-                              {round.code}
-                            </span>
-                            <span className="w-1 h-1 rounded-full bg-slate-300" />
-                            <span>{round.level}</span>
-                            <span className="w-1 h-1 rounded-full bg-slate-300" />
-                            <span>{round.campus}</span>
-                          </div>
-                        </div>
-                        <div
-                          className={`flex items-center justify-center w-10 h-10 rounded-2xl shrink-0 transition-all ${isSelected
-                            ? "bg-[#FBBF24]/10 text-[#FBBF24]"
-                            : "bg-slate-100 text-slate-400 group-hover:text-slate-600"
-                            }`}
-                        >
-                          <Motion.div
-                            animate={{ rotate: isSelected ? 180 : 0 }}
-                            transition={{ duration: 0.3 }}
-                          >
-                            <ChevronDown className="w-5 h-5" />
-                          </Motion.div>
-                        </div>
-                      </button>
-
-                      {/* Expanded */}
-                      {isSelected && (
-                          <div className="overflow-hidden border-t border-slate-100 bg-slate-50/50 p-6 md:p-7 space-y-8">
-                              {/* Students */}
-                              <section>
-                                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
-                                  <Users className="w-4 h-4 text-slate-400" />
-                                  Enrolled Students ({children.length})
-                                </h4>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                  {children.map((child) => (
-                                    <div
-                                      key={child.id || child._id}
-                                      className="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-4 shadow-sm hover:border-[#FBBF24]/30 hover:shadow-md transition-all"
-                                    >
-                                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#102a5a] to-[#1a3a6b] flex items-center justify-center text-white font-bold text-lg shrink-0">
-                                        {(child.childName || child.name || "?")[0].toUpperCase()}
-                                      </div>
-                                      <div>
-                                        <p className="font-bold text-[#102a5a]">
-                                          {child.childName || child.name}
-                                        </p>
-                                        <p className="text-xs font-medium text-slate-500 mt-0.5">
-                                          Level: {child.level || "Beginner"}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  ))}
+                              >
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                                  isCompleted ? "bg-emerald-100 text-emerald-600" : isUpcoming ? "bg-[#FBBF24]/20 text-[#92400e]" : "bg-slate-100 text-slate-400"
+                                }`}>
+                                  {isCompleted ? <CheckCircle2 className="w-4 h-4" /> : <CalendarClock className="w-4 h-4" />}
                                 </div>
-                              </section>
-
-                              {/* Gallery */}
-                              <section>
-                                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
-                                  <ImageIcon className="w-4 h-4 text-slate-400" />
-                                  Round Gallery
-                                </h4>
-                                {!round.photos || round.photos.length === 0 ? (
-                                  <div className="bg-white rounded-2xl p-8 text-center border border-dashed border-slate-200">
-                                    <div className="w-12 h-12 rounded-2xl bg-[#FBBF24]/10 flex items-center justify-center mx-auto mb-3">
-                                      <Camera className="w-5 h-5 text-[#FBBF24]" />
-                                    </div>
-                                    <p className="text-sm font-semibold text-[#102a5a]">
-                                      No lab photos yet
-                                    </p>
-                                    <p className="text-xs text-slate-500 mt-1">
-                                      Instructors will upload moments here.
-                                    </p>
-                                  </div>
-                                ) : (
-                                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                                    {round.photos.map((photo, index) => (
-                                      <div
-                                        key={photo.id || index}
-                                        className="aspect-square rounded-2xl overflow-hidden border border-slate-100 bg-slate-100 relative group shadow-sm"
-                                      >
-                                        <img
-                                          src={photo.url}
-                                          alt={photo.caption || "Lab Session"}
-                                          loading="lazy"
-                                          decoding="async"
-                                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end">
-                                          {photo.caption && (
-                                            <p className="text-xs text-white p-3 font-medium truncate">
-                                              {photo.caption}
-                                            </p>
-                                          )}
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-semibold text-sm text-[#102a5a] truncate">{session.title}</p>
+                                  <p className="text-xs text-slate-500">{session.date || "TBA"}{session.time ? ` · ${session.time}` : ""}</p>
+                                </div>
+                                {isUpcoming && countdownLabel && (
+                                  <span className="inline-flex items-center gap-1 bg-[#FBBF24]/15 text-[#92400e] px-2.5 py-1 rounded-lg text-xs font-semibold shrink-0">
+                                    <Zap className="w-3 h-3" />
+                                    {countdownLabel}
+                                  </span>
                                 )}
-                              </section>
-
-                              {/* Sessions & Ratings */}
-                              <section>
-                                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
-                                  <Star className="w-4 h-4 text-[#FBBF24]" />
-                                  Sessions & Feedback
-                                </h4>
-                                <div className="space-y-3">
-                                  {round?.sessions?.map((session) => {
-                                    const sessionId = session.id || session._id;
-                                    const key = `${round.code}-${sessionId}`;
-                                    const isUpcoming = upcomingSessionId === sessionId;
-                                    const sessionDateTime = isUpcoming ? getSessionDateTime(session) : null;
-                                    const diffMs = sessionDateTime ? sessionDateTime.getTime() - now.getTime() : null;
-                                    const countdownLabel = diffMs != null ? getCountdownLabel(diffMs) : null;
-                                    const countdownText = diffMs != null ? formatCountdown(diffMs) : "";
-                                    const rating = sessionRatings[key] || session.userRating || 0;
-                                    const feedbackText = sessionFeedback[key] || session.feedback || "";
-                                    const submitted = ratingSubmitted[key] || Boolean(session.userRating);
-                                    const isLocked = submitted;
-                                    const isCompleted = session.status === "Completed";
-
-                                    return (
-                                      <div
-                                        key={sessionId}
-                                        className={`bg-white border rounded-2xl p-5 flex flex-col lg:flex-row gap-5 transition-colors ${isCompleted
-                                          ? "border-slate-100"
-                                          : "border-[#FBBF24]/20 bg-[#FBBF24]/5"
-                                          }`}
-                                      >
-                                        <div className="flex-1">
-                                          <div className="flex items-center gap-2 mb-1">
-                                            <h5 className="font-bold text-[#102a5a]">
-                                              {session.title}
-                                            </h5>
-                                            {!isCompleted && (
-                                              <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-[#FBBF24]/20 text-[#92400e] uppercase tracking-wide">
-                                                Upcoming
-                                              </span>
-                                            )}
-                                          </div>
-                                          <p className="text-sm text-slate-600 leading-relaxed max-w-2xl">
-                                            {session?.description || "No description provided."}
-                                          </p>
-                                          <div className="mt-3">
-                                            <span className="inline-flex items-center gap-1.5 bg-slate-100/80 px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-medium text-slate-500">
-                                              <CalendarClock className="w-3.5 h-3.5 text-slate-400" />
-                                              {session.date || "Date TBA"}{session.time ? ` • ${session.time}` : ""}
-                                            </span>
-                                            {isUpcoming && countdownLabel && (
-                                              <span className="ml-2 inline-flex items-center gap-1.5 bg-[#FBBF24]/15 text-[#92400e] px-2.5 py-1 rounded-lg text-xs font-semibold">
-                                                <Zap className="w-3.5 h-3.5" />
-                                                {countdownLabel}
-                                                {countdownText ? ` · ${countdownText}` : ""}
-                                              </span>
-                                            )}
-                                          </div>
-                                        </div>
-
-                                        <div className="lg:w-[300px] flex-shrink-0 bg-slate-50/80 rounded-2xl p-3 sm:p-4 border border-slate-100">
-                                          {isCompleted ? (
-                                            <div className="flex flex-col gap-3">
-                                              <div className="flex items-center justify-between gap-3 w-full">
-                                                <p className="text-[10px] sm:text-[11px] font-bold text-slate-600 uppercase tracking-wider min-w-0 truncate">
-                                                  Rate Session
-                                                </p>
-                                                <RatingStars
-                                                  value={rating}
-                                                  disabled={isLocked}
-                                                  onChange={(stars) =>
-                                                    handleSessionRatingChange(round.code, sessionId, stars)
-                                                  }
-                                                />
-                                              </div>
-                                              <textarea
-                                                value={feedbackText}
-                                                onChange={(e) =>
-                                                  handleSessionFeedbackChange(round.code, sessionId, e.target.value)
-                                                }
-                                                placeholder="Leave feedback…"
-                                                disabled={isLocked}
-                                                className={`w-full min-h-[60px] rounded-xl border border-slate-200 bg-white p-2.5 text-sm text-slate-700 outline-none focus:border-[#FBBF24] focus:ring-2 focus:ring-[#FBBF24]/20 resize-none transition-all placeholder:text-slate-400 ${isLocked ? "bg-slate-100/70 text-slate-600" : ""}`}
-                                              />
-                                              <div className="flex items-center justify-between pt-1">
-                                                {submitted ? (
-                                                  <div className="flex flex-col gap-1">
-                                                    <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100">
-                                                      <CheckCircle2 className="w-4 h-4" /> Received
-                                                    </span>
-                                                    <span className="text-[11px] text-slate-500">
-                                                      تقييمك: {rating || session.userRating}/5
-                                                    </span>
-                                                  </div>
-                                                ) : (
-                                                  <span className="text-xs text-slate-400 italic">
-                                                    Not sent yet
-                                                  </span>
-                                                )}
-                                                {!submitted && (
-                                                  <button
-                                                    type="button"
-                                                    disabled={!rating}
-                                                    onClick={() => handleSubmitRating(round.code, session)}
-                                                    className="rounded-xl bg-[#102a5a] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#1a3a6b] transition-all active:scale-[0.98] disabled:opacity-50"
-                                                  >
-                                                    Submit
-                                                  </button>
-                                                )}
-                                              </div>
-                                            </div>
-                                          ) : (
-                                            <div className="flex flex-col items-center justify-center text-center py-4">
-                                              <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center mb-2">
-                                                <CalendarClock className="w-5 h-5 text-slate-400" />
-                                              </div>
-                                              <p className="text-sm font-semibold text-[#102a5a]">
-                                                Pending
-                                              </p>
-                                              <p className="text-xs text-slate-500 mt-1">
-                                                Feedback opens after session.
-                                              </p>
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </section>
-                          </div>
-                        )}
+                                {isCompleted && (
+                                  <span className="text-xs font-medium text-emerald-600 shrink-0">Done</span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
                     </div>
                   );
-                })}
-              </div>
-            </section>
+                })
+              )}
+            </Motion.div>
           )}
 
-          {/* Empty state */}
-          {!loading && visibleRounds.length === 0 && (
-            <div className="bg-white rounded-3xl border border-slate-100 p-14 text-center shadow-sm">
-              <div className="w-16 h-16 rounded-2xl bg-[#FBBF24]/10 flex items-center justify-center mx-auto mb-4">
-                <KeyRound className="w-7 h-7 text-[#FBBF24]" />
+          {/* ===== TAB: GALLERY ===== */}
+          {!loading && activeTab === "gallery" && (
+            <Motion.div key="gallery" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-[#FBBF24]/10 flex items-center justify-center">
+                      <Camera className="w-4 h-4 text-[#FBBF24]" />
+                    </div>
+                    <h2 className="text-base font-bold text-[#102a5a]">Photo Gallery</h2>
+                  </div>
+                  <span className="inline-flex items-center rounded-full bg-[#FBBF24]/10 px-2.5 py-0.5 text-xs font-bold text-[#92400e]">
+                    {allPhotos.length} Photos
+                  </span>
+                </div>
+
+                {allPhotos.length === 0 ? (
+                  <div className="text-center py-12 border-t border-slate-100">
+                    <Camera className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                    <p className="text-sm font-semibold text-[#102a5a]">No lab photos yet</p>
+                    <p className="text-xs text-slate-500 mt-1">Instructors will upload moments here.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                    {allPhotos.map((photo, index) => (
+                      <div
+                        key={photo.id || index}
+                        className="aspect-square rounded-2xl overflow-hidden border border-slate-100 bg-slate-100 relative group shadow-sm"
+                      >
+                        <img
+                          src={photo.url}
+                          alt={photo.caption || "Lab Session"}
+                          loading="lazy"
+                          decoding="async"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end">
+                          <div className="p-3 w-full">
+                            {photo.caption && (
+                              <p className="text-xs text-white font-medium truncate">{photo.caption}</p>
+                            )}
+                            <p className="text-[10px] text-white/60 mt-0.5">{photo.roundName}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-              <h3 className="text-lg font-bold text-[#102a5a] mb-2">
-                No Rounds Linked Yet
-              </h3>
-              <p className="text-sm text-slate-500 max-w-sm mx-auto">
-                Enter a valid round code above to unlock your child's schedule
-                and media gallery.
-              </p>
-            </div>
+            </Motion.div>
+          )}
+
+          {/* ===== TAB: FEEDBACK ===== */}
+          {!loading && activeTab === "feedback" && (
+            <Motion.div key="feedback" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-[#FBBF24]/10 flex items-center justify-center">
+                      <Star className="w-4 h-4 text-[#FBBF24]" />
+                    </div>
+                    <h2 className="text-base font-bold text-[#102a5a]">Session Feedback</h2>
+                  </div>
+                  <span className="inline-flex items-center rounded-full bg-[#102a5a]/10 px-2.5 py-0.5 text-xs font-bold text-[#102a5a]">
+                    {allSessions.length} Sessions
+                  </span>
+                </div>
+
+                {allSessions.length === 0 ? (
+                  <div className="text-center py-12 border-t border-slate-100">
+                    <Star className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                    <p className="text-sm text-slate-500">No sessions available for feedback yet.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {allSessions.map((session) => {
+                      const sessionId = session.id || session._id;
+                      const key = `${session.roundCode}-${sessionId}`;
+                      const rating = sessionRatings[key] || session.userRating || 0;
+                      const feedbackText = sessionFeedback[key] || session.feedback || "";
+                      const submitted = ratingSubmitted[key] || Boolean(session.userRating);
+                      const isCompleted = session.status === "Completed";
+
+                      return (
+                        <div
+                          key={key}
+                          className={`border rounded-2xl p-4 transition-colors ${
+                            isCompleted ? "border-slate-100 bg-white" : "border-[#FBBF24]/20 bg-[#FBBF24]/5"
+                          }`}
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+                            <div>
+                              <div className="flex items-center gap-2 mb-0.5">
+                                <h5 className="font-bold text-sm text-[#102a5a]">{session.title}</h5>
+                                {!isCompleted && (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-[#FBBF24]/20 text-[#92400e] uppercase">
+                                    Upcoming
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-slate-500">
+                                {session.roundName} · {session.date || "TBA"}{session.time ? ` · ${session.time}` : ""}
+                              </p>
+                            </div>
+                          </div>
+
+                          {isCompleted ? (
+                            <div className="flex flex-col lg:flex-row gap-3">
+                              <div className="flex-1 space-y-2">
+                                <div className="flex items-center gap-3">
+                                  <span className="text-xs font-bold text-slate-500 uppercase">Rating:</span>
+                                  <RatingStars
+                                    value={rating}
+                                    disabled={submitted}
+                                    onChange={(stars) => handleSessionRatingChange(session.roundCode, sessionId, stars)}
+                                  />
+                                </div>
+                                <textarea
+                                  value={feedbackText}
+                                  onChange={(e) => handleSessionFeedbackChange(session.roundCode, sessionId, e.target.value)}
+                                  placeholder="Leave feedback…"
+                                  disabled={submitted}
+                                  className={`w-full min-h-[60px] rounded-xl border border-slate-200 bg-white p-2.5 text-sm text-slate-700 outline-none focus:border-[#FBBF24] focus:ring-2 focus:ring-[#FBBF24]/20 resize-none ${submitted ? "bg-slate-100/70 text-slate-600" : ""}`}
+                                />
+                              </div>
+                              <div className="flex flex-col justify-end items-end gap-2">
+                                {submitted ? (
+                                  <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100">
+                                    <CheckCircle2 className="w-4 h-4" /> Submitted ({rating}/5)
+                                  </span>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    disabled={!rating}
+                                    onClick={() => handleSubmitRating(session.roundCode, session)}
+                                    className="rounded-xl bg-[#102a5a] px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#1a3a6b] transition-all disabled:opacity-50"
+                                  >
+                                    Submit
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
+                              <CalendarClock className="w-4 h-4 text-slate-400" />
+                              Feedback opens after session completion.
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </Motion.div>
           )}
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="py-6 text-center text-xs bg-[#071228] mt-auto">
+      <footer className="py-5 text-center text-xs bg-[#071228] mt-auto">
         <p className="text-slate-500">
           © {new Date().getFullYear()} Sparvi Lab. All rights reserved.
         </p>

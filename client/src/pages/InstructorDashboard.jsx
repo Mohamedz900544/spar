@@ -14,9 +14,20 @@ import {
   ChevronDown,
   Sparkles,
   ClipboardList,
+  LayoutDashboard,
+  GraduationCap,
+  Save,
 } from "lucide-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+/* ======= TABS ======= */
+const TABS = [
+  { id: "overview", label: "Overview", icon: LayoutDashboard },
+  { id: "attendance", label: "Attendance", icon: ClipboardList },
+  { id: "sessions", label: "Upcoming", icon: CalendarClock },
+  { id: "evaluations", label: "Evaluations", icon: Sparkles },
+];
 
 /* ======= STAT CARD ======= */
 const StatCard = ({ icon: Icon, label, value, accent, extra }) => (
@@ -58,6 +69,7 @@ const InstructorDashboard = () => {
   const [freeSessions, setFreeSessions] = useState([]);
   const [evaluationDrafts, setEvaluationDrafts] = useState({});
   const [isSavingEvaluationId, setIsSavingEvaluationId] = useState("");
+  const [activeTab, setActiveTab] = useState("overview");
 
   const fetchDashboard = useCallback(async () => {
     const token = localStorage.getItem("sparvi_token");
@@ -152,7 +164,6 @@ const InstructorDashboard = () => {
       return Number.isNaN(p) ? Infinity : p;
     };
 
-    // Regular round sessions
     const roundSessions = rounds
       .flatMap((r) =>
         (r.sessions || []).map((s) => ({
@@ -163,7 +174,6 @@ const InstructorDashboard = () => {
       .map((s) => ({ session: s, ts: toTs(s) }))
       .filter((i) => i.ts >= now);
 
-    // Free sessions from leads
     const freeItems = freeSessions
       .map((fs) => {
         const ts = fs.scheduledAt ? new Date(fs.scheduledAt).getTime() : Infinity;
@@ -361,232 +371,272 @@ const InstructorDashboard = () => {
     navigate("/login");
   };
 
+  /* ================================================================== */
+  /*  RENDER                                                             */
+  /* ================================================================== */
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#f8fafc] to-white flex flex-col font-sans">
-      {/* ===== Top Banner ===== */}
-      <div
-        className="relative overflow-hidden"
+      {/* ===== Sticky Navbar ===== */}
+      <nav
+        className="sticky top-0 z-50 border-b border-white/10"
         style={{
           background: "linear-gradient(135deg, #071228 0%, #102a5a 50%, #1a3a6b 100%)",
         }}
       >
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-[18%] left-[8%] w-3 h-3 rounded-full bg-[#FBBF24]/30" />
-          <div className="absolute top-[35%] right-[12%] w-2 h-2 rounded-full bg-[#2dd4bf]/40" />
-          <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-[#FBBF24]/5 opacity-60" />
-          <div className="absolute bottom-0 left-1/4 w-60 h-60 rounded-full bg-[#2dd4bf]/5 opacity-60" />
-        </div>
-
-        <div className="relative z-10 max-w-7xl mx-auto px-5 pt-8 pb-20">
-          {/* Top bar */}
-          <div className="flex items-center justify-between mb-8">
-            <Link to="/" className="inline-flex items-center gap-3">
-              <img src="/logo-white.png" alt="Sparvi Lab" className="h-8" />
-              <span
-                className="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border border-[#FBBF24]/30 text-[#FBBF24]"
-                style={{ background: "rgba(251,191,36,0.08)" }}
-              >
-                {/* <ClipboardList className="w-3 h-3" /> */}
-                Instructor Portal
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-between h-16">
+            {/* Left: Logo */}
+            <Link to="/" className="flex items-center gap-3 shrink-0">
+              <img src="/logo-white.png" alt="Sparvi Lab" className="h-7" />
+              <span className="hidden md:inline text-xs font-semibold text-[#FBBF24] border border-[#FBBF24]/30 rounded-full px-2.5 py-0.5" style={{ background: "rgba(251,191,36,0.08)" }}>
+                Instructor
               </span>
             </Link>
-            <div className="flex items-center gap-3">
+
+            {/* Center: Tab Navigation */}
+            <div className="flex items-center gap-1">
+              {TABS.map((tab) => {
+                const isActive = activeTab === tab.id;
+                const TabIcon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                      isActive
+                        ? "bg-white/15 text-white shadow-sm"
+                        : "text-white/50 hover:text-white/80 hover:bg-white/5"
+                    }`}
+                  >
+                    <TabIcon className="w-4 h-4" />
+                    <span className="hidden sm:inline">{tab.label}</span>
+                    {isActive && (
+                      <Motion.div
+                        layoutId="activeTabIndicator"
+                        className="absolute -bottom-[1px] left-3 right-3 h-0.5 bg-[#FBBF24] rounded-full"
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Right: Actions */}
+            <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={fetchDashboard}
                 disabled={isLoading}
-                className="flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors"
+                className="flex items-center gap-1.5 text-xs text-white/60 hover:text-white px-2.5 py-2 rounded-xl hover:bg-white/5 transition-all"
               >
-                <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
+                <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
                 <span className="hidden sm:inline">Refresh</span>
               </button>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors"
+                className="flex items-center gap-1.5 text-xs text-white/60 hover:text-white px-2.5 py-2 rounded-xl hover:bg-white/5 transition-all"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Sign Out</span>
               </button>
             </div>
           </div>
-
-          {/* Title */}
-          <Motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6 }}
-          >
-
-            <h1 className="text-3xl md:text-4xl font-extrabold text-white leading-tight mb-3">
-              Instructor <span className="text-[#FBBF24]">Dashboard</span>
-            </h1>
-            <p className="text-slate-300 text-base max-w-lg">
-              Link rounds, manage attendance, and track your upcoming sessions.
-            </p>
-          </Motion.div>
         </div>
-      </div>
+      </nav>
 
       {/* ===== Main Content ===== */}
-      <main className="flex-1 px-4 sm:px-6 lg:px-8 -mt-10 pb-12 relative z-10">
-        <div className="max-w-7xl mx-auto space-y-8">
+      <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto space-y-6">
           {/* Error */}
-          {error && (
-            <div className="bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-2xl px-5 py-3.5 flex items-start gap-3 shadow-sm">
-              <svg className="w-5 h-5 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p>{error}</p>
-            </div>
-          )}
+          <AnimatePresence>
+            {error && (
+              <Motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-2xl px-5 py-3.5 flex items-start gap-3 shadow-sm"
+              >
+                <svg className="w-5 h-5 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p>{error}</p>
+                <button onClick={() => setError("")} className="ml-auto text-rose-400 hover:text-rose-600 text-lg font-bold leading-none">&times;</button>
+              </Motion.div>
+            )}
+          </AnimatePresence>
 
-          {/* Stats Row */}
-          <Motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="grid grid-cols-1 sm:grid-cols-3 gap-5"
-          >
-            <StatCard icon={BookOpen} label="Linked Rounds" value={totalRounds} accent="#102a5a" />
-            <StatCard icon={Users} label="Total Students" value={totalStudents} accent="#10b981" />
-            <StatCard
-              icon={CheckCircle2}
-              label="Session Attendance"
-              value={attendanceCounts.present}
-              accent="#FBBF24"
-              extra={
-                <span className="text-sm text-slate-500 font-medium">
-                  / {attendanceCounts.total}
-                  {attendanceCounts.absent > 0 && (
-                    <span className="text-rose-500 ml-2">
-                      ({attendanceCounts.absent} absent)
+          {/* ===== TAB: OVERVIEW ===== */}
+          {activeTab === "overview" && (
+            <Motion.div
+              key="overview"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-6"
+            >
+              {/* Stats Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <StatCard icon={BookOpen} label="Linked Rounds" value={totalRounds} accent="#102a5a" />
+                <StatCard icon={Users} label="Total Students" value={totalStudents} accent="#10b981" />
+                <StatCard icon={CalendarClock} label="Upcoming" value={upcomingSessions.length} accent="#FBBF24" />
+                <StatCard
+                  icon={CheckCircle2}
+                  label="Attendance"
+                  value={attendanceCounts.present}
+                  accent="#8b5cf6"
+                  extra={
+                    <span className="text-sm text-slate-500 font-medium">
+                      / {attendanceCounts.total}
                     </span>
-                  )}
-                </span>
-              }
-            />
-          </Motion.div>
-
-          {/* Main Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Left Sidebar */}
-              <div className="lg:col-span-4 space-y-5">
-              {/* Link Round */}
-              <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-9 h-9 rounded-xl bg-[#FBBF24]/10 flex items-center justify-center">
-                    <Link2 className="w-4 h-4 text-[#FBBF24]" />
-                  </div>
-                  <h2 className="text-base font-bold text-[#102a5a]">
-                    Link New Round
-                  </h2>
-                </div>
-                <form onSubmit={handleLinkRound} className="space-y-3">
-                  <input
-                    type="text"
-                    value={roundCode}
-                    onChange={(e) => setRoundCode(e.target.value)}
-                    placeholder="Enter round code…"
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all uppercase font-mono tracking-wide"
-                  />
-                  <Motion.button
-                    type="submit"
-                    disabled={isLinking || !roundCode.trim()}
-                    className="w-full rounded-2xl bg-[#FBBF24] hover:bg-[#F59E0B] text-[#102a5a] font-bold py-3 shadow-[0_6px_20px_rgba(251,191,36,0.25)] hover:shadow-[0_10px_30px_rgba(251,191,36,0.35)] transition-all disabled:opacity-50 text-sm"
-                    whileTap={{ scale: 0.97 }}
-                  >
-                    {isLinking ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <div className="w-4 h-4 border-2 border-[#102a5a]/30 border-t-[#102a5a] rounded-full animate-spin" />
-                        Linking…
-                      </span>
-                    ) : (
-                      "Link Round"
-                    )}
-                  </Motion.button>
-                </form>
+                  }
+                />
               </div>
 
-              {/* Round List */}
-              <Motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.15 }}
-                className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col max-h-[500px]"
-              >
+              {/* Quick Actions + Link Round */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Link Round */}
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-9 h-9 rounded-xl bg-[#FBBF24]/10 flex items-center justify-center">
+                      <Link2 className="w-4 h-4 text-[#FBBF24]" />
+                    </div>
+                    <h2 className="text-base font-bold text-[#102a5a]">Link New Round</h2>
+                  </div>
+                  <form onSubmit={handleLinkRound} className="flex gap-2">
+                    <input
+                      type="text"
+                      value={roundCode}
+                      onChange={(e) => setRoundCode(e.target.value)}
+                      placeholder="Enter round code…"
+                      className="flex-1 rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] uppercase font-mono tracking-wide"
+                    />
+                    <Motion.button
+                      type="submit"
+                      disabled={isLinking || !roundCode.trim()}
+                      className="rounded-xl bg-[#FBBF24] hover:bg-[#F59E0B] text-[#102a5a] font-bold px-5 py-2.5 shadow-sm hover:shadow-md transition-all disabled:opacity-50 text-sm whitespace-nowrap"
+                      whileTap={{ scale: 0.97 }}
+                    >
+                      {isLinking ? "Linking…" : "Link"}
+                    </Motion.button>
+                  </form>
+                </div>
+
+                {/* Quick Nav Cards */}
+                <div className="grid grid-cols-2 gap-3">
+                  {TABS.filter((t) => t.id !== "overview").map((tab) => {
+                    const TabIcon = tab.icon;
+                    const count = tab.id === "sessions" ? upcomingSessions.length
+                      : tab.id === "attendance" ? totalRounds
+                      : tab.id === "evaluations" ? trialLeads.length
+                      : 0;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 hover:shadow-md hover:border-[#FBBF24]/30 transition-all text-left group"
+                      >
+                        <div className="w-9 h-9 rounded-xl bg-[#102a5a]/5 flex items-center justify-center mb-3 group-hover:bg-[#FBBF24]/10 transition-colors">
+                          <TabIcon className="w-4 h-4 text-[#102a5a] group-hover:text-[#FBBF24] transition-colors" />
+                        </div>
+                        <p className="text-sm font-bold text-[#102a5a]">{tab.label}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">{count} items</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Your Rounds List */}
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
                 <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-                  <h2 className="text-base font-bold text-[#102a5a]">
-                    Your Rounds
-                  </h2>
+                  <h2 className="text-base font-bold text-[#102a5a]">Your Rounds</h2>
                   <span className="inline-flex items-center rounded-full bg-[#102a5a]/10 px-2.5 py-0.5 text-xs font-semibold text-[#102a5a]">
                     {rounds.length}
                   </span>
                 </div>
-                <div className="flex-1 overflow-y-auto p-3 space-y-2">
-                  {isLoading ? (
-                    <div className="text-sm text-slate-500 text-center py-8">
-                      <div className="w-6 h-6 border-2 border-[#FBBF24]/30 border-t-[#FBBF24] rounded-full animate-spin mx-auto mb-2" />
-                      Loading…
-                    </div>
-                  ) : rounds.length === 0 ? (
-                    <div className="text-sm text-slate-500 text-center py-8 px-4">
-                      No rounds linked yet. Use the form above to get started.
-                    </div>
-                  ) : (
-                    rounds.map((round) => {
-                      const isSelected = selectedRoundId === (round.id || round._id);
-                      return (
-                        <button
-                          key={round.id || round._id}
-                          type="button"
-                          onClick={() => setSelectedRoundId(round.id || round._id)}
-                          className={`w-full text-left rounded-2xl p-4 transition-all duration-200 border ${isSelected
+                {isLoading ? (
+                  <div className="text-sm text-slate-500 text-center py-8">
+                    <div className="w-6 h-6 border-2 border-[#FBBF24]/30 border-t-[#FBBF24] rounded-full animate-spin mx-auto mb-2" />
+                    Loading…
+                  </div>
+                ) : rounds.length === 0 ? (
+                  <div className="text-sm text-slate-500 text-center py-8 px-4">
+                    No rounds linked yet. Use the form above to get started.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-4">
+                    {rounds.map((round) => (
+                      <button
+                        key={round.id || round._id}
+                        type="button"
+                        onClick={() => { setSelectedRoundId(round.id || round._id); setActiveTab("attendance"); }}
+                        className={`w-full text-left rounded-2xl p-4 transition-all duration-200 border ${
+                          selectedRoundId === (round.id || round._id)
                             ? "border-[#FBBF24] bg-[#FBBF24]/5 shadow-sm"
-                            : "border-transparent bg-slate-50/50 hover:bg-slate-100/60"
-                            }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${isSelected
-                                ? "bg-[#FBBF24] text-[#102a5a]"
-                                : "bg-slate-200/60 text-slate-500"
-                                }`}
-                            >
-                              <BookOpen className="w-3.5 h-3.5" />
-                            </div>
-                            <div className="min-w-0">
-                              <p className={`font-semibold text-sm truncate ${isSelected ? "text-[#102a5a]" : "text-slate-800"}`}>
-                                {round.name}
-                              </p>
-                              <p className="text-xs text-slate-500 mt-0.5 truncate">
-                                {round.code} · {round.level} · {round.campus}
-                              </p>
-                            </div>
+                            : "border-slate-100 bg-slate-50/50 hover:bg-slate-100/60 hover:border-slate-200"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                            selectedRoundId === (round.id || round._id) ? "bg-[#FBBF24] text-[#102a5a]" : "bg-slate-200/60 text-slate-500"
+                          }`}>
+                            <BookOpen className="w-3.5 h-3.5" />
                           </div>
-                        </button>
-                      );
-                    })
-                  )}
-                </div>
-              </Motion.div>
-            </div>
+                          <div className="min-w-0">
+                            <p className="font-semibold text-sm truncate text-[#102a5a]">{round.name}</p>
+                            <p className="text-xs text-slate-500 mt-0.5 truncate">
+                              {round.code} · {round.level} · {round.campus}
+                            </p>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </Motion.div>
+          )}
 
-            {/* Right Column: Attendance + Upcoming */}
-            <div className="lg:col-span-8 space-y-5">
-              {/* Attendance Panel */}
+          {/* ===== TAB: ATTENDANCE ===== */}
+          {activeTab === "attendance" && (
+            <Motion.div
+              key="attendance"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-5"
+            >
+              {/* Round Selector Bar */}
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                  <label className="text-sm font-bold text-[#102a5a] shrink-0">Select Round:</label>
+                  <div className="relative flex-1 max-w-md">
+                    <select
+                      value={selectedRoundId}
+                      onChange={(e) => setSelectedRoundId(e.target.value)}
+                      className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50/50 pl-4 pr-10 py-2.5 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] cursor-pointer"
+                    >
+                      {rounds.length === 0 ? (
+                        <option value="">No rounds linked</option>
+                      ) : (
+                        rounds.map((r) => (
+                          <option key={r.id || r._id} value={r.id || r._id}>
+                            {r.name} ({r.code})
+                          </option>
+                        ))
+                      )}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  </div>
+                </div>
+              </div>
+
               {selectedRound ? (
-                <Motion.div
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.1 }}
-                  className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden"
-                >
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
                   {/* Header */}
-                  <div className="p-6 md:p-7 border-b border-slate-100">
-                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5">
+                  <div className="p-5 border-b border-slate-100">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                       <div>
-                        <h2 className="text-xl font-bold text-[#102a5a]">
-                          {selectedRound.name}
-                        </h2>
-                        <div className="mt-1.5 flex items-center gap-2 text-sm text-slate-500">
+                        <h2 className="text-lg font-bold text-[#102a5a]">{selectedRound.name}</h2>
+                        <div className="mt-1 flex items-center gap-2 text-sm text-slate-500">
                           <span className="font-mono text-xs bg-[#102a5a]/5 px-2 py-0.5 rounded-lg border border-[#102a5a]/10">
                             {selectedRound.code}
                           </span>
@@ -602,7 +652,7 @@ const InstructorDashboard = () => {
                         <select
                           value={selectedSessionId}
                           onChange={(e) => setSelectedSessionId(e.target.value)}
-                          className="appearance-none min-w-[220px] rounded-2xl border border-slate-200 bg-slate-50/50 pl-4 pr-10 py-3 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all cursor-pointer"
+                          className="appearance-none min-w-[220px] rounded-xl border border-slate-200 bg-slate-50/50 pl-4 pr-10 py-2.5 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] cursor-pointer"
                         >
                           {sessions.map((s) => (
                             <option key={s.id || s._id} value={s.id || s._id}>
@@ -615,7 +665,7 @@ const InstructorDashboard = () => {
                     </div>
 
                     {/* Toolbar */}
-                    <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex flex-1 items-center gap-3">
                         <div className="relative w-full sm:max-w-xs">
                           <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -624,26 +674,29 @@ const InstructorDashboard = () => {
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             placeholder="Search student…"
-                            className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all"
+                            className="w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24]"
                           />
                         </div>
                         <select
                           value={attendanceFilter}
                           onChange={(e) => setAttendanceFilter(e.target.value)}
-                          className="rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] cursor-pointer"
+                          className="rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 cursor-pointer"
                         >
-                          <option value="all">All Status</option>
+                          <option value="all">All</option>
                           <option value="present">Present</option>
                           <option value="absent">Absent</option>
                         </select>
                       </div>
 
                       <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-slate-500">
+                          {attendanceCounts.present}/{attendanceCounts.total}
+                        </span>
                         <button
                           type="button"
                           onClick={() => handleBulkUpdate(true)}
                           disabled={isBulkUpdating || !selectedSessionId || filteredEnrollments.length === 0}
-                          className="rounded-2xl bg-emerald-50 border border-emerald-200 px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-100 transition-all active:scale-[0.98] disabled:opacity-50"
+                          className="rounded-xl bg-emerald-50 border border-emerald-200 px-3.5 py-2 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition-all disabled:opacity-50"
                         >
                           All Present
                         </button>
@@ -651,7 +704,7 @@ const InstructorDashboard = () => {
                           type="button"
                           onClick={() => handleBulkUpdate(false)}
                           disabled={isBulkUpdating || !selectedSessionId || filteredEnrollments.length === 0}
-                          className="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 transition-all active:scale-[0.98] disabled:opacity-50"
+                          className="rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 transition-all disabled:opacity-50"
                         >
                           All Absent
                         </button>
@@ -665,18 +718,10 @@ const InstructorDashboard = () => {
                       <table className="min-w-full text-sm">
                         <thead>
                           <tr className="bg-slate-50/80 border-b border-slate-100">
-                            <th className="px-6 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                              Student
-                            </th>
-                            <th className="px-6 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                              Parent
-                            </th>
-                            <th className="px-6 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                              Phone
-                            </th>
-                            <th className="px-6 py-3.5 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                              Status
-                            </th>
+                            <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Student</th>
+                            <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Parent</th>
+                            <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Phone</th>
+                            <th className="px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50 bg-white">
@@ -685,7 +730,7 @@ const InstructorDashboard = () => {
                             const isPresent = getAttendanceStatus(enrollment);
                             return (
                               <tr key={eId} className="group hover:bg-slate-50/50 transition-colors">
-                                <td className="whitespace-nowrap px-6 py-4">
+                                <td className="whitespace-nowrap px-5 py-3.5">
                                   <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#102a5a] to-[#1a3a6b] flex items-center justify-center text-white font-bold text-xs shrink-0">
                                       {(enrollment.childName || "?")[0].toUpperCase()}
@@ -695,18 +740,15 @@ const InstructorDashboard = () => {
                                     </span>
                                   </div>
                                 </td>
-                                <td className="whitespace-nowrap px-6 py-4 text-slate-600">
+                                <td className="whitespace-nowrap px-5 py-3.5 text-slate-600">
                                   {enrollment.parentName || "—"}
                                 </td>
-                                <td className="whitespace-nowrap px-6 py-4 text-slate-600 font-medium">
+                                <td className="whitespace-nowrap px-5 py-3.5 text-slate-600 font-medium">
                                   {enrollment.phone || "—"}
                                 </td>
-                                <td className="whitespace-nowrap px-6 py-4 text-right">
+                                <td className="whitespace-nowrap px-5 py-3.5 text-right">
                                   <label className="inline-flex items-center gap-3 cursor-pointer">
-                                    <span
-                                      className={`text-sm font-medium transition-colors ${isPresent ? "text-emerald-600" : "text-slate-400"
-                                        }`}
-                                    >
+                                    <span className={`text-sm font-medium transition-colors ${isPresent ? "text-emerald-600" : "text-slate-400"}`}>
                                       {isPresent ? "Present" : "Absent"}
                                     </span>
                                     <div className="relative flex items-center">
@@ -716,14 +758,8 @@ const InstructorDashboard = () => {
                                         onChange={(e) => updateAttendance(eId, e.target.checked)}
                                         className="peer sr-only"
                                       />
-                                      <div
-                                        className={`h-6 w-11 rounded-full transition-colors duration-200 ${isPresent ? "bg-emerald-500" : "bg-slate-200"
-                                          }`}
-                                      />
-                                      <div
-                                        className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transform transition-transform duration-200 ${isPresent ? "translate-x-5" : "translate-x-0"
-                                          }`}
-                                      />
+                                      <div className={`h-6 w-11 rounded-full transition-colors duration-200 ${isPresent ? "bg-emerald-500" : "bg-slate-200"}`} />
+                                      <div className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transform transition-transform duration-200 ${isPresent ? "translate-x-5" : "translate-x-0"}`} />
                                     </div>
                                   </label>
                                 </td>
@@ -733,83 +769,84 @@ const InstructorDashboard = () => {
                         </tbody>
                       </table>
                     ) : (
-                      <div className="text-center py-16 px-6">
+                      <div className="text-center py-12 px-6">
                         <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
                           <Users className="w-5 h-5 text-slate-400" />
                         </div>
-                        <h3 className="text-sm font-semibold text-[#102a5a]">
-                          No students found
-                        </h3>
-                        <p className="mt-1 text-sm text-slate-500">
-                          No students linked to this round yet.
-                        </p>
+                        <h3 className="text-sm font-semibold text-[#102a5a]">No students found</h3>
+                        <p className="mt-1 text-sm text-slate-500">No students linked to this round yet.</p>
                       </div>
                     )}
 
                     {selectedEnrollments.length > 0 && filteredEnrollments.length === 0 && (
-                      <div className="text-center py-12 text-sm text-slate-500">
+                      <div className="text-center py-10 text-sm text-slate-500">
                         No students match your search or filter.
                       </div>
                     )}
                   </div>
-                </Motion.div>
+                </div>
               ) : (
-                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-14 text-center min-h-[400px] flex flex-col items-center justify-center">
-                  <div className="w-16 h-16 rounded-2xl bg-[#FBBF24]/10 flex items-center justify-center mb-4">
-                    <ClipboardList className="w-7 h-7 text-[#FBBF24]" />
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-14 text-center">
+                  <div className="w-14 h-14 rounded-2xl bg-[#FBBF24]/10 flex items-center justify-center mb-4 mx-auto">
+                    <ClipboardList className="w-6 h-6 text-[#FBBF24]" />
                   </div>
-                  <h3 className="text-lg font-bold text-[#102a5a]">
-                    No Round Selected
-                  </h3>
-                  <p className="mt-2 text-sm text-slate-500 max-w-sm">
-                    Select a round from the sidebar or link a new one.
-                  </p>
+                  <h3 className="text-lg font-bold text-[#102a5a]">No Round Selected</h3>
+                  <p className="mt-2 text-sm text-slate-500">Link a round from the Overview tab to get started.</p>
+                  <button
+                    onClick={() => setActiveTab("overview")}
+                    className="mt-4 rounded-xl bg-[#102a5a] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#1a3a6b] transition-all"
+                  >
+                    Go to Overview
+                  </button>
                 </div>
               )}
+            </Motion.div>
+          )}
 
-              {/* Upcoming Sessions */}
-              <Motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.2 }}
-                className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6"
-              >
+          {/* ===== TAB: UPCOMING SESSIONS ===== */}
+          {activeTab === "sessions" && (
+            <Motion.div
+              key="sessions"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-5"
+            >
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
                 <div className="flex items-center justify-between mb-5">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-[#FBBF24]/10 flex items-center justify-center">
                       <CalendarClock className="w-4 h-4 text-[#FBBF24]" />
                     </div>
-                    <h2 className="text-base font-bold text-[#102a5a]">
-                      Upcoming Sessions
-                    </h2>
+                    <h2 className="text-base font-bold text-[#102a5a]">Upcoming Sessions</h2>
                   </div>
                   <span className="inline-flex items-center rounded-full bg-[#FBBF24]/10 px-2.5 py-0.5 text-xs font-bold text-[#92400e]">
-                    {upcomingSessions.length} Scheduled{freeSessions.length > 0 ? ` (${freeSessions.filter(f => new Date(f.scheduledAt) >= new Date()).length} free)` : ""}
+                    {upcomingSessions.length} Scheduled
                   </span>
                 </div>
 
                 {upcomingSessions.length === 0 ? (
-                  <p className="text-sm text-slate-500 py-4 border-t border-slate-100">
-                    No upcoming sessions on your schedule.
-                  </p>
+                  <div className="text-center py-10 border-t border-slate-100">
+                    <CalendarClock className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                    <p className="text-sm text-slate-500">No upcoming sessions on your schedule.</p>
+                  </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                     {upcomingSessions.map((session) => (
                       <div
                         key={session.id || session._id}
-                        className={`rounded-2xl border p-4 hover:shadow-sm transition-all ${
+                        className={`rounded-2xl border p-4 hover:shadow-md transition-all ${
                           session._type === "free"
                             ? "border-emerald-200 bg-emerald-50/50 hover:bg-white hover:border-emerald-300"
                             : "border-slate-100 bg-slate-50/50 hover:bg-white hover:border-[#FBBF24]/30"
                         }`}
                       >
-                        <div className="flex items-center gap-2 mb-1.5">
+                        <div className="flex items-center gap-2 mb-2">
                           <p className="font-semibold text-[#102a5a] text-sm">
                             {session.title || "Untitled Session"}
                           </p>
                           {session._type === "free" && (
                             <span className="inline-flex items-center rounded-full bg-emerald-100 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
-                              Free Session
+                              Free
                             </span>
                           )}
                         </div>
@@ -819,32 +856,25 @@ const InstructorDashboard = () => {
                         </div>
 
                         {session._type === "free" ? (
-                          <div className="space-y-1.5">
-                            <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-600">
-                              <span><span className="font-semibold text-[#102a5a]">Parent:</span> {session.parentName}</span>
-                              <span><span className="font-semibold text-[#102a5a]">Phone:</span> {session.phone}</span>
+                          <div className="space-y-1.5 text-xs text-slate-600">
+                            <div className="flex flex-wrap gap-x-3 gap-y-1">
+                              <span><b className="text-[#102a5a]">Parent:</b> {session.parentName}</span>
+                              <span><b className="text-[#102a5a]">Phone:</b> {session.phone}</span>
                             </div>
-                            <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-600">
-                              <span><span className="font-semibold text-[#102a5a]">Child:</span> {session.childName}{session.childAge ? ` (${session.childAge} yrs)` : ""}</span>
-                            </div>
+                            <p><b className="text-[#102a5a]">Child:</b> {session.childName}{session.childAge ? ` (${session.childAge} yrs)` : ""}</p>
                             {session.notes?.length > 0 && (
-                              <div className="mt-1 text-[11px] text-slate-500 bg-white/70 rounded-lg px-2.5 py-1.5 border border-slate-100">
-                                <span className="font-semibold text-slate-600">Notes: </span>
-                                {session.notes.join(" | ")}
+                              <div className="mt-1.5 text-[11px] text-slate-500 bg-white/70 rounded-lg px-2.5 py-1.5 border border-slate-100">
+                                <b className="text-slate-600">Notes:</b> {session.notes.join(" | ")}
                               </div>
                             )}
                           </div>
                         ) : (
                           <div className="inline-flex items-center gap-1.5 rounded-xl bg-[#102a5a]/5 px-2.5 py-1 text-xs text-[#102a5a] border border-[#102a5a]/10">
-                            <span className="font-semibold truncate max-w-[120px]">
-                              {session.roundName}
-                            </span>
+                            <span className="font-semibold truncate max-w-[120px]">{session.roundName}</span>
                             {session.roundCode && (
                               <>
                                 <span className="text-[#102a5a]/30">·</span>
-                                <span className="font-mono text-[#102a5a]/70">
-                                  {session.roundCode}
-                                </span>
+                                <span className="font-mono text-[#102a5a]/70">{session.roundCode}</span>
                               </>
                             )}
                           </div>
@@ -853,22 +883,25 @@ const InstructorDashboard = () => {
                     ))}
                   </div>
                 )}
-              </Motion.div>
+              </div>
+            </Motion.div>
+          )}
 
-              <Motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.25 }}
-                className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6"
-              >
+          {/* ===== TAB: EVALUATIONS ===== */}
+          {activeTab === "evaluations" && (
+            <Motion.div
+              key="evaluations"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-5"
+            >
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
                 <div className="flex items-center justify-between mb-5">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-[#102a5a]/10 flex items-center justify-center">
                       <Sparkles className="w-4 h-4 text-[#102a5a]" />
                     </div>
-                    <h2 className="text-base font-bold text-[#102a5a]">
-                      Trial Session Evaluations
-                    </h2>
+                    <h2 className="text-base font-bold text-[#102a5a]">Trial Session Evaluations</h2>
                   </div>
                   <span className="inline-flex items-center rounded-full bg-[#102a5a]/10 px-2.5 py-0.5 text-xs font-bold text-[#102a5a]">
                     {trialLeads.length} Leads
@@ -876,9 +909,10 @@ const InstructorDashboard = () => {
                 </div>
 
                 {trialLeads.length === 0 ? (
-                  <p className="text-sm text-slate-500 py-2 border-t border-slate-100">
-                    No demo leads available yet.
-                  </p>
+                  <div className="text-center py-10 border-t border-slate-100">
+                    <Sparkles className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                    <p className="text-sm text-slate-500">No demo leads available yet.</p>
+                  </div>
                 ) : (
                   <div className="space-y-3">
                     {trialLeads.map((lead) => {
@@ -901,50 +935,38 @@ const InstructorDashboard = () => {
                                 Status: {lead.status || "New"} · Phone: {lead.phone || "-"}
                               </p>
                             </div>
+                            <p className="text-[11px] text-slate-400">
+                              Last: {lead.trainerEvaluation?.updatedAt
+                                ? new Date(lead.trainerEvaluation.updatedAt).toLocaleString()
+                                : "-"}
+                            </p>
                           </div>
 
                           <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
                             <textarea
                               rows={2}
                               value={draft.strengths}
-                              onChange={(e) =>
-                                handleEvaluationDraftChange(
-                                  leadId,
-                                  "strengths",
-                                  e.target.value
-                                )
-                              }
+                              onChange={(e) => handleEvaluationDraftChange(leadId, "strengths", e.target.value)}
                               placeholder="Child strengths..."
                               className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24]"
                             />
                             <textarea
                               rows={2}
                               value={draft.favoriteProject}
-                              onChange={(e) =>
-                                handleEvaluationDraftChange(
-                                  leadId,
-                                  "favoriteProject",
-                                  e.target.value
-                                )
-                              }
+                              onChange={(e) => handleEvaluationDraftChange(leadId, "favoriteProject", e.target.value)}
                               placeholder="Favorite project..."
                               className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24]"
                             />
                           </div>
 
-                          <div className="mt-3 flex items-center justify-between">
-                            <p className="text-[11px] text-slate-500">
-                              Last update:{" "}
-                              {lead.trainerEvaluation?.updatedAt
-                                ? new Date(lead.trainerEvaluation.updatedAt).toLocaleString()
-                                : "-"}
-                            </p>
+                          <div className="mt-3 flex justify-end">
                             <button
                               type="button"
                               onClick={() => saveLeadEvaluation(leadId)}
                               disabled={isSavingEvaluationId === leadId}
-                              className="rounded-xl bg-[#102a5a] px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-[#1a3a6b] disabled:opacity-50"
+                              className="inline-flex items-center gap-2 rounded-xl bg-[#102a5a] px-4 py-2 text-xs font-semibold text-white hover:bg-[#1a3a6b] disabled:opacity-50 transition-all"
                             >
+                              <Save className="w-3.5 h-3.5" />
                               {isSavingEvaluationId === leadId ? "Saving..." : "Save Evaluation"}
                             </button>
                           </div>
@@ -953,14 +975,14 @@ const InstructorDashboard = () => {
                     })}
                   </div>
                 )}
-              </Motion.div>
-            </div>
-          </div>
+              </div>
+            </Motion.div>
+          )}
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="py-6 text-center text-xs bg-[#071228] mt-auto">
+      <footer className="py-5 text-center text-xs bg-[#071228] mt-auto">
         <p className="text-slate-500">
           © {new Date().getFullYear()} Sparvi Lab. All rights reserved.
         </p>
