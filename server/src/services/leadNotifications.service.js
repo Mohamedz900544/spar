@@ -10,7 +10,6 @@ const getNotificationConfig = () => ({
   instructorAssignTemplateName:
     process.env.WHATSAPP_TEMPLATE_INSTRUCTOR_ASSIGN || "",
   defaultTemplateLanguage: process.env.WHATSAPP_TEMPLATE_LANGUAGE || "en_US",
-  // "hello_world" is the default approved template in most WhatsApp test setups.
   defaultTemplateFallback: process.env.WHATSAPP_TEMPLATE_DEFAULT || "hello_world",
   defaultSalesPhone: process.env.WHATSAPP_DEFAULT_SALES_PHONE || "",
 });
@@ -90,6 +89,73 @@ const resolveSalesRecipient = async (
   return null;
 };
 
+/**
+ * Sends a WhatsApp notification trying the most reliable method first:
+ *   1. Custom template (if configured)
+ *   2. Default template fallback (hello_world – known to work)
+ *   3. Free-form text (only works inside the 24-hour window)
+ */
+const sendNotification = async ({
+  phone,
+  customTemplateName,
+  templateLanguage,
+  templateBodyParams,
+  textBody,
+  config,
+  logPrefix,
+}) => {
+  // ── 1. Custom template ──
+  if (customTemplateName) {
+    const templateResult = await sendWhatsAppTemplate({
+      to: phone,
+      templateName: customTemplateName,
+      languageCode: templateLanguage,
+      bodyParams: templateBodyParams,
+    });
+    if (templateResult?.sent) {
+      console.log(`[whatsapp][${logPrefix}] custom template sent to ${normalizePhoneForWhatsApp(phone)}`);
+      return templateResult;
+    }
+    console.warn(`[whatsapp][${logPrefix}] custom template failed:`, templateResult);
+  }
+
+  // ── 2. Default template fallback (hello_world) ──
+  if (config.defaultTemplateFallback) {
+    const fallbackResult = await sendWhatsAppTemplate({
+      to: phone,
+      templateName: config.defaultTemplateFallback,
+      languageCode: templateLanguage,
+    });
+    if (fallbackResult?.sent) {
+      console.log(`[whatsapp][${logPrefix}] default template (${config.defaultTemplateFallback}) sent to ${normalizePhoneForWhatsApp(phone)}`);
+
+      // Also try to send the detailed text for extra context (best-effort, within 24h window)
+      if (textBody) {
+        const textResult = await sendWhatsAppText({ to: phone, body: textBody });
+        if (textResult?.sent) {
+          console.log(`[whatsapp][${logPrefix}] follow-up text also sent`);
+        }
+      }
+
+      return fallbackResult;
+    }
+    console.warn(`[whatsapp][${logPrefix}] default template fallback failed:`, fallbackResult);
+  }
+
+  // ── 3. Free-form text (last resort – only works inside 24h window) ──
+  if (textBody) {
+    const textResult = await sendWhatsAppText({ to: phone, body: textBody });
+    if (textResult?.sent) {
+      console.log(`[whatsapp][${logPrefix}] text message sent to ${normalizePhoneForWhatsApp(phone)}`);
+      return textResult;
+    }
+    console.warn(`[whatsapp][${logPrefix}] text message also failed:`, textResult);
+    return textResult;
+  }
+
+  return { sent: false, error: "all_methods_failed" };
+};
+
 export const notifySalesFollowUpReminder = async ({
   lead,
   fallbackSalesUser = null,
@@ -97,10 +163,17 @@ export const notifySalesFollowUpReminder = async ({
   const config = getNotificationConfig();
   const recipient = await resolveSalesRecipient(lead, fallbackSalesUser, config);
   if (!recipient) {
+    console.warn("[whatsapp][follow-up] skipped – no sales recipient found for lead:", lead?._id || lead?.id);
     return { sent: false, skipped: true, reason: "missing_sales_recipient" };
   }
 
-  const body = [
+  console.log("[whatsapp][follow-up] sending to:", {
+    recipientName: recipient.name,
+    recipientPhone: recipient.phone,
+    leadId: lead?._id || lead?.id,
+  });
+
+  const textBody = [
     "تذكير متابعة عميل",
     `اسم ولي الأمر: ${lead.parentName || "-"}`,
     `رقم ولي الأمر: ${lead.phone || "-"}`,
@@ -110,40 +183,25 @@ export const notifySalesFollowUpReminder = async ({
     `موعد المتابعة: ${formatCairoDateTime(new Date())}`,
   ].join("\n");
 
-  let result;
-  if (config.followUpTemplateName) {
-    result = await sendWhatsAppTemplate({
-      to: normalizePhoneForWhatsApp(recipient.phone),
-      templateName: config.followUpTemplateName,
-      languageCode: config.defaultTemplateLanguage,
-      bodyParams: [
-        lead.parentName || "-",
-        lead.phone || "-",
-        lead.childName || "-",
-        `${lead.childAge || "-"}`,
-        "Follow-up",
-        formatCairoDateTime(new Date()),
-      ],
-    });
-  } else {
-    result = await sendWhatsAppText({
-      to: normalizePhoneForWhatsApp(recipient.phone),
-      body,
-    });
-  }
+  const result = await sendNotification({
+    phone: recipient.phone,
+    customTemplateName: config.followUpTemplateName,
+    templateLanguage: config.defaultTemplateLanguage,
+    templateBodyParams: [
+      lead.parentName || "-",
+      lead.phone || "-",
+      lead.childName || "-",
+      `${lead.childAge || "-"}`,
+      "Follow-up",
+      formatCairoDateTime(new Date()),
+    ],
+    textBody,
+    config,
+    logPrefix: "follow-up",
+  });
 
   if (!result?.sent) {
-    if (config.defaultTemplateFallback && !config.followUpTemplateName) {
-      result = await sendWhatsAppTemplate({
-        to: normalizePhoneForWhatsApp(recipient.phone),
-        templateName: config.defaultTemplateFallback,
-        languageCode: config.defaultTemplateLanguage,
-      });
-    }
-  }
-
-  if (!result?.sent) {
-    console.warn("[whatsapp][follow-up] not sent:", result);
+    console.warn("[whatsapp][follow-up] NOT sent:", result);
   }
   return result;
 };
@@ -154,10 +212,17 @@ export const notifyInstructorFreeSessionAssigned = async ({
 }) => {
   const config = getNotificationConfig();
   if (!instructor?.phone) {
+    console.warn("[whatsapp][assign] skipped – instructor has no phone:", instructor?.name || instructor?._id);
     return { sent: false, skipped: true, reason: "missing_instructor_phone" };
   }
 
-  const body = [
+  console.log("[whatsapp][assign] sending to instructor:", {
+    instructorName: instructor.name,
+    instructorPhone: instructor.phone,
+    leadId: lead?._id || lead?.id,
+  });
+
+  const textBody = [
     "تم تعيين حصة مجانية جديدة",
     `اسم ولي الأمر: ${lead.parentName || "-"}`,
     `رقم ولي الأمر: ${lead.phone || "-"}`,
@@ -169,44 +234,26 @@ export const notifyInstructorFreeSessionAssigned = async ({
     extractLatestNotes(lead),
   ].join("\n");
 
-  let result;
-  if (config.instructorAssignTemplateName) {
-    result = await sendWhatsAppTemplate({
-      to: normalizePhoneForWhatsApp(instructor.phone),
-      templateName: config.instructorAssignTemplateName,
-      languageCode: config.defaultTemplateLanguage,
-      bodyParams: [
-        lead.parentName || "-",
-        lead.phone || "-",
-        lead.childName || "-",
-        `${lead.childAge || "-"}`,
-        formatCairoDateTime(lead?.freeSession?.scheduledAt),
-        instructor.name || "-",
-        extractLatestNotes(lead),
-      ],
-    });
-  } else {
-    result = await sendWhatsAppText({
-      to: normalizePhoneForWhatsApp(instructor.phone),
-      body,
-    });
-  }
+  const result = await sendNotification({
+    phone: instructor.phone,
+    customTemplateName: config.instructorAssignTemplateName,
+    templateLanguage: config.defaultTemplateLanguage,
+    templateBodyParams: [
+      lead.parentName || "-",
+      lead.phone || "-",
+      lead.childName || "-",
+      `${lead.childAge || "-"}`,
+      formatCairoDateTime(lead?.freeSession?.scheduledAt),
+      instructor.name || "-",
+      extractLatestNotes(lead),
+    ],
+    textBody,
+    config,
+    logPrefix: "assign",
+  });
 
   if (!result?.sent) {
-    if (
-      config.defaultTemplateFallback &&
-      !config.instructorAssignTemplateName
-    ) {
-      result = await sendWhatsAppTemplate({
-        to: normalizePhoneForWhatsApp(instructor.phone),
-        templateName: config.defaultTemplateFallback,
-        languageCode: config.defaultTemplateLanguage,
-      });
-    }
-  }
-
-  if (!result?.sent) {
-    console.warn("[whatsapp][assign] not sent:", result);
+    console.warn("[whatsapp][assign] NOT sent:", result);
   }
   return result;
 };

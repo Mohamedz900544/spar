@@ -9,26 +9,49 @@ const getWhatsAppConfig = () => ({
   accessToken: process.env.WHATSAPP_ACCESS_TOKEN || "",
   phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID || "",
   graphVersion: process.env.WHATSAPP_GRAPH_VERSION || "v25.0",
+  // In test mode, route ALL outgoing messages to the only allowed recipient.
+  // Remove / leave empty when the WhatsApp app goes to production.
+  overrideRecipient: process.env.WHATSAPP_OVERRIDE_RECIPIENT || "",
 });
 
 const isWhatsAppConfigured = ({ accessToken, phoneNumberId }) =>
   Boolean(accessToken && phoneNumberId);
 
 export const normalizePhoneForWhatsApp = (phone) => {
-  const digits = (phone || "").toString().replace(/\D/g, "");
+  const raw = (phone || "").toString().trim();
+  if (!raw) return "";
+
+  // If the number starts with +, it already has a country code – just strip non-digits
+  if (raw.startsWith("+")) {
+    const digits = raw.replace(/\D/g, "");
+    return digits || "";
+  }
+
+  const digits = raw.replace(/\D/g, "");
   if (!digits) return "";
 
+  // Already has the default country code
   if (digits.startsWith(DEFAULT_COUNTRY_CODE)) return digits;
+  // Local number starting with 0 → replace leading 0 with country code
   if (digits.startsWith("0")) return `${DEFAULT_COUNTRY_CODE}${digits.slice(1)}`;
   return digits;
 };
 
 export const sendWhatsAppText = async ({ to, body }) => {
   const config = getWhatsAppConfig();
-  const normalizedTo = normalizePhoneForWhatsApp(to);
+  let normalizedTo = normalizePhoneForWhatsApp(to);
 
   if (!normalizedTo || !body?.trim()) {
     return { sent: false, skipped: true, reason: "missing_to_or_body" };
+  }
+
+  // Test-mode override: redirect to the only allowed recipient
+  if (config.overrideRecipient) {
+    const overrideTo = normalizePhoneForWhatsApp(config.overrideRecipient);
+    if (overrideTo) {
+      console.log(`[whatsapp] override recipient: ${normalizedTo} → ${overrideTo}`);
+      normalizedTo = overrideTo;
+    }
   }
 
   if (!isWhatsAppConfigured(config)) {
@@ -72,10 +95,19 @@ export const sendWhatsAppTemplate = async ({
   bodyParams = [],
 }) => {
   const config = getWhatsAppConfig();
-  const normalizedTo = normalizePhoneForWhatsApp(to);
+  let normalizedTo = normalizePhoneForWhatsApp(to);
 
   if (!normalizedTo || !templateName?.trim()) {
     return { sent: false, skipped: true, reason: "missing_to_or_template" };
+  }
+
+  // Test-mode override: redirect to the only allowed recipient
+  if (config.overrideRecipient) {
+    const overrideTo = normalizePhoneForWhatsApp(config.overrideRecipient);
+    if (overrideTo) {
+      console.log(`[whatsapp] override recipient: ${normalizedTo} → ${overrideTo}`);
+      normalizedTo = overrideTo;
+    }
   }
 
   if (!isWhatsAppConfigured(config)) {

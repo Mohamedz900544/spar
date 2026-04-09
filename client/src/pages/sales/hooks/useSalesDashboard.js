@@ -16,6 +16,7 @@ export const useSalesDashboard = () => {
   const [noteDrafts, setNoteDrafts] = useState({});
   const [paymentDrafts, setPaymentDrafts] = useState({});
   const [isCreatingLead, setIsCreatingLead] = useState(false);
+  const [isSendingWhatsAppTest, setIsSendingWhatsAppTest] = useState(false);
 
   const checkAuth = useCallback(() => {
     const token = localStorage.getItem("sparvi_token");
@@ -165,7 +166,21 @@ export const useSalesDashboard = () => {
       }
 
       upsertLead(data);
-      toast.success("Lead status updated");
+
+      if (status === "Follow-up" && data?.whatsappNotification) {
+        if (data.whatsappNotification.sent) {
+          toast.success("Lead moved to Follow-up + sales notified on WhatsApp");
+        } else {
+          const details =
+            data.whatsappNotification.error ||
+            data.whatsappNotification.reason ||
+            "WhatsApp notification was not delivered";
+          toast.error(`Status updated, but WhatsApp notification failed: ${details}`);
+        }
+      } else {
+        toast.success("Lead status updated");
+      }
+
       fetchDashboard();
     } catch (err) {
       console.error("Update lead status error:", err);
@@ -257,13 +272,69 @@ export const useSalesDashboard = () => {
       }
 
       upsertLead(data);
-      toast.success("Free session assigned");
+      const target = data?.whatsappNotificationTarget;
+      const targetLabel =
+        target?.instructorName || target?.instructorPhoneRaw
+          ? ` (${target?.instructorName || "Instructor"} - ${
+              target?.instructorPhoneRaw || target?.instructorPhoneNormalized || ""
+            })`
+          : "";
+      if (data?.whatsappNotification?.sent) {
+        toast.success(`Free session assigned + instructor notified on WhatsApp${targetLabel}`);
+      } else {
+        const details =
+          data?.whatsappNotification?.error ||
+          data?.whatsappNotification?.reason ||
+          "WhatsApp notification was not delivered";
+        toast.error(`Assigned${targetLabel}, but WhatsApp failed: ${details}`);
+      }
       fetchDashboard();
       return data;
     } catch (err) {
       console.error("Assign free session error:", err);
       toast.error(err.message || "Failed to assign free session");
       return null;
+    }
+  };
+
+  const sendWhatsAppTest = async () => {
+    const token = checkAuth();
+    if (!token) return false;
+
+    try {
+      setIsSendingWhatsAppTest(true);
+      const res = await fetch(`${API_BASE_URL}/api/sales/whatsapp/test`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          phone: "01007775705",
+        }),
+      });
+
+      const raw = await res.text();
+      let data = {};
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch {
+        throw new Error(
+          "API returned invalid response. Check VITE_API_BASE_URL and backend server."
+        );
+      }
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to send WhatsApp test");
+      }
+
+      toast.success(data.message || "WhatsApp test sent");
+      return true;
+    } catch (err) {
+      console.error("Send WhatsApp test error:", err);
+      toast.error(err.message || "Failed to send WhatsApp test");
+      return false;
+    } finally {
+      setIsSendingWhatsAppTest(false);
     }
   };
 
@@ -294,6 +365,7 @@ export const useSalesDashboard = () => {
     isLoading,
     isRefreshing,
     isCreatingLead,
+    isSendingWhatsAppTest,
     error,
     leads,
     instructors,
@@ -309,6 +381,7 @@ export const useSalesDashboard = () => {
     addLeadNote,
     savePaymentLink,
     assignFreeSession,
+    sendWhatsAppTest,
     copyPaymentLink,
     logout,
   };

@@ -6,6 +6,11 @@ import {
   notifyInstructorFreeSessionAssigned,
   notifySalesFollowUpReminder,
 } from "../services/leadNotifications.service.js";
+import {
+  normalizePhoneForWhatsApp,
+  sendWhatsAppTemplate,
+  sendWhatsAppText,
+} from "../services/whatsapp.service.js";
 
 const router = express.Router();
 const FREE_SESSION_DEFAULT_DURATION_MINUTES = Number(
@@ -14,6 +19,9 @@ const FREE_SESSION_DEFAULT_DURATION_MINUTES = Number(
 const FOLLOW_UP_DELAY_AFTER_END_MINUTES = Number(
   process.env.FREE_SESSION_FOLLOW_UP_DELAY_MINUTES || 180
 );
+const WHATSAPP_TEST_PHONE = process.env.WHATSAPP_TEST_PHONE || "01007775705";
+const WHATSAPP_TEST_TEMPLATE = process.env.WHATSAPP_TEMPLATE_DEFAULT || "hello_world";
+const WHATSAPP_TEMPLATE_LANGUAGE = process.env.WHATSAPP_TEMPLATE_LANGUAGE || "en_US";
 
 const assertValidStatus = (status) => LEAD_STATUSES.includes(status);
 
@@ -52,6 +60,49 @@ router.get("/dashboard", authRequired, agentOrAdmin, async (_req, res) => {
     });
   } catch (err) {
     console.error("Sales dashboard error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.post("/whatsapp/test", authRequired, agentOrAdmin, async (req, res) => {
+  try {
+    const requestedPhone = req.body?.phone || WHATSAPP_TEST_PHONE;
+    const to = normalizePhoneForWhatsApp(requestedPhone);
+
+    if (!to) {
+      return res.status(400).json({ message: "Invalid test phone number" });
+    }
+
+    const agentName = req.user?.name || "Sales Agent";
+    const now = new Date().toLocaleString("en-GB", { timeZone: "Africa/Cairo" });
+
+    let result = await sendWhatsAppTemplate({
+      to,
+      templateName: WHATSAPP_TEST_TEMPLATE,
+      languageCode: WHATSAPP_TEMPLATE_LANGUAGE,
+    });
+
+    if (!result?.sent) {
+      result = await sendWhatsAppText({
+        to,
+        body: `WhatsApp test from Sales Dashboard\nAgent: ${agentName}\nTime: ${now}`,
+      });
+    }
+
+    if (!result?.sent) {
+      return res.status(502).json({
+        message: "WhatsApp test failed",
+        details: result,
+      });
+    }
+
+    return res.json({
+      message: `WhatsApp test sent to ${to}`,
+      to,
+      result,
+    });
+  } catch (err) {
+    console.error("WhatsApp test error:", err);
     return res.status(500).json({ message: "Server error" });
   }
 });
@@ -147,14 +198,23 @@ router.patch("/leads/:id/status", authRequired, agentOrAdmin, async (req, res) =
     const statusChangedToFollowUp =
       status === "Follow-up" && (leadBefore.status || "") !== "Follow-up";
 
+    let whatsappNotification = null;
     if (statusChangedToFollowUp && updated) {
-      void notifySalesFollowUpReminder({
-        lead: updated.toObject(),
-        fallbackSalesUser: req.user,
-      });
+      try {
+        whatsappNotification = await notifySalesFollowUpReminder({
+          lead: updated.toObject(),
+          fallbackSalesUser: req.user,
+        });
+      } catch (waErr) {
+        console.error("[sales][status] follow-up WhatsApp notification error:", waErr);
+        whatsappNotification = { sent: false, error: waErr.message || "notification_error" };
+      }
     }
 
-    return res.json(updated.toJSON());
+    return res.json({
+      ...updated.toJSON(),
+      ...(whatsappNotification ? { whatsappNotification } : {}),
+    });
   } catch (err) {
     console.error("Update lead status error:", err);
     return res.status(500).json({ message: "Server error" });
@@ -294,12 +354,31 @@ router.patch("/leads/:id/free-session", authRequired, agentOrAdmin, async (req, 
       return res.status(404).json({ message: "Lead not found" });
     }
 
-    void notifyInstructorFreeSessionAssigned({
+    const whatsappNotification = await notifyInstructorFreeSessionAssigned({
       lead: updated.toObject(),
       instructor,
     });
+    const whatsappNotificationTarget = {
+      instructorId: instructor._id?.toString?.() || instructorId,
+      instructorName: instructor.name || "",
+      instructorPhoneRaw: instructor.phone || "",
+      instructorPhoneNormalized: normalizePhoneForWhatsApp(instructor.phone || ""),
+    };
 
-    return res.json(updated.toJSON());
+    if (!whatsappNotification?.sent) {
+      console.warn("[sales][free-session] instructor whatsapp notification failed:", {
+        leadId: updated._id?.toString?.() || updated.id,
+        instructorId: whatsappNotificationTarget.instructorId,
+        instructorPhone: whatsappNotificationTarget.instructorPhoneRaw,
+        result: whatsappNotification,
+      });
+    }
+
+    return res.json({
+      ...updated.toJSON(),
+      whatsappNotification,
+      whatsappNotificationTarget,
+    });
   } catch (err) {
     console.error("Assign free session error:", err);
     return res.status(500).json({ message: "Server error" });

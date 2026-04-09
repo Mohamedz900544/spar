@@ -1,5 +1,5 @@
 import { Link, useOutletContext } from "react-router-dom";
-import { ArrowRight, CalendarClock } from "lucide-react";
+import { ArrowRight, CalendarClock, Send } from "lucide-react";
 import { LEAD_STATUSES, statusPill, formatDateTime } from "./salesHelpers";
 
 const SalesOverviewPage = () => {
@@ -24,13 +24,23 @@ const SalesOverviewPage = () => {
             {freeSessionRequests.length} leads waiting for assignment
           </p>
         </div>
-        <Link
-          to="/sales/free-session"
-          className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold bg-[#102a5a] text-white hover:bg-[#1a3a6b] transition-all"
-        >
-          Assign Free Session
-          <ArrowRight className="w-4 h-4" />
-        </Link>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          <button
+            onClick={sales.sendWhatsAppTest}
+            disabled={sales.isSendingWhatsAppTest}
+            className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60 transition-all"
+          >
+            {sales.isSendingWhatsAppTest ? "Sending Test..." : "Test WhatsApp (01007775705)"}
+            <Send className="w-4 h-4" />
+          </button>
+          <Link
+            to="/sales/free-session"
+            className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold bg-[#102a5a] text-white hover:bg-[#1a3a6b] transition-all"
+          >
+            Assign Free Session
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">

@@ -18,6 +18,16 @@ const SalesFreeSessionPage = () => {
       .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
   }, [sales.leads]);
 
+  const instructorPhoneById = useMemo(() => {
+    const map = {};
+    for (const instructor of sales.instructors || []) {
+      const id = instructor.id || instructor._id;
+      if (!id) continue;
+      map[id] = instructor.phone || "";
+    }
+    return map;
+  }, [sales.instructors]);
+
   useEffect(() => {
     const next = {};
     for (const lead of requestedLeads) {
@@ -106,7 +116,8 @@ const SalesFreeSessionPage = () => {
                       <option value="">Select instructor</option>
                       {sales.instructors.map((instructor) => (
                         <option key={instructor.id || instructor._id} value={instructor.id || instructor._id}>
-                          {instructor.name} {instructor.campusCode ? `(${instructor.campusCode})` : ""}
+                          {instructor.name} - {instructor.phone || "No phone"}{" "}
+                          {instructor.campusCode ? `(${instructor.campusCode})` : ""}
                         </option>
                       ))}
                     </select>
@@ -141,6 +152,10 @@ const SalesFreeSessionPage = () => {
                     <p className="text-[11px] text-slate-600">
                       <span className="font-semibold">Current instructor:</span>{" "}
                       {lead.freeSession?.instructorName || "-"}
+                    </p>
+                    <p className="text-[11px] text-slate-600 mt-1">
+                      <span className="font-semibold">Instructor phone:</span>{" "}
+                      {instructorPhoneById[lead.freeSession?.instructor] || "-"}
                     </p>
                     <p className="text-[11px] text-slate-600 mt-1">
                       <span className="font-semibold">Scheduled at:</span>{" "}
