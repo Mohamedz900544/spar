@@ -1,5 +1,4 @@
-import dotenv from "dotenv";
-dotenv.config()
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { connectDB } from "./config/db.js";
@@ -15,8 +14,10 @@ import sessionRoutes from "./routes/session.routes.js";
 import galleryRoutes from "./routes/gallery.routes.js";
 import instructorRoutes from "./routes/instructor.routes.js";
 import salesRoutes from "./routes/sales.routes.js";
+import whatsappWebhookRoutes from "./routes/whatsappWebhook.routes.js";
 // import "./config/cloudinary.js";
 import "./automatingUpdatingStatusOfSession.js"
+import "./automatingLeadFollowUpStatus.js";
 import enrollmentRoutes from "./routes/enrollment.routes.js";
 import fractionsRoutes from "./routes/fractions.js";
 import visitRoutes from "./routes/visit.routes.js";
@@ -80,6 +81,7 @@ app.use("/api/blocks", publicBlocksRoutes); // <-- share is public
 app.use("/api/blocks", blocksRoutes);
 app.use("/api/fractions", fractionsRoutes);
 app.use("/api", visitRoutes);
+app.use("/webhook/whatsapp", whatsappWebhookRoutes);
 
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {

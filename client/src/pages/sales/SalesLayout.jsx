@@ -1,9 +1,18 @@
 import { Link, NavLink, Outlet } from "react-router-dom";
-import { ClipboardList, LogOut, RefreshCw, UserPlus, Users, TrendingUp } from "lucide-react";
+import {
+  CalendarClock,
+  ClipboardList,
+  LogOut,
+  RefreshCw,
+  TrendingUp,
+  UserPlus,
+  Users,
+} from "lucide-react";
 import { useSalesDashboard } from "./hooks/useSalesDashboard";
 
 const navItems = [
   { to: "/sales", label: "Overview", icon: TrendingUp },
+  { to: "/sales/free-session", label: "Assign Free Session", icon: CalendarClock },
   { to: "/sales/pipeline", label: "Pipeline", icon: ClipboardList },
   { to: "/sales/new", label: "New Lead", icon: UserPlus },
   { to: "/sales/follow-ups", label: "Follow-ups", icon: Users },

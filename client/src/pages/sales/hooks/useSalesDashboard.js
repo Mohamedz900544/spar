@@ -11,6 +11,7 @@ export const useSalesDashboard = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState("");
   const [leads, setLeads] = useState([]);
+  const [instructors, setInstructors] = useState([]);
   const [stats, setStats] = useState({});
   const [noteDrafts, setNoteDrafts] = useState({});
   const [paymentDrafts, setPaymentDrafts] = useState({});
@@ -50,6 +51,7 @@ export const useSalesDashboard = () => {
       }
 
       setLeads(data.leads || []);
+      setInstructors(data.instructors || []);
       setStats(data.stats || {});
       hydratePaymentDrafts(data.leads || []);
       setError("");
@@ -229,6 +231,42 @@ export const useSalesDashboard = () => {
     }
   };
 
+  const assignFreeSession = async ({ leadId, instructorId, scheduledAt }) => {
+    const token = checkAuth();
+    if (!token) return null;
+    if (!leadId || !instructorId || !scheduledAt) {
+      toast.error("Please choose instructor and date/time.");
+      return null;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/sales/leads/${leadId}/free-session`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          instructorId,
+          scheduledAt,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to assign free session");
+      }
+
+      upsertLead(data);
+      toast.success("Free session assigned");
+      fetchDashboard();
+      return data;
+    } catch (err) {
+      console.error("Assign free session error:", err);
+      toast.error(err.message || "Failed to assign free session");
+      return null;
+    }
+  };
+
   const copyPaymentLink = async (link) => {
     if (!link?.trim()) {
       toast.error("No payment link to copy yet.");
@@ -258,6 +296,7 @@ export const useSalesDashboard = () => {
     isCreatingLead,
     error,
     leads,
+    instructors,
     stats,
     noteDrafts,
     paymentDrafts,
@@ -269,6 +308,7 @@ export const useSalesDashboard = () => {
     updateLeadStatus,
     addLeadNote,
     savePaymentLink,
+    assignFreeSession,
     copyPaymentLink,
     logout,
   };

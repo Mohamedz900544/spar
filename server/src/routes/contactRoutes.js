@@ -22,6 +22,13 @@ router.post("/", async (req, res) => {
       message,
     });
 
+    const normalizedMessage = (message || "").toString().toLowerCase();
+    const wantsFreeSession =
+      normalizedMessage.includes("free session") ||
+      normalizedMessage.includes("trial") ||
+      normalizedMessage.includes("حصة مجانية") ||
+      normalizedMessage.includes("جلسة مجانية");
+
     let lead = null;
     try {
       lead = await Lead.create({
@@ -29,7 +36,7 @@ router.post("/", async (req, res) => {
         childName: childName?.trim() || "Unknown Child",
         childAge: childAge || undefined,
         phone,
-        source: "Contact Form",
+        source: wantsFreeSession ? "Free Session" : "Contact Form",
         notes: message?.trim()
           ? [
               {
@@ -39,6 +46,9 @@ router.post("/", async (req, res) => {
               },
             ]
           : [],
+        freeSession: {
+          requested: wantsFreeSession,
+        },
       });
     } catch (leadErr) {
       console.error("Lead creation from contact form failed:", leadErr);

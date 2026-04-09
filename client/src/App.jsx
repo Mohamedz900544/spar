@@ -66,6 +66,7 @@ const ParentProfile = lazy(() => import("./pages/ProfileSettings"));
 const InstructorDashboard = lazy(() => import("./pages/InstructorDashboard"));
 const SalesLayout = lazy(() => import("./pages/sales/SalesLayout"));
 const SalesOverviewPage = lazy(() => import("./pages/sales/SalesOverviewPage"));
+const SalesFreeSessionPage = lazy(() => import("./pages/sales/SalesFreeSessionPage"));
 const SalesPipelinePage = lazy(() => import("./pages/sales/SalesPipelinePage"));
 const SalesNewLeadPage = lazy(() => import("./pages/sales/SalesNewLeadPage"));
 const SalesFollowUpsPage = lazy(() => import("./pages/sales/SalesFollowUpsPage"));
@@ -146,6 +147,7 @@ function App() {
           <Route element={<ProtectedRoute allowedRole={["agent", "admin"]} redirectTo="/login" />}>
             <Route path="/sales" element={<SalesLayout />}>
               <Route index element={<SalesOverviewPage />} />
+              <Route path="free-session" element={<SalesFreeSessionPage />} />
               <Route path="pipeline" element={<SalesPipelinePage />} />
               <Route path="new" element={<SalesNewLeadPage />} />
               <Route path="follow-ups" element={<SalesFollowUpsPage />} />

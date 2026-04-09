@@ -9,8 +9,30 @@ const SalesOverviewPage = () => {
     .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
     .slice(0, 8);
 
+  const freeSessionRequests = (sales.leads || []).filter(
+    (lead) => lead.freeSession?.requested || lead.source === "Free Session"
+  );
+
   return (
     <div className="space-y-5">
+      <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <p className="text-xs uppercase tracking-wide text-slate-500 font-semibold">
+            Free Session Requests
+          </p>
+          <p className="text-lg font-bold text-[#102a5a] mt-1">
+            {freeSessionRequests.length} leads waiting for assignment
+          </p>
+        </div>
+        <Link
+          to="/sales/free-session"
+          className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold bg-[#102a5a] text-white hover:bg-[#1a3a6b] transition-all"
+        >
+          Assign Free Session
+          <ArrowRight className="w-4 h-4" />
+        </Link>
+      </div>
+
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {LEAD_STATUSES.map((status) => (
           <div

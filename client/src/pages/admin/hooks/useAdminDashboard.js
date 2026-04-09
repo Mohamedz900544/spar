@@ -8,6 +8,31 @@ import { getTokenOrRedirect } from "../../../helpers/helpers.js";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+const parseResponseOrThrow = async (res, fallbackMessage = "Request failed") => {
+  const raw = await res.text();
+  let data = {};
+
+  if (raw) {
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      const isHtml = raw.trimStart().startsWith("<!DOCTYPE") || raw.trimStart().startsWith("<html");
+      if (isHtml) {
+        throw new Error(
+          "API returned HTML instead of JSON. Check VITE_API_BASE_URL and ensure backend is running on port 8300."
+        );
+      }
+      throw new Error("API returned invalid JSON response.");
+    }
+  }
+
+  if (!res.ok) {
+    throw new Error(data.message || fallbackMessage);
+  }
+
+  return data;
+};
+
 /* ========== INITIAL DATA MODELS (UI fallback) ========== */
 
 // const initialSessions = [
@@ -361,10 +386,7 @@ export const useAdminDashboard = () => {
         body: JSON.stringify(newInstructor),
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to create instructor");
-      }
+      const data = await parseResponseOrThrow(res, "Failed to create instructor");
 
       setInstructors((prev) => [data.instructor, ...prev]);
       setNewInstructor({
@@ -406,10 +428,7 @@ export const useAdminDashboard = () => {
         body: JSON.stringify(newSalesAgent),
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to create sales agent");
-      }
+      const data = await parseResponseOrThrow(res, "Failed to create sales agent");
 
       setSalesAgents((prev) => [data.salesAgent, ...prev]);
       setNewSalesAgent({

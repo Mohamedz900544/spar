@@ -1,14 +1,31 @@
 import express from "express";
 import Lead, { LEAD_STATUSES } from "../models/Lead.js";
 import { authRequired, agentOrAdmin } from "../middleware/auth.js";
+import User from "../models/User.js";
+import {
+  notifyInstructorFreeSessionAssigned,
+  notifySalesFollowUpReminder,
+} from "../services/leadNotifications.service.js";
 
 const router = express.Router();
+const FREE_SESSION_DEFAULT_DURATION_MINUTES = Number(
+  process.env.FREE_SESSION_DURATION_MINUTES || 60
+);
+const FOLLOW_UP_DELAY_AFTER_END_MINUTES = Number(
+  process.env.FREE_SESSION_FOLLOW_UP_DELAY_MINUTES || 180
+);
 
 const assertValidStatus = (status) => LEAD_STATUSES.includes(status);
 
 router.get("/dashboard", authRequired, agentOrAdmin, async (_req, res) => {
   try {
-    const leads = await Lead.find().sort({ createdAt: -1 }).lean();
+    const [leads, instructors] = await Promise.all([
+      Lead.find().sort({ createdAt: -1 }).lean(),
+      User.find({ role: "instructor" })
+        .select("name email phone campusCode")
+        .sort({ createdAt: -1 })
+        .lean(),
+    ]);
 
     const stats = LEAD_STATUSES.reduce(
       (acc, status) => ({ ...acc, [status]: 0 }),
@@ -27,6 +44,10 @@ router.get("/dashboard", authRequired, agentOrAdmin, async (_req, res) => {
       leads: leads.map((lead) => ({
         ...lead,
         id: lead._id.toString(),
+      })),
+      instructors: instructors.map((instructor) => ({
+        ...instructor,
+        id: instructor._id.toString(),
       })),
     });
   } catch (err) {
@@ -72,6 +93,9 @@ router.post("/leads", authRequired, agentOrAdmin, async (req, res) => {
       paymentLink: paymentLink || "",
       createdBy: req.user._id,
       notes,
+      freeSession: {
+        requested: (source || "Manual") === "Free Session",
+      },
     });
 
     return res.status(201).json(lead.toJSON());
@@ -95,19 +119,39 @@ router.patch("/leads/:id/status", authRequired, agentOrAdmin, async (req, res) =
         .json({ message: "lostReason is required for Closed - Lost" });
     }
 
+    const leadBefore = await Lead.findById(req.params.id).lean();
+    if (!leadBefore) {
+      return res.status(404).json({ message: "Lead not found" });
+    }
+
+    const updatePayload = {
+      status,
+      lostReason: status === "Closed - Lost" ? lostReason.trim() : "",
+    };
+
+    // If telesales marks a lead as Demo Booked manually, treat it as a free-session request.
+    if (status === "Demo Booked") {
+      updatePayload["freeSession.requested"] = true;
+    }
+
+    if (!leadBefore.createdBy && ["agent", "admin"].includes(req.user.role)) {
+      updatePayload.createdBy = req.user._id;
+    }
+
     const updated = await Lead.findByIdAndUpdate(
       req.params.id,
-      {
-        $set: {
-          status,
-          lostReason: status === "Closed - Lost" ? lostReason.trim() : "",
-        },
-      },
+      { $set: updatePayload },
       { new: true }
     );
 
-    if (!updated) {
-      return res.status(404).json({ message: "Lead not found" });
+    const statusChangedToFollowUp =
+      status === "Follow-up" && (leadBefore.status || "") !== "Follow-up";
+
+    if (statusChangedToFollowUp && updated) {
+      void notifySalesFollowUpReminder({
+        lead: updated.toObject(),
+        fallbackSalesUser: req.user,
+      });
     }
 
     return res.json(updated.toJSON());
@@ -167,6 +211,97 @@ router.patch("/leads/:id/payment-link", authRequired, agentOrAdmin, async (req, 
     return res.json(updated.toJSON());
   } catch (err) {
     console.error("Update payment link error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.patch("/leads/:id/free-session", authRequired, agentOrAdmin, async (req, res) => {
+  try {
+    const { scheduledAt, instructorId } = req.body;
+
+    if (!scheduledAt || !instructorId) {
+      return res
+        .status(400)
+        .json({ message: "scheduledAt and instructorId are required" });
+    }
+
+    const scheduledDate = new Date(scheduledAt);
+    if (Number.isNaN(scheduledDate.getTime())) {
+      return res.status(400).json({ message: "Invalid scheduledAt date" });
+    }
+
+    const durationMinutes =
+      Number.isFinite(FREE_SESSION_DEFAULT_DURATION_MINUTES) &&
+      FREE_SESSION_DEFAULT_DURATION_MINUTES > 0
+        ? FREE_SESSION_DEFAULT_DURATION_MINUTES
+        : 60;
+    const followUpDelayMinutes =
+      Number.isFinite(FOLLOW_UP_DELAY_AFTER_END_MINUTES) &&
+      FOLLOW_UP_DELAY_AFTER_END_MINUTES >= 0
+        ? FOLLOW_UP_DELAY_AFTER_END_MINUTES
+        : 180;
+    const endsAt = new Date(
+      scheduledDate.getTime() + durationMinutes * 60 * 1000
+    );
+    const followUpDueAt = new Date(
+      endsAt.getTime() + followUpDelayMinutes * 60 * 1000
+    );
+
+    const instructor = await User.findOne({
+      _id: instructorId,
+      role: "instructor",
+    }).lean();
+
+    if (!instructor) {
+      return res.status(404).json({ message: "Instructor not found" });
+    }
+
+    const leadBefore = await Lead.findById(req.params.id).lean();
+    if (!leadBefore) {
+      return res.status(404).json({ message: "Lead not found" });
+    }
+
+    const updated = await Lead.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: {
+          ...(leadBefore?.createdBy
+            ? {}
+            : ["agent", "admin"].includes(req.user.role)
+              ? { createdBy: req.user._id }
+              : {}),
+          status: "Demo Booked",
+          freeSession: {
+            requested: true,
+            isAssigned: true,
+            scheduledAt: scheduledDate,
+            durationMinutes,
+            endsAt,
+            followUpDueAt,
+            movedToFollowUpAt: null,
+            instructor: instructor._id,
+            instructorName: instructor.name || "",
+            assignedBy: req.user._id,
+            assignedByName: req.user.name || "",
+            assignedAt: new Date(),
+          },
+        },
+      },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ message: "Lead not found" });
+    }
+
+    void notifyInstructorFreeSessionAssigned({
+      lead: updated.toObject(),
+      instructor,
+    });
+
+    return res.json(updated.toJSON());
+  } catch (err) {
+    console.error("Assign free session error:", err);
     return res.status(500).json({ message: "Server error" });
   }
 });
