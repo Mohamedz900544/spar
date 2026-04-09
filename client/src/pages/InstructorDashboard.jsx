@@ -55,6 +55,7 @@ const InstructorDashboard = () => {
   const [attendanceFilter, setAttendanceFilter] = useState("all");
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   const [trialLeads, setTrialLeads] = useState([]);
+  const [freeSessions, setFreeSessions] = useState([]);
   const [evaluationDrafts, setEvaluationDrafts] = useState({});
   const [isSavingEvaluationId, setIsSavingEvaluationId] = useState("");
 
@@ -64,11 +65,14 @@ const InstructorDashboard = () => {
     if (!token || role !== "instructor") { navigate("/login"); return; }
     try {
       setIsLoading(true);
-      const [dashboardRes, trialLeadsRes] = await Promise.all([
+      const [dashboardRes, trialLeadsRes, freeSessionsRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/instructor/dashboard`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
         fetch(`${API_BASE_URL}/api/instructor/trial-leads`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${API_BASE_URL}/api/instructor/my-free-sessions`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -81,9 +85,10 @@ const InstructorDashboard = () => {
         }
       };
 
-      const [dashboardData, trialLeadsData] = await Promise.all([
+      const [dashboardData, trialLeadsData, freeSessionsData] = await Promise.all([
         safeJson(dashboardRes),
         safeJson(trialLeadsRes),
+        safeJson(freeSessionsRes),
       ]);
 
       if (!dashboardRes.ok) {
@@ -107,6 +112,10 @@ const InstructorDashboard = () => {
           };
         }
         setEvaluationDrafts(nextDrafts);
+      }
+
+      if (freeSessionsRes.ok) {
+        setFreeSessions(freeSessionsData.freeSessions || []);
       }
 
       setError("");
@@ -134,7 +143,6 @@ const InstructorDashboard = () => {
     [selectedRound]
   );
   const upcomingSessions = useMemo(() => {
-    if (!rounds.length) return [];
     const now = Date.now();
     const norm = (v) => (v || "").toString().trim();
     const toTs = (s) => {
@@ -143,18 +151,47 @@ const InstructorDashboard = () => {
       const p = Date.parse(t ? `${d} ${t}` : d);
       return Number.isNaN(p) ? Infinity : p;
     };
-    return rounds
+
+    // Regular round sessions
+    const roundSessions = rounds
       .flatMap((r) =>
         (r.sessions || []).map((s) => ({
           ...s, roundName: r.name, roundCode: r.code, roundLevel: r.level,
+          _type: "round",
         }))
       )
       .map((s) => ({ session: s, ts: toTs(s) }))
-      .filter((i) => i.ts >= now)
+      .filter((i) => i.ts >= now);
+
+    // Free sessions from leads
+    const freeItems = freeSessions
+      .map((fs) => {
+        const ts = fs.scheduledAt ? new Date(fs.scheduledAt).getTime() : Infinity;
+        const dateObj = new Date(fs.scheduledAt);
+        return {
+          session: {
+            id: fs.id,
+            _type: "free",
+            title: `Free Session — ${fs.childName}`,
+            date: dateObj.toLocaleDateString("en-US"),
+            time: dateObj.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: "UTC" }),
+            parentName: fs.parentName,
+            childName: fs.childName,
+            childAge: fs.childAge,
+            phone: fs.phone,
+            notes: fs.notes || [],
+            leadStatus: fs.status,
+          },
+          ts,
+        };
+      })
+      .filter((i) => i.ts >= now);
+
+    return [...roundSessions, ...freeItems]
       .sort((a, b) => a.ts - b.ts)
-      .slice(0, 5)
+      .slice(0, 10)
       .map((i) => i.session);
-  }, [rounds]);
+  }, [rounds, freeSessions]);
 
   useEffect(() => {
     if (!selectedRound) return;
@@ -747,7 +784,7 @@ const InstructorDashboard = () => {
                     </h2>
                   </div>
                   <span className="inline-flex items-center rounded-full bg-[#FBBF24]/10 px-2.5 py-0.5 text-xs font-bold text-[#92400e]">
-                    {upcomingSessions.length} Scheduled
+                    {upcomingSessions.length} Scheduled{freeSessions.length > 0 ? ` (${freeSessions.filter(f => new Date(f.scheduledAt) >= new Date()).length} free)` : ""}
                   </span>
                 </div>
 
@@ -760,28 +797,58 @@ const InstructorDashboard = () => {
                     {upcomingSessions.map((session) => (
                       <div
                         key={session.id || session._id}
-                        className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4 hover:bg-white hover:border-[#FBBF24]/30 hover:shadow-sm transition-all"
+                        className={`rounded-2xl border p-4 hover:shadow-sm transition-all ${
+                          session._type === "free"
+                            ? "border-emerald-200 bg-emerald-50/50 hover:bg-white hover:border-emerald-300"
+                            : "border-slate-100 bg-slate-50/50 hover:bg-white hover:border-[#FBBF24]/30"
+                        }`}
                       >
-                        <p className="font-semibold text-[#102a5a] text-sm mb-1.5">
-                          {session.title || "Untitled Session"}
-                        </p>
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <p className="font-semibold text-[#102a5a] text-sm">
+                            {session.title || "Untitled Session"}
+                          </p>
+                          {session._type === "free" && (
+                            <span className="inline-flex items-center rounded-full bg-emerald-100 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                              Free Session
+                            </span>
+                          )}
+                        </div>
                         <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium mb-3">
                           <CalendarClock className="w-3.5 h-3.5 text-slate-400" />
                           {session.date} · {session.time}
                         </div>
-                        <div className="inline-flex items-center gap-1.5 rounded-xl bg-[#102a5a]/5 px-2.5 py-1 text-xs text-[#102a5a] border border-[#102a5a]/10">
-                          <span className="font-semibold truncate max-w-[120px]">
-                            {session.roundName}
-                          </span>
-                          {session.roundCode && (
-                            <>
-                              <span className="text-[#102a5a]/30">·</span>
-                              <span className="font-mono text-[#102a5a]/70">
-                                {session.roundCode}
-                              </span>
-                            </>
-                          )}
-                        </div>
+
+                        {session._type === "free" ? (
+                          <div className="space-y-1.5">
+                            <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-600">
+                              <span><span className="font-semibold text-[#102a5a]">Parent:</span> {session.parentName}</span>
+                              <span><span className="font-semibold text-[#102a5a]">Phone:</span> {session.phone}</span>
+                            </div>
+                            <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-600">
+                              <span><span className="font-semibold text-[#102a5a]">Child:</span> {session.childName}{session.childAge ? ` (${session.childAge} yrs)` : ""}</span>
+                            </div>
+                            {session.notes?.length > 0 && (
+                              <div className="mt-1 text-[11px] text-slate-500 bg-white/70 rounded-lg px-2.5 py-1.5 border border-slate-100">
+                                <span className="font-semibold text-slate-600">Notes: </span>
+                                {session.notes.join(" | ")}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="inline-flex items-center gap-1.5 rounded-xl bg-[#102a5a]/5 px-2.5 py-1 text-xs text-[#102a5a] border border-[#102a5a]/10">
+                            <span className="font-semibold truncate max-w-[120px]">
+                              {session.roundName}
+                            </span>
+                            {session.roundCode && (
+                              <>
+                                <span className="text-[#102a5a]/30">·</span>
+                                <span className="font-mono text-[#102a5a]/70">
+                                  {session.roundCode}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

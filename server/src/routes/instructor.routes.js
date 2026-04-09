@@ -242,4 +242,37 @@ router.patch("/trial-leads/:id/evaluation", authRequired, instructorOnly, async 
   }
 });
 
+router.get("/my-free-sessions", authRequired, instructorOnly, async (req, res) => {
+  try {
+    const leads = await Lead.find({
+      "freeSession.isAssigned": true,
+      "freeSession.instructor": req.user._id,
+      "freeSession.scheduledAt": { $ne: null },
+    })
+      .sort({ "freeSession.scheduledAt": 1 })
+      .lean();
+
+    return res.json({
+      freeSessions: leads.map((lead) => ({
+        id: lead._id.toString(),
+        parentName: lead.parentName || "-",
+        childName: lead.childName || "-",
+        childAge: lead.childAge || null,
+        phone: lead.phone || "-",
+        scheduledAt: lead.freeSession.scheduledAt,
+        durationMinutes: lead.freeSession.durationMinutes || 60,
+        endsAt: lead.freeSession.endsAt,
+        status: lead.status,
+        notes: (lead.notes || [])
+          .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+          .slice(0, 3)
+          .map((n) => n.text || ""),
+      })),
+    });
+  } catch (err) {
+    console.error("My free sessions error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
 export default router;
