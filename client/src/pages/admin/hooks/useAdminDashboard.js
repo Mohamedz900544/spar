@@ -221,6 +221,14 @@ export const useAdminDashboard = () => {
   });
   const [isCreatingInstructor, setIsCreatingInstructor] = useState(false);
   const [instructorCampusDrafts, setInstructorCampusDrafts] = useState({});
+  const [salesAgents, setSalesAgents] = useState([]);
+  const [newSalesAgent, setNewSalesAgent] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+  });
+  const [isCreatingSalesAgent, setIsCreatingSalesAgent] = useState(false);
 
   const [users, setUsers] = useState([]);
   const [userSearch, setUserSearch] = useState("");
@@ -330,6 +338,13 @@ export const useAdminDashboard = () => {
     }));
   };
 
+  const handleNewSalesAgentChange = (field, value) => {
+    setNewSalesAgent((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
   const handleCreateInstructor = async (e) => {
     e.preventDefault();
     const token = getTokenOrRedirect();
@@ -373,6 +388,43 @@ export const useAdminDashboard = () => {
       ...prev,
       [id]: value,
     }));
+  };
+
+  const handleCreateSalesAgent = async (e) => {
+    e.preventDefault();
+    const token = getTokenOrRedirect();
+    if (!token) return;
+
+    try {
+      setIsCreatingSalesAgent(true);
+      const res = await fetch(`${API_BASE_URL}/api/admin/sales-agents`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newSalesAgent),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to create sales agent");
+      }
+
+      setSalesAgents((prev) => [data.salesAgent, ...prev]);
+      setNewSalesAgent({
+        name: "",
+        email: "",
+        phone: "",
+        password: "",
+      });
+      toast.success("Sales agent created successfully");
+    } catch (err) {
+      console.error("Create sales agent error:", err);
+      toast.error(err.message || "Failed to create sales agent");
+    } finally {
+      setIsCreatingSalesAgent(false);
+    }
   };
 
   const handleUpdateInstructorCampus = async (id) => {
@@ -576,6 +628,9 @@ export const useAdminDashboard = () => {
 
       if (Array.isArray(data.instructors))
         setInstructors(data.instructors);
+
+      if (Array.isArray(data.salesAgents))
+        setSalesAgents(data.salesAgents);
 
       if (Array.isArray(data.parents)) {
         const normalizedParents = data.parents.map((p) => ({
@@ -1260,10 +1315,15 @@ export const useAdminDashboard = () => {
     newInstructor,
     isCreatingInstructor,
     instructorCampusDrafts,
+    salesAgents,
+    newSalesAgent,
+    isCreatingSalesAgent,
     handleNewInstructorChange,
     handleCreateInstructor,
     handleInstructorCampusChange,
     handleUpdateInstructorCampus,
+    handleNewSalesAgentChange,
+    handleCreateSalesAgent,
 
     // users
     users,

@@ -43,6 +43,7 @@ const Login = () => {
     if (!token || !role) return;
     if (role === "admin") navigate("/admin");
     else if (role === "instructor") navigate("/instructor");
+    else if (role === "agent") navigate("/sales");
     else navigate("/parent");
   }, [navigate]);
 
@@ -84,6 +85,7 @@ const Login = () => {
 
       if (role === "admin") navigate("/admin");
       else if (role === "instructor") navigate("/instructor");
+      else if (role === "agent") navigate("/sales");
       else {
         if (!hasCompletedProfile(user)) {
           navigate("/parent/profile");

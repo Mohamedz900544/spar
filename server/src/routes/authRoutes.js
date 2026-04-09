@@ -53,7 +53,7 @@ router.post("/signup", upload2.single('profilePhoto'), [
     .notEmpty().withMessage('phone is required'),
 ], async (req, res) => {
   try {
-    const { name, email, password, phone, role, child, campusCode } = req.body;
+    const { name, email, password, phone, child, campusCode } = req.body;
 
     const result = validationResult(req)
 
@@ -105,7 +105,7 @@ router.post("/signup", upload2.single('profilePhoto'), [
       email,
       phone,
       passwordHash,
-      role: role === "admin" ? "admin" : "parent",
+      role: "parent",
       children: childrenArray,
       campusCode: campusCode || undefined,
       photoUrl
@@ -127,7 +127,7 @@ router.post("/signup", upload2.single('profilePhoto'), [
 
 router.post("/register", async (req, res) => {
   try {
-    const { name, email, password, role, phone } = req.body;
+    const { name, email, password, phone } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -144,7 +144,7 @@ router.post("/register", async (req, res) => {
       email,
       phone: phone || "",
       passwordHash,
-      role: role === "admin" ? "admin" : "agent",
+      role: "parent",
     });
 
     const token = generateToken(user);

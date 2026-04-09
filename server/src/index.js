@@ -14,6 +14,7 @@ import roundRoutes from "./routes/round.routes.js";
 import sessionRoutes from "./routes/session.routes.js";
 import galleryRoutes from "./routes/gallery.routes.js";
 import instructorRoutes from "./routes/instructor.routes.js";
+import salesRoutes from "./routes/sales.routes.js";
 // import "./config/cloudinary.js";
 import "./automatingUpdatingStatusOfSession.js"
 import enrollmentRoutes from "./routes/enrollment.routes.js";
@@ -73,6 +74,7 @@ app.use('/api/admin/sessions', sessionRoutes)
 app.use('/api/admin/enrollments', enrollmentRoutes)
 app.use('/api/admin/gallery', galleryRoutes)
 app.use("/api/instructor", instructorRoutes);
+app.use("/api/sales", salesRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/blocks", publicBlocksRoutes); // <-- share is public
 app.use("/api/blocks", blocksRoutes);

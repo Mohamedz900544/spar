@@ -54,6 +54,9 @@ const InstructorDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [attendanceFilter, setAttendanceFilter] = useState("all");
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+  const [trialLeads, setTrialLeads] = useState([]);
+  const [evaluationDrafts, setEvaluationDrafts] = useState({});
+  const [isSavingEvaluationId, setIsSavingEvaluationId] = useState("");
 
   const fetchDashboard = useCallback(async () => {
     const token = localStorage.getItem("sparvi_token");
@@ -61,16 +64,51 @@ const InstructorDashboard = () => {
     if (!token || role !== "instructor") { navigate("/login"); return; }
     try {
       setIsLoading(true);
-      const res = await fetch(`${API_BASE_URL}/api/instructor/dashboard`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to load dashboard");
-      setRounds(data.rounds || []);
-      if (data.rounds?.length) {
-        const firstRoundId = data.rounds[0].id || data.rounds[0]._id;
+      const [dashboardRes, trialLeadsRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/instructor/dashboard`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${API_BASE_URL}/api/instructor/trial-leads`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+
+      const safeJson = async (res) => {
+        try {
+          return await res.json();
+        } catch {
+          return {};
+        }
+      };
+
+      const [dashboardData, trialLeadsData] = await Promise.all([
+        safeJson(dashboardRes),
+        safeJson(trialLeadsRes),
+      ]);
+
+      if (!dashboardRes.ok) {
+        throw new Error(dashboardData.message || "Failed to load dashboard");
+      }
+
+      setRounds(dashboardData.rounds || []);
+      if (dashboardData.rounds?.length) {
+        const firstRoundId = dashboardData.rounds[0].id || dashboardData.rounds[0]._id;
         setSelectedRoundId((prev) => prev || firstRoundId);
       }
+
+      if (trialLeadsRes.ok) {
+        setTrialLeads(trialLeadsData.leads || []);
+        const nextDrafts = {};
+        for (const lead of trialLeadsData.leads || []) {
+          const leadId = lead.id || lead._id;
+          nextDrafts[leadId] = {
+            strengths: lead.trainerEvaluation?.strengths || "",
+            favoriteProject: lead.trainerEvaluation?.favoriteProject || "",
+          };
+        }
+        setEvaluationDrafts(nextDrafts);
+      }
+
       setError("");
     } catch (err) {
       setError(err.message || "Failed to load dashboard");
@@ -222,6 +260,57 @@ const InstructorDashboard = () => {
       );
     } finally {
       setIsBulkUpdating(false);
+    }
+  };
+
+  const handleEvaluationDraftChange = (leadId, field, value) => {
+    setEvaluationDrafts((prev) => ({
+      ...prev,
+      [leadId]: {
+        strengths: prev[leadId]?.strengths || "",
+        favoriteProject: prev[leadId]?.favoriteProject || "",
+        [field]: value,
+      },
+    }));
+  };
+
+  const saveLeadEvaluation = async (leadId) => {
+    const token = localStorage.getItem("sparvi_token");
+    if (!token) { navigate("/login"); return; }
+
+    const draft = evaluationDrafts[leadId] || {};
+    if (!draft.strengths?.trim() && !draft.favoriteProject?.trim()) {
+      setError("Please add strengths or favorite project before saving.");
+      return;
+    }
+
+    try {
+      setIsSavingEvaluationId(leadId);
+      const res = await fetch(`${API_BASE_URL}/api/instructor/trial-leads/${leadId}/evaluation`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          strengths: draft.strengths,
+          favoriteProject: draft.favoriteProject,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to save evaluation");
+
+      setTrialLeads((prev) =>
+        prev.map((lead) => {
+          const currentId = lead.id || lead._id;
+          return currentId === leadId ? data : lead;
+        })
+      );
+      setError("");
+    } catch (err) {
+      setError(err.message || "Failed to save evaluation");
+    } finally {
+      setIsSavingEvaluationId("");
     }
   };
 
@@ -695,6 +784,106 @@ const InstructorDashboard = () => {
                         </div>
                       </div>
                     ))}
+                  </div>
+                )}
+              </Motion.div>
+
+              <Motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.25 }}
+                className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6"
+              >
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-[#102a5a]/10 flex items-center justify-center">
+                      <Sparkles className="w-4 h-4 text-[#102a5a]" />
+                    </div>
+                    <h2 className="text-base font-bold text-[#102a5a]">
+                      Trial Session Evaluations
+                    </h2>
+                  </div>
+                  <span className="inline-flex items-center rounded-full bg-[#102a5a]/10 px-2.5 py-0.5 text-xs font-bold text-[#102a5a]">
+                    {trialLeads.length} Leads
+                  </span>
+                </div>
+
+                {trialLeads.length === 0 ? (
+                  <p className="text-sm text-slate-500 py-2 border-t border-slate-100">
+                    No demo leads available yet.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {trialLeads.map((lead) => {
+                      const leadId = lead.id || lead._id;
+                      const draft = evaluationDrafts[leadId] || {
+                        strengths: "",
+                        favoriteProject: "",
+                      };
+                      return (
+                        <div
+                          key={leadId}
+                          className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4"
+                        >
+                          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-3">
+                            <div>
+                              <p className="text-sm font-semibold text-[#102a5a]">
+                                {lead.parentName} · {lead.childName}
+                              </p>
+                              <p className="text-xs text-slate-500">
+                                Status: {lead.status || "New"} · Phone: {lead.phone || "-"}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                            <textarea
+                              rows={2}
+                              value={draft.strengths}
+                              onChange={(e) =>
+                                handleEvaluationDraftChange(
+                                  leadId,
+                                  "strengths",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Child strengths..."
+                              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24]"
+                            />
+                            <textarea
+                              rows={2}
+                              value={draft.favoriteProject}
+                              onChange={(e) =>
+                                handleEvaluationDraftChange(
+                                  leadId,
+                                  "favoriteProject",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Favorite project..."
+                              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24]"
+                            />
+                          </div>
+
+                          <div className="mt-3 flex items-center justify-between">
+                            <p className="text-[11px] text-slate-500">
+                              Last update:{" "}
+                              {lead.trainerEvaluation?.updatedAt
+                                ? new Date(lead.trainerEvaluation.updatedAt).toLocaleString()
+                                : "-"}
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => saveLeadEvaluation(leadId)}
+                              disabled={isSavingEvaluationId === leadId}
+                              className="rounded-xl bg-[#102a5a] px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-[#1a3a6b] disabled:opacity-50"
+                            >
+                              {isSavingEvaluationId === leadId ? "Saving..." : "Save Evaluation"}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </Motion.div>

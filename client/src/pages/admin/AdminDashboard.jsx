@@ -74,6 +74,11 @@ const AdminDashboard = () => {
     handleCreateInstructor,
     handleInstructorCampusChange,
     handleUpdateInstructorCampus,
+    salesAgents,
+    newSalesAgent,
+    isCreatingSalesAgent,
+    handleNewSalesAgentChange,
+    handleCreateSalesAgent,
     users,
     userSearch,
     setUserSearch,
@@ -210,196 +215,322 @@ const AdminDashboard = () => {
             )}
 
             {activeTab === "instructors" && (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm lg:col-span-1">
-                  <h2 className="text-base font-bold text-[#102a5a] mb-4 flex items-center gap-2">
-                    <Plus className="w-4 h-4 text-[#FBBF24]" />
-                    Create Instructor
-                  </h2>
-                  <form onSubmit={handleCreateInstructor} className="space-y-3">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-600 mb-1">
-                        Name
-                      </label>
-                      <input
-                        type="text"
-                        value={newInstructor.name}
-                        onChange={(e) =>
-                          handleNewInstructorChange("name", e.target.value)
-                        }
-                        className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-600 mb-1">
-                        Email
-                      </label>
-                      <input
-                        type="email"
-                        value={newInstructor.email}
-                        onChange={(e) =>
-                          handleNewInstructorChange("email", e.target.value)
-                        }
-                        className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-600 mb-1">
-                        Phone
-                      </label>
-                      <EgyptPhoneInput
-                        value={newInstructor.phone}
-                        onChange={(e) =>
-                          handleNewInstructorChange("phone", e)
-                        }
-                        inputClass="py-2.5 rounded-r-xl bg-white"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-600 mb-1">
-                        Password
-                      </label>
-                      <input
-                        type="password"
-                        value={newInstructor.password}
-                        onChange={(e) =>
-                          handleNewInstructorChange("password", e.target.value)
-                        }
-                        className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-600 mb-1">
-                        Campus Code
-                      </label>
-                      <input
-                        type="text"
-                        value={newInstructor.campusCode}
-                        onChange={(e) =>
-                          handleNewInstructorChange("campusCode", e.target.value)
-                        }
-                        className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all"
-                      />
-                    </div>
-                    <button
-                      type="submit"
-                      disabled={isCreatingInstructor}
-                      className="w-full inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold bg-[#102a5a] text-white hover:bg-[#1a3a6b] disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-sm"
-                    >
-                      {isCreatingInstructor ? "Creating..." : "Create Instructor"}
-                    </button>
-                  </form>
-                </div>
-
-                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm lg:col-span-2">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-base font-bold text-[#102a5a]">
-                      Instructors
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                  <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm lg:col-span-1">
+                    <h2 className="text-base font-bold text-[#102a5a] mb-4 flex items-center gap-2">
+                      <Plus className="w-4 h-4 text-[#FBBF24]" />
+                      Create Instructor
                     </h2>
-                    <span className="inline-flex items-center rounded-full bg-[#102a5a]/10 text-[#102a5a] px-2.5 py-0.5 text-xs font-semibold">
-                      {instructors.length} total
-                    </span>
+                    <form onSubmit={handleCreateInstructor} className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-600 mb-1">
+                          Name
+                        </label>
+                        <input
+                          type="text"
+                          value={newInstructor.name}
+                          onChange={(e) =>
+                            handleNewInstructorChange("name", e.target.value)
+                          }
+                          className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-600 mb-1">
+                          Email
+                        </label>
+                        <input
+                          type="email"
+                          value={newInstructor.email}
+                          onChange={(e) =>
+                            handleNewInstructorChange("email", e.target.value)
+                          }
+                          className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-600 mb-1">
+                          Phone
+                        </label>
+                        <EgyptPhoneInput
+                          value={newInstructor.phone}
+                          onChange={(e) =>
+                            handleNewInstructorChange("phone", e)
+                          }
+                          inputClass="py-2.5 rounded-r-xl bg-white"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-600 mb-1">
+                          Password
+                        </label>
+                        <input
+                          type="password"
+                          value={newInstructor.password}
+                          onChange={(e) =>
+                            handleNewInstructorChange("password", e.target.value)
+                          }
+                          className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-600 mb-1">
+                          Campus Code
+                        </label>
+                        <input
+                          type="text"
+                          value={newInstructor.campusCode}
+                          onChange={(e) =>
+                            handleNewInstructorChange("campusCode", e.target.value)
+                          }
+                          className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={isCreatingInstructor}
+                        className="w-full inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold bg-[#102a5a] text-white hover:bg-[#1a3a6b] disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-sm"
+                      >
+                        {isCreatingInstructor ? "Creating..." : "Create Instructor"}
+                      </button>
+                    </form>
                   </div>
-                  {instructors.length === 0 ? (
-                    <div className="text-sm text-slate-500 py-8 text-center">
-                      No instructors created yet.
+
+                  <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm lg:col-span-2">
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-base font-bold text-[#102a5a]">
+                        Instructors
+                      </h2>
+                      <span className="inline-flex items-center rounded-full bg-[#102a5a]/10 text-[#102a5a] px-2.5 py-0.5 text-xs font-semibold">
+                        {instructors.length} total
+                      </span>
                     </div>
-                  ) : (
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full text-sm">
-                        <thead>
-                          <tr className="border-b border-slate-200 text-slate-500">
-                            <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Name</th>
-                            <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Email</th>
-                            <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Phone</th>
-                            <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Campus</th>
-                            <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Linked Rounds</th>
-                            <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Created</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {instructors.map((instructor) => {
-                            const instructorId = instructor._id || instructor.id;
-                            const linkedRounds = instructor.linkedRoundCodes || [];
-                            const isExpanded = expandedInstructorId === instructorId;
-                            return (
-                              <React.Fragment key={instructorId}>
-                                <tr className="border-b border-slate-100 text-slate-700 hover:bg-slate-50/50 transition-colors">
-                                  <td className="py-3 pr-3 font-semibold text-[#102a5a]">
-                                    {instructor.name}
-                                  </td>
-                                  <td className="py-3 pr-3">{instructor.email}</td>
-                                  <td className="py-3 pr-3">{instructor.phone}</td>
-                                  <td className="py-3 pr-3">
-                                    <div className="flex items-center gap-2">
-                                      <input
-                                        type="text"
-                                        value={
-                                          instructorCampusDrafts[instructorId] ??
-                                          instructor.campusCode ??
-                                          ""
-                                        }
-                                        onChange={(e) =>
-                                          handleInstructorCampusChange(
-                                            instructorId,
-                                            e.target.value
-                                          )
-                                        }
-                                        className="w-28 rounded-lg border border-slate-200 px-2 py-1.5 text-xs bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all"
-                                      />
+                    {instructors.length === 0 ? (
+                      <div className="text-sm text-slate-500 py-8 text-center">
+                        No instructors created yet.
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-slate-200 text-slate-500">
+                              <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Name</th>
+                              <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Email</th>
+                              <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Phone</th>
+                              <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Campus</th>
+                              <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Linked Rounds</th>
+                              <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Created</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {instructors.map((instructor) => {
+                              const instructorId = instructor._id || instructor.id;
+                              const linkedRounds = instructor.linkedRoundCodes || [];
+                              const isExpanded = expandedInstructorId === instructorId;
+                              return (
+                                <React.Fragment key={instructorId}>
+                                  <tr className="border-b border-slate-100 text-slate-700 hover:bg-slate-50/50 transition-colors">
+                                    <td className="py-3 pr-3 font-semibold text-[#102a5a]">
+                                      {instructor.name}
+                                    </td>
+                                    <td className="py-3 pr-3">{instructor.email}</td>
+                                    <td className="py-3 pr-3">{instructor.phone}</td>
+                                    <td className="py-3 pr-3">
+                                      <div className="flex items-center gap-2">
+                                        <input
+                                          type="text"
+                                          value={
+                                            instructorCampusDrafts[instructorId] ??
+                                            instructor.campusCode ??
+                                            ""
+                                          }
+                                          onChange={(e) =>
+                                            handleInstructorCampusChange(
+                                              instructorId,
+                                              e.target.value
+                                            )
+                                          }
+                                          className="w-28 rounded-lg border border-slate-200 px-2 py-1.5 text-xs bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all"
+                                        />
+                                        <button
+                                          type="button"
+                                          onClick={() => handleUpdateInstructorCampus(instructorId)}
+                                          className="rounded-lg bg-[#FBBF24] px-2.5 py-1.5 text-[11px] font-bold text-[#102a5a] hover:bg-[#F59E0B] transition-colors shadow-sm"
+                                        >
+                                          Save
+                                        </button>
+                                      </div>
+                                    </td>
+                                    <td className="py-3 pr-3">
                                       <button
                                         type="button"
-                                        onClick={() => handleUpdateInstructorCampus(instructorId)}
-                                        className="rounded-lg bg-[#FBBF24] px-2.5 py-1.5 text-[11px] font-bold text-[#102a5a] hover:bg-[#F59E0B] transition-colors shadow-sm"
+                                        onClick={() =>
+                                          setExpandedInstructorId(
+                                            isExpanded ? null : instructorId
+                                          )
+                                        }
+                                        className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-[11px] font-medium text-slate-700 hover:bg-slate-50 transition-colors"
                                       >
-                                        Save
+                                        {linkedRounds.length} rounds
                                       </button>
-                                    </div>
+                                    </td>
+                                    <td className="py-3 pr-3 text-slate-500 text-xs">
+                                      {instructor.createdAt
+                                        ? new Date(
+                                          instructor.createdAt
+                                        ).toLocaleDateString()
+                                        : "-"}
+                                    </td>
+                                  </tr>
+                                  {isExpanded && (
+                                    <tr className="border-b border-slate-100 text-slate-600">
+                                      <td colSpan={6} className="py-3 pr-3">
+                                        <div className="text-xs bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
+                                          <span className="font-semibold text-[#102a5a]">Linked rounds: </span>
+                                          {linkedRounds.length
+                                            ? linkedRounds.join(", ")
+                                            : "No linked rounds"}
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  )}
+                                </React.Fragment>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                  <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm lg:col-span-1">
+                    <h2 className="text-base font-bold text-[#102a5a] mb-4 flex items-center gap-2">
+                      <Plus className="w-4 h-4 text-[#FBBF24]" />
+                      Create Sales Agent
+                    </h2>
+                    <form onSubmit={handleCreateSalesAgent} className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-600 mb-1">
+                          Name
+                        </label>
+                        <input
+                          type="text"
+                          value={newSalesAgent.name}
+                          onChange={(e) =>
+                            handleNewSalesAgentChange("name", e.target.value)
+                          }
+                          className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-600 mb-1">
+                          Email
+                        </label>
+                        <input
+                          type="email"
+                          value={newSalesAgent.email}
+                          onChange={(e) =>
+                            handleNewSalesAgentChange("email", e.target.value)
+                          }
+                          className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-600 mb-1">
+                          Phone
+                        </label>
+                        <EgyptPhoneInput
+                          value={newSalesAgent.phone}
+                          onChange={(e) =>
+                            handleNewSalesAgentChange("phone", e)
+                          }
+                          inputClass="py-2.5 rounded-r-xl bg-white"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-600 mb-1">
+                          Password
+                        </label>
+                        <input
+                          type="password"
+                          value={newSalesAgent.password}
+                          onChange={(e) =>
+                            handleNewSalesAgentChange("password", e.target.value)
+                          }
+                          className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] transition-all"
+                          required
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={isCreatingSalesAgent}
+                        className="w-full inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold bg-[#102a5a] text-white hover:bg-[#1a3a6b] disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-sm"
+                      >
+                        {isCreatingSalesAgent ? "Creating..." : "Create Sales Agent"}
+                      </button>
+                    </form>
+                  </div>
+
+                  <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm lg:col-span-2">
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-base font-bold text-[#102a5a]">
+                        Sales Agents
+                      </h2>
+                      <span className="inline-flex items-center rounded-full bg-[#102a5a]/10 text-[#102a5a] px-2.5 py-0.5 text-xs font-semibold">
+                        {salesAgents.length} total
+                      </span>
+                    </div>
+                    {salesAgents.length === 0 ? (
+                      <div className="text-sm text-slate-500 py-8 text-center">
+                        No sales agents created yet.
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-slate-200 text-slate-500">
+                              <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Name</th>
+                              <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Email</th>
+                              <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Phone</th>
+                              <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Created</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {salesAgents.map((agent) => {
+                              const agentId = agent._id || agent.id;
+                              return (
+                                <tr
+                                  key={agentId}
+                                  className="border-b border-slate-100 text-slate-700 hover:bg-slate-50/50 transition-colors"
+                                >
+                                  <td className="py-3 pr-3 font-semibold text-[#102a5a]">
+                                    {agent.name}
                                   </td>
-                                  <td className="py-3 pr-3">
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        setExpandedInstructorId(
-                                          isExpanded ? null : instructorId
-                                        )
-                                      }
-                                      className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-[11px] font-medium text-slate-700 hover:bg-slate-50 transition-colors"
-                                    >
-                                      {linkedRounds.length} rounds
-                                    </button>
-                                  </td>
+                                  <td className="py-3 pr-3">{agent.email}</td>
+                                  <td className="py-3 pr-3">{agent.phone}</td>
                                   <td className="py-3 pr-3 text-slate-500 text-xs">
-                                    {instructor.createdAt
-                                      ? new Date(
-                                        instructor.createdAt
-                                      ).toLocaleDateString()
+                                    {agent.createdAt
+                                      ? new Date(agent.createdAt).toLocaleDateString()
                                       : "-"}
                                   </td>
                                 </tr>
-                                {isExpanded && (
-                                  <tr className="border-b border-slate-100 text-slate-600">
-                                    <td colSpan={6} className="py-3 pr-3">
-                                      <div className="text-xs bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
-                                        <span className="font-semibold text-[#102a5a]">Linked rounds: </span>
-                                        {linkedRounds.length
-                                          ? linkedRounds.join(", ")
-                                          : "No linked rounds"}
-                                      </div>
-                                    </td>
-                                  </tr>
-                                )}
-                              </React.Fragment>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}

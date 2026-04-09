@@ -30,6 +30,7 @@ router.get("/dashboard", authRequired, adminOnly, async (req, res) => {
       sessionRatings,
       parents,
       instructors,
+      salesAgents,
     ] = await Promise.all([
       Session.find({ date: { $gte: today } }).sort({ date: 'asc', time: 'asc' }).lean(),
       Enrollment.find().lean(),
@@ -44,6 +45,10 @@ router.get("/dashboard", authRequired, adminOnly, async (req, res) => {
         .lean(),
       User.find({ role: "instructor" })
         .select("name email phone campusCode photoUrl createdAt linkedRoundCodes linkedRounds")
+        .sort({ createdAt: "desc" })
+        .lean(),
+      User.find({ role: "agent" })
+        .select("name email phone photoUrl createdAt")
         .sort({ createdAt: "desc" })
         .lean(),
     ]);
@@ -131,6 +136,7 @@ router.get("/dashboard", authRequired, adminOnly, async (req, res) => {
       roundRatings,
       studentPhotos,
       instructors,
+      salesAgents,
       parents,
     });
   } catch (err) {
@@ -167,6 +173,37 @@ router.post("/instructors", authRequired, adminOnly, async (req, res) => {
     });
   } catch (err) {
     console.error("Create instructor error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.post("/sales-agents", authRequired, adminOnly, async (req, res) => {
+  try {
+    const { name, email, phone, password } = req.body;
+
+    if (!name || !email || !phone || !password) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const existing = await User.findOne({ email });
+    if (existing) {
+      return res.status(409).json({ message: "Email already in use" });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12);
+    const salesAgent = await User.create({
+      name,
+      email,
+      phone,
+      passwordHash,
+      role: "agent",
+    });
+
+    return res.status(201).json({
+      salesAgent: salesAgent.toJSON(),
+    });
+  } catch (err) {
+    console.error("Create sales agent error:", err);
     return res.status(500).json({ message: "Server error" });
   }
 });

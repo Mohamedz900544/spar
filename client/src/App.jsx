@@ -64,6 +64,12 @@ const RoundSessionsPage = lazy(() => import("./pages/RoundSessionsPage"));
 const RoundStudentsPage = lazy(() => import("./pages/RoundStudentsPage").then(m => ({ default: m.RoundStudentsPage })));
 const ParentProfile = lazy(() => import("./pages/ProfileSettings"));
 const InstructorDashboard = lazy(() => import("./pages/InstructorDashboard"));
+const SalesLayout = lazy(() => import("./pages/sales/SalesLayout"));
+const SalesOverviewPage = lazy(() => import("./pages/sales/SalesOverviewPage"));
+const SalesPipelinePage = lazy(() => import("./pages/sales/SalesPipelinePage"));
+const SalesNewLeadPage = lazy(() => import("./pages/sales/SalesNewLeadPage"));
+const SalesFollowUpsPage = lazy(() => import("./pages/sales/SalesFollowUpsPage"));
+const SalesClosedDealsPage = lazy(() => import("./pages/sales/SalesClosedDealsPage"));
 // import { EmailVerificationPage } from "./pages/EmailVerification";
 
 function App() {
@@ -96,6 +102,7 @@ function App() {
     const isDashboard = location.pathname.startsWith('/parent') ||
       location.pathname.startsWith('/admin') ||
       location.pathname.startsWith('/instructor') ||
+      location.pathname.startsWith('/sales') ||
       location.pathname.startsWith('/blocks');
 
     if (isDashboard) {
@@ -135,6 +142,15 @@ function App() {
           <Route path="*" element={<NotFound />} />
           <Route element={<ProtectedRoute allowedRole={"instructor"} redirectTo="/login" />}>
             <Route path="/instructor" element={<InstructorDashboard />} />
+          </Route>
+          <Route element={<ProtectedRoute allowedRole={["agent", "admin"]} redirectTo="/login" />}>
+            <Route path="/sales" element={<SalesLayout />}>
+              <Route index element={<SalesOverviewPage />} />
+              <Route path="pipeline" element={<SalesPipelinePage />} />
+              <Route path="new" element={<SalesNewLeadPage />} />
+              <Route path="follow-ups" element={<SalesFollowUpsPage />} />
+              <Route path="closed" element={<SalesClosedDealsPage />} />
+            </Route>
           </Route>
           <Route element={<ProtectedRoute allowedRole={"parent"} />} >
             <Route path="/blocks" element={<BlocksHome />} />

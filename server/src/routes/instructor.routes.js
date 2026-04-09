@@ -4,6 +4,7 @@ import Enrollment from "../models/Enrollment.js";
 import Round from "../models/Round.js";
 import Session from "../models/Session.js";
 import User from "../models/User.js";
+import Lead from "../models/Lead.js";
 
 const router = express.Router();
 
@@ -180,6 +181,63 @@ router.post("/attendance", authRequired, instructorOnly, async (req, res) => {
     });
   } catch (err) {
     console.error("Attendance error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.get("/trial-leads", authRequired, instructorOnly, async (_req, res) => {
+  try {
+    const leads = await Lead.find({
+      status: { $in: ["Demo Booked", "Follow-up", "Closed - Won", "Closed - Lost"] },
+    })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return res.json({
+      leads: leads.map((lead) => ({
+        ...lead,
+        id: lead._id.toString(),
+      })),
+    });
+  } catch (err) {
+    console.error("Trial leads error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.patch("/trial-leads/:id/evaluation", authRequired, instructorOnly, async (req, res) => {
+  try {
+    const { strengths = "", favoriteProject = "" } = req.body;
+
+    if (!strengths.trim() && !favoriteProject.trim()) {
+      return res
+        .status(400)
+        .json({ message: "Provide strengths or favoriteProject" });
+    }
+
+    const updated = await Lead.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: {
+          trainerEvaluation: {
+            strengths: strengths.trim(),
+            favoriteProject: favoriteProject.trim(),
+            updatedAt: new Date(),
+            updatedBy: req.user._id,
+            updatedByName: req.user.name || "",
+          },
+        },
+      },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ message: "Lead not found" });
+    }
+
+    return res.json(updated.toJSON());
+  } catch (err) {
+    console.error("Update trial lead evaluation error:", err);
     return res.status(500).json({ message: "Server error" });
   }
 });

@@ -43,6 +43,7 @@ const Contact = () => {
   }, []);
   const [formState, setFormState] = useState({
     parentName: "",
+    childName: "",
     phone: "",
     childAge: "",
     message: "",
@@ -78,6 +79,7 @@ const Contact = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           parentName: formState.parentName,
+          childName: formState.childName,
           phone: formState.phone,
           childAge: formState.childAge || null,
           message: formState.message,
@@ -91,7 +93,7 @@ const Contact = () => {
         return;
       }
       setSent(true);
-      setFormState({ parentName: "", phone: "", childAge: "", message: "" });
+      setFormState({ parentName: "", childName: "", phone: "", childAge: "", message: "" });
     } catch (err) {
       console.error("Contact submit error:", err);
       alert("Server error");
@@ -259,6 +261,20 @@ const Contact = () => {
                       onChange={handleChange}
                       className={`${inputClass} text-start`}
                       placeholder={t("contact.parent_name_ph")}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2 text-start">
+                      Child Name
+                    </label>
+                    <input
+                      name="childName"
+                      value={formState.childName}
+                      onChange={handleChange}
+                      className={`${inputClass} text-start`}
+                      placeholder="Enter your child name"
                       required
                     />
                   </div>
