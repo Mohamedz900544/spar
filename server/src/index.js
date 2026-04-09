@@ -18,6 +18,7 @@ import whatsappWebhookRoutes from "./routes/whatsappWebhook.routes.js";
 // import "./config/cloudinary.js";
 import "./automatingUpdatingStatusOfSession.js"
 import "./automatingLeadFollowUpStatus.js";
+import "./automatingSessionReminder.js";
 import enrollmentRoutes from "./routes/enrollment.routes.js";
 import fractionsRoutes from "./routes/fractions.js";
 import visitRoutes from "./routes/visit.routes.js";

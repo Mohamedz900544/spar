@@ -263,3 +263,50 @@ export const notifyInstructorFreeSessionAssigned = async ({
   }
   return result;
 };
+
+export const notifyInstructorSessionReminder = async ({
+  lead,
+  instructor,
+}) => {
+  const config = getNotificationConfig();
+  if (!instructor?.phone) {
+    console.warn("[whatsapp][reminder] skipped – instructor has no phone:", instructor?.name || instructor?._id);
+    return { sent: false, skipped: true, reason: "missing_instructor_phone" };
+  }
+
+  console.log("[whatsapp][reminder] sending 1-hour reminder to instructor:", {
+    instructorName: instructor.name,
+    instructorPhone: instructor.phone,
+    leadId: lead?._id || lead?.id,
+    scheduledAt: lead?.freeSession?.scheduledAt,
+  });
+
+  const textBody = [
+    "⏰ تذكير: لديك حصة مجانية بعد ساعة",
+    "",
+    `اسم ولي الأمر: ${lead.parentName || "-"}`,
+    `رقم ولي الأمر: ${lead.phone || "-"}`,
+    `اسم الطفل: ${lead.childName || "-"}`,
+    `سن الطفل: ${lead.childAge || "-"}`,
+    `موعد الحصة: ${formatCairoDateTime(lead?.freeSession?.scheduledAt)}`,
+    `اسم المدرب: ${instructor.name || "-"}`,
+    "",
+    "ملاحظات العميل:",
+    extractLatestNotes(lead),
+  ].join("\n");
+
+  const result = await sendNotification({
+    phone: instructor.phone,
+    customTemplateName: "",
+    templateLanguage: config.defaultTemplateLanguage,
+    templateBodyParams: [],
+    textBody,
+    config,
+    logPrefix: "reminder",
+  });
+
+  if (!result?.sent) {
+    console.warn("[whatsapp][reminder] NOT sent:", result);
+  }
+  return result;
+};

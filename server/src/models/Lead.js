@@ -52,6 +52,7 @@ const leadSchema = new mongoose.Schema(
       assignedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
       assignedByName: { type: String, trim: true, default: "" },
       assignedAt: { type: Date, default: null },
+      reminderSentAt: { type: Date, default: null },
     },
     trainerEvaluation: {
       strengths: { type: String, trim: true, default: "" },
