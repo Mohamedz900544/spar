@@ -17,8 +17,14 @@ const getNotificationConfig = () => ({
 const formatCairoDateTime = (value) => {
   if (!value) return "-";
   try {
-    return new Date(value).toLocaleString("en-GB", {
-      timeZone: "Africa/Cairo",
+    return new Date(value).toLocaleString("en-US", {
+      timeZone: "UTC",
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
     });
   } catch {
     return value;
