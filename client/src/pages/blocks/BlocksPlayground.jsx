@@ -1094,7 +1094,7 @@ export default function BlocksPlayground() {
         />
 
         {/* Main layout: settings | preview | page tree */}
-        <div className="grid grid-cols-1 xl:grid-cols-[320px_minmax(0,2fr)_320px] gap-4 mt-4">
+        <div className="grid grid-cols-1 xl:grid-cols-[260px_minmax(0,2.4fr)_320px] gap-4 mt-4">
           {/* Left: Block settings panel */}
           <BlockPropertiesPanel
             selection={selection}

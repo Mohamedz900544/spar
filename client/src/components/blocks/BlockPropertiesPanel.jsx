@@ -317,13 +317,13 @@ export default function BlockPropertiesPanel({
             <label className="block text-slate-600 mb-1">
               Columns inside this section
             </label>
-            <div className="flex gap-1">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1">
               {[1, 2, 3, 4].map((col) => (
                 <button
                   key={col}
                   type="button"
                   onClick={() => updateSettingsField("columns", col)}
-                  className={`flex-1 rounded-2xl border px-2 py-1.5 text-[11px] font-semibold ${
+                  className={`w-full rounded-2xl border px-2 py-1.5 text-[9px] font-semibold text-center ${
                     (settings.columns ?? 1) === col
                       ? "border-sky-500 bg-sky-50 text-sky-700"
                       : "border-slate-200 bg-white text-slate-600"

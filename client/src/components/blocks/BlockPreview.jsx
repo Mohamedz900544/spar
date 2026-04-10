@@ -1,5 +1,94 @@
 // src/components/blocks/BlockPreview.jsx
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import {
+  Plus,
+  LayoutPanelTop,
+  LayoutTemplate,
+  Layout,
+  Heading1,
+  Type,
+  Pointer,
+  ImageIcon,
+  ListChecks,
+  PencilLine,
+  Shapes,
+} from "lucide-react";
+
+const sectionInsertOptions = [
+  {
+    kind: "section",
+    type: "section",
+    label: "Section",
+    description: "Add a new section container.",
+    icon: LayoutPanelTop,
+  },
+];
+
+const blockInsertOptions = [
+  {
+    kind: "block",
+    type: "header",
+    label: "Header",
+    description: "Top banner content.",
+    icon: LayoutTemplate,
+  },
+  {
+    kind: "block",
+    type: "footer",
+    label: "Footer",
+    description: "Bottom page content.",
+    icon: Layout,
+  },
+  {
+    kind: "block",
+    type: "heading",
+    label: "Heading",
+    description: "Big title text.",
+    icon: Heading1,
+  },
+  {
+    kind: "block",
+    type: "paragraph",
+    label: "Paragraph",
+    description: "Normal body text.",
+    icon: Type,
+  },
+  {
+    kind: "block",
+    type: "button",
+    label: "Button",
+    description: "Action button.",
+    icon: Pointer,
+  },
+  {
+    kind: "block",
+    type: "image",
+    label: "Image",
+    description: "Image block.",
+    icon: ImageIcon,
+  },
+  {
+    kind: "block",
+    type: "list",
+    label: "List",
+    description: "Bullet items list.",
+    icon: ListChecks,
+  },
+  {
+    kind: "block",
+    type: "input",
+    label: "Text input",
+    description: "User input field.",
+    icon: PencilLine,
+  },
+  {
+    kind: "block",
+    type: "icons",
+    label: "Icons row",
+    description: "Icons from HTML tags.",
+    icon: Shapes,
+  },
+];
 
 /**
  * builder = {
@@ -32,9 +121,38 @@ export default function BlockPreview({
   const [hoverSectionId, setHoverSectionId] = useState(null);
   const [hoverRoot, setHoverRoot] = useState(false);
   const [draggingNodeId, setDraggingNodeId] = useState(null);
+  const [quickInsertMenu, setQuickInsertMenu] = useState(null);
+  const [hoveredSectionId, setHoveredSectionId] = useState(null);
+  const [isPageBodyHovered, setIsPageBodyHovered] = useState(false);
   const scrollRef = useRef(null);
+  const quickInsertMenuRef = useRef(null);
+
+  useEffect(() => {
+    if (!quickInsertMenu) return;
+
+    const handlePointerDown = (event) => {
+      if (event.target?.closest?.('[data-quick-insert-trigger="true"]')) {
+        return;
+      }
+      if (quickInsertMenuRef.current?.contains(event.target)) return;
+      setQuickInsertMenu(null);
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") setQuickInsertMenu(null);
+    };
+
+    window.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [quickInsertMenu]);
 
   const startCanvasDrag = (payload) => {
+    setQuickInsertMenu(null);
     setDragItem?.({
       source: "canvas",
       kind: payload.kind,
@@ -48,6 +166,110 @@ export default function BlockPreview({
     setHoverSectionId(null);
     setHoverRoot(false);
     setDraggingNodeId(null);
+    setHoveredSectionId(null);
+  };
+
+  const isMenuOpen = (scope, sectionId = null) => {
+    if (!quickInsertMenu) return false;
+    if (quickInsertMenu.scope !== scope) return false;
+    if (scope === "root") return true;
+    return quickInsertMenu.sectionId === sectionId;
+  };
+
+  const toggleQuickInsertMenu = (event, scope, sectionId = null) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    setQuickInsertMenu((prev) => {
+      const isSame =
+        prev &&
+        prev.scope === scope &&
+        (scope === "root" || prev.sectionId === sectionId);
+
+      if (isSame) return null;
+      return { scope, sectionId };
+    });
+
+    if (scope === "section" && sectionId) {
+      onSelect?.({ kind: "section", id: sectionId });
+    }
+  };
+
+  const handleQuickInsert = (event, option, sectionId = null) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (option.kind === "section") {
+      onDropNewSection?.(sectionId);
+    } else if (option.kind === "block" && sectionId) {
+      onDropNewBlock?.(sectionId, option.type);
+    }
+
+    setQuickInsertMenu(null);
+  };
+
+  const renderQuickInsertOption = (option, sectionId = null) => {
+    const Icon = option.icon;
+
+    return (
+      <button
+        key={`${option.kind}-${option.type}`}
+        type="button"
+        onClick={(event) => handleQuickInsert(event, option, sectionId)}
+        className="w-full rounded-xl border border-transparent px-2.5 py-2 text-left transition hover:border-slate-200 hover:bg-slate-50"
+      >
+        <div className="flex items-start gap-2">
+          <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+            <Icon className="h-3.5 w-3.5" />
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-[12px] font-semibold text-slate-800">
+              {option.label}
+            </p>
+            <p className="text-[10px] text-slate-500 leading-tight">
+              {option.description}
+            </p>
+          </div>
+        </div>
+      </button>
+    );
+  };
+
+  const renderQuickInsertMenu = (sectionId = null) => {
+    const isRootMenu = sectionId == null;
+
+    return (
+      <div
+        ref={quickInsertMenuRef}
+        className="absolute left-1/2 top-full z-40 mt-2 w-[min(92vw,300px)] -translate-x-1/2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-2xl backdrop-blur"
+      >
+        <div className="max-h-[280px] space-y-2 overflow-y-auto blocks-scrollbar pr-1">
+          <div>
+            <p className="px-1 pb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+              Sections
+            </p>
+            <div className="space-y-1">
+              {sectionInsertOptions.map((option) =>
+                renderQuickInsertOption(option, sectionId)
+              )}
+            </div>
+          </div>
+
+          {!isRootMenu && (
+            <div>
+              <p className="px-1 pb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                Blocks
+              </p>
+              <div className="space-y-1">
+                {blockInsertOptions.map((option) =>
+                  renderQuickInsertOption(option, sectionId)
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
   const handleCanvasDragOver = (e) => {
@@ -83,6 +305,7 @@ export default function BlockPreview({
     e.preventDefault();
     e.stopPropagation();
     setHoverRoot(false);
+    setQuickInsertMenu(null);
 
     if (!dragItem) return;
 
@@ -115,6 +338,7 @@ export default function BlockPreview({
     e.preventDefault();
     e.stopPropagation();
     setHoverSectionId(null);
+    setQuickInsertMenu(null);
 
     if (!dragItem) return;
 
@@ -404,6 +628,12 @@ export default function BlockPreview({
     const isSelected =
       selection?.kind === "section" && selection.id === sectionId;
     const isHover = hoverSectionId === sectionId;
+    const isSelectedSection =
+      selection?.kind === "section" && selection.id === sectionId;
+    const showSectionAddTrigger =
+      isMenuOpen("section", sectionId) ||
+      hoveredSectionId === sectionId ||
+      isSelectedSection;
     const showDropHint =
       dragItem &&
       (dragItem.kind === "block" || dragItem.kind === "section");
@@ -419,10 +649,20 @@ export default function BlockPreview({
         onDrop={(e) => handleSectionDrop(e, sectionId)}
         onDragEnter={(e) => handleSectionDragEnter(e, sectionId)}
         onDragLeave={(e) => handleSectionDragLeave(e, sectionId)}
+        onMouseEnter={() => setHoveredSectionId(sectionId)}
+        onMouseLeave={() =>
+          setHoveredSectionId((prev) =>
+            prev === sectionId ? null : prev
+          )
+        }
       >
         <div
-          className={`w-full relative ${
-            isSelected ? "ring-2 ring-sky-400" : ""
+          className={`w-full relative transition ${
+            isSelected
+              ? "ring-2 ring-sky-400"
+              : showSectionAddTrigger
+              ? "ring-1 ring-sky-200"
+              : ""
           }`}
           style={{
             margin: settings.margin ?? 0,
@@ -468,6 +708,27 @@ export default function BlockPreview({
               )}
             </div>
           )}
+          {showSectionAddTrigger && (
+            <div className="absolute left-1/2 top-2 z-20 -translate-x-1/2">
+              <button
+                type="button"
+                data-quick-insert-trigger="true"
+                onClick={(event) =>
+                  toggleQuickInsertMenu(event, "section", sectionId)
+                }
+                className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-[11px] font-semibold transition shadow-sm ${
+                  isMenuOpen("section", sectionId)
+                    ? "border-sky-400 bg-sky-50 text-sky-700"
+                    : "border-slate-200 bg-white/95 text-slate-600 hover:border-sky-300 hover:text-sky-700"
+                }`}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Add here
+              </button>
+              {isMenuOpen("section", sectionId) &&
+                renderQuickInsertMenu(sectionId)}
+            </div>
+          )}
           <div
             className="w-full rounded-2xl p-3"
             style={{
@@ -511,21 +772,60 @@ export default function BlockPreview({
         transformOrigin: "top left",
       }}
     >
-      <div className="bg-white rounded-2xl border border-slate-100 px-4 py-5 min-h-[220px]">
+      <div
+        className="bg-white rounded-2xl border border-slate-100 px-4 py-5 min-h-[220px]"
+        onMouseEnter={() => setIsPageBodyHovered(true)}
+        onMouseLeave={() => {
+          setIsPageBodyHovered(false);
+          setHoveredSectionId(null);
+        }}
+      >
         {builder.rootSectionIds.length === 0 && (
           <div
+            role="button"
+            tabIndex={0}
+            data-quick-insert-trigger="true"
+            onClick={(event) => toggleQuickInsertMenu(event, "root")}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                toggleQuickInsertMenu(event, "root");
+              }
+            }}
             className={`flex items-center justify-center text-xs text-slate-400 text-center px-4 py-10 rounded-2xl border border-dashed ${
               hoverRoot
                 ? "border-sky-400 bg-sky-50/60"
                 : "border-slate-200"
             }`}
           >
-            Drag a Section from the toolbox to start building your page.
+            <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-600 shadow-sm">
+              <Plus className="h-3.5 w-3.5" />
+              Add your first section
+            </span>
           </div>
         )}
 
         {builder.rootSectionIds.map((sectionId) =>
           renderSection(sectionId, 0)
+        )}
+
+        {(isMenuOpen("root") ||
+          (isPageBodyHovered && !hoveredSectionId)) && (
+          <div className="relative mt-4 flex justify-center">
+            <button
+              type="button"
+              data-quick-insert-trigger="true"
+              onClick={(event) => toggleQuickInsertMenu(event, "root")}
+              className={`inline-flex items-center gap-1 rounded-full border px-3.5 py-1.5 text-[11px] font-semibold transition shadow-sm ${
+                isMenuOpen("root")
+                  ? "border-sky-400 bg-sky-50 text-sky-700"
+                  : "border-slate-200 bg-white/95 text-slate-600 hover:border-sky-300 hover:text-sky-700"
+              }`}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Add section here
+            </button>
+            {isMenuOpen("root") && renderQuickInsertMenu(null)}
+          </div>
         )}
       </div>
     </div>
