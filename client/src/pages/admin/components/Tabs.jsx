@@ -1,89 +1,80 @@
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
-import { CalendarClock, ImageIcon, Inbox, Users, BarChart3, GraduationCap } from "lucide-react";
+import {
+  CalendarClock,
+  Image as ImageIcon,
+  Inbox,
+  Users,
+  BarChart3,
+  GraduationCap,
+  Eye,
+} from "lucide-react";
+
+const ADMIN_TABS = [
+  { id: "overview", label: "Overview", icon: BarChart3 },
+  { id: "rounds", label: "Rounds", icon: CalendarClock },
+  { id: "sessions", label: "Sessions", icon: CalendarClock },
+  { id: "enrollments", label: "Enrollments", icon: Users },
+  { id: "instructors", label: "Instructors", icon: GraduationCap },
+  { id: "users", label: "Users", icon: Users },
+  { id: "gallery", label: "Gallery", icon: ImageIcon },
+  { id: "messages", label: "Messages", icon: Inbox },
+  { id: "full-overview", label: "Full Overview & Visitors", icon: Eye },
+];
 
 const Tabs = ({ activeTab, setActiveTab, tabButtonBase, newMessagesCount }) => {
-    const MotionContainer = motion.div
+  const [portalTarget, setPortalTarget] = useState(null);
 
-    const activeStyle = `${tabButtonBase} bg-[#102a5a] text-white shadow-md`;
-    const inactiveStyle = `${tabButtonBase} bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-[#102a5a]/20`;
+  useEffect(() => {
+    setPortalTarget(document.getElementById("admin-header-tabs-slot"));
+  }, []);
 
-    return (
-        <MotionContainer
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex flex-wrap gap-2 mb-6"
-        >
+  const tabsContent = (
+    <nav className="mt-3 border-t border-white/10 pt-2">
+      <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide pb-1">
+        {ADMIN_TABS.map((tab) => {
+          const isActive = activeTab === tab.id;
+          const TabIcon = tab.icon;
+          return (
             <button
-                onClick={() => setActiveTab("overview")}
-                className={activeTab === "overview" ? activeStyle : inactiveStyle}
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap shrink-0 ${
+                isActive
+                  ? "bg-white/15 text-white shadow-sm"
+                  : "text-white/60 hover:text-white/85 hover:bg-white/5"
+              }`}
             >
-                <BarChart3 className="w-4 h-4" />
-                Overview
-            </button>
+              <TabIcon className="w-4 h-4" />
+              <span className="hidden sm:inline">{tab.label}</span>
+              <span className="sm:hidden">{tab.label.split(" ")[0]}</span>
 
-            <button
-                onClick={() => setActiveTab("rounds")}
-                className={activeTab === "rounds" ? activeStyle : inactiveStyle}
-            >
-                <CalendarClock className="w-4 h-4" />
-                Rounds
-            </button>
+              {tab.id === "messages" && newMessagesCount > 0 && (
+                <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#FBBF24] text-[10px] font-bold text-[#102a5a] leading-none">
+                  {newMessagesCount}
+                </span>
+              )}
 
-            <button
-                onClick={() => setActiveTab("sessions")}
-                className={activeTab === "sessions" ? activeStyle : inactiveStyle}
-            >
-                <CalendarClock className="w-4 h-4" />
-                Sessions
+              {isActive && (
+                <motion.div
+                  layoutId="adminTabIndicator"
+                  className="absolute bottom-0 left-3 right-3 h-0.5 bg-[#FBBF24] rounded-full"
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                />
+              )}
             </button>
+          );
+        })}
+      </div>
+    </nav>
+  );
 
-            <button
-                onClick={() => setActiveTab("enrollments")}
-                className={activeTab === "enrollments" ? activeStyle : inactiveStyle}
-            >
-                <Users className="w-4 h-4" />
-                Enrollments
-            </button>
+  if (portalTarget) {
+    return createPortal(tabsContent, portalTarget);
+  }
 
-            <button
-                onClick={() => setActiveTab("instructors")}
-                className={activeTab === "instructors" ? activeStyle : inactiveStyle}
-            >
-                <GraduationCap className="w-4 h-4" />
-                Instructors
-            </button>
+  return tabsContent;
+};
 
-            <button
-                onClick={() => setActiveTab("users")}
-                className={activeTab === "users" ? activeStyle : inactiveStyle}
-            >
-                <Users className="w-4 h-4" />
-                Users
-            </button>
-
-            <button
-                onClick={() => setActiveTab("gallery")}
-                className={activeTab === "gallery" ? activeStyle : inactiveStyle}
-            >
-                <ImageIcon className="w-4 h-4" />
-                Gallery
-            </button>
-
-            <button
-                onClick={() => setActiveTab("messages")}
-                className={activeTab === "messages" ? activeStyle : inactiveStyle}
-            >
-                <Inbox className="w-4 h-4" />
-                Messages
-                {newMessagesCount > 0 && (
-                    <span className="ml-1 inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-[#FBBF24] text-[10px] font-bold text-[#102a5a]">
-                        {newMessagesCount}
-                    </span>
-                )}
-            </button>
-        </MotionContainer>
-    )
-}
-
-export default Tabs
+export default Tabs;

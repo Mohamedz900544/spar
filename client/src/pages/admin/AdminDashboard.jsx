@@ -1,6 +1,7 @@
 // src/pages/AdminDashboard.jsx
 import { AnimatePresence, motion } from "framer-motion";
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Users,
   CalendarClock,
@@ -34,6 +35,7 @@ function generateRoundCode() {
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
+  const navigate = useNavigate();
   const [isCreatingRound, setIsCreatingRound] = useState(false)
   const [evenSessionDateAndTime, setEvenSessionDateAndTime] = useState(null)
   const [oddSessionDateAndTime, setOddSessionDateAndTime] = useState(null)
@@ -103,8 +105,19 @@ const AdminDashboard = () => {
   const [openForm, setOpenForm] = useState(false)
   const [sessionToUpdate, setSessionToUpdate] = useState({})
   const [expandedInstructorId, setExpandedInstructorId] = useState(null);
-  const tabButtonBase =
-    "flex items-center gap-2 px-4 py-2.5 rounded-full text-sm md:text-base font-medium transition-all duration-200";
+
+  // Handle tab changes — some tabs navigate to separate pages
+  const handleTabChange = useCallback((tabId) => {
+    if (tabId === "gallery") {
+      navigate("/admin/overview");
+      return;
+    }
+    if (tabId === "full-overview") {
+      navigate("/admin/overview");
+      return;
+    }
+    setActiveTab(tabId);
+  }, [navigate]);
 
   function handleFormUpdate(sessionId) {
     setOpenForm(true)
@@ -136,8 +149,7 @@ const AdminDashboard = () => {
           {/* Tabs */}
           <Tabs
             activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            tabButtonBase={tabButtonBase}
+            setActiveTab={handleTabChange}
             newMessagesCount={newMessagesCount}
           />
 
