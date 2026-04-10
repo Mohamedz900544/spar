@@ -196,6 +196,7 @@ export default function BlockPreview({
   const [isPageBodyHovered, setIsPageBodyHovered] = useState(false);
   const scrollRef = useRef(null);
   const quickInsertMenuRef = useRef(null);
+  const isEditorMode = typeof onSelect === "function";
 
   useEffect(() => {
     if (!quickInsertMenu) return;
@@ -228,6 +229,7 @@ export default function BlockPreview({
   }, [allowQuickInsert]);
 
   const startCanvasDrag = (payload) => {
+    if (!isEditorMode) return;
     setQuickInsertMenu(null);
     setDragItem?.({
       source: "canvas",
@@ -238,6 +240,7 @@ export default function BlockPreview({
   };
 
   const stopCanvasDrag = () => {
+    if (!isEditorMode) return;
     setDragItem?.(null);
     setHoverSectionId(null);
     setHoverRoot(false);
@@ -353,6 +356,7 @@ export default function BlockPreview({
   };
 
   const handleCanvasDragOver = (e) => {
+    if (!isEditorMode) return;
     if (!dragItem) return;
     e.preventDefault();
 
@@ -370,6 +374,7 @@ export default function BlockPreview({
   };
 
   const handleRootDragEnter = (e) => {
+    if (!isEditorMode) return;
     if (!dragItem || dragItem.kind !== "section") return;
     e.preventDefault();
     e.stopPropagation();
@@ -377,11 +382,13 @@ export default function BlockPreview({
   };
 
   const handleRootDragLeave = (e) => {
+    if (!isEditorMode) return;
     e.stopPropagation();
     setHoverRoot(false);
   };
 
   const handleRootDrop = (e) => {
+    if (!isEditorMode) return;
     e.preventDefault();
     e.stopPropagation();
     setHoverRoot(false);
@@ -403,6 +410,7 @@ export default function BlockPreview({
   };
 
   const handleSectionDragEnter = (e, sectionId) => {
+    if (!isEditorMode) return;
     if (!dragItem) return;
     e.preventDefault();
     e.stopPropagation();
@@ -410,11 +418,13 @@ export default function BlockPreview({
   };
 
   const handleSectionDragLeave = (e, sectionId) => {
+    if (!isEditorMode) return;
     e.stopPropagation();
     if (hoverSectionId === sectionId) setHoverSectionId(null);
   };
 
   const handleSectionDrop = (e, sectionId) => {
+    if (!isEditorMode) return;
     e.preventDefault();
     e.stopPropagation();
     setHoverSectionId(null);
@@ -501,7 +511,7 @@ export default function BlockPreview({
         typeof block.padding === "number" ? `${block.padding}px` : undefined,
     };
 
-    const wrapperClass = `cursor-move w-full transition ${
+    const wrapperClass = `${isEditorMode ? "cursor-move" : "cursor-default"} w-full transition ${
       isSelected ? "ring-2 ring-sky-300 rounded-xl" : ""
     } ${draggingNodeId === blockId ? "opacity-60 scale-[0.99]" : ""}`;
 
@@ -521,12 +531,18 @@ export default function BlockPreview({
     return (
       <div
         key={blockId}
-        draggable
-        onDragStart={() =>
-          startCanvasDrag({ kind: "block", id: blockId })
+        draggable={isEditorMode}
+        onDragStart={
+          isEditorMode
+            ? () => startCanvasDrag({ kind: "block", id: blockId })
+            : undefined
         }
-        onDragEnd={stopCanvasDrag}
-        onClick={() => onSelect?.({ kind: "block", id: blockId })}
+        onDragEnd={isEditorMode ? stopCanvasDrag : undefined}
+        onClick={
+          isEditorMode
+            ? () => onSelect?.({ kind: "block", id: blockId })
+            : undefined
+        }
         style={wrapperStyle}
         className={wrapperClass}
       >
@@ -653,26 +669,53 @@ export default function BlockPreview({
 
         {block.type === "button" && (
           <div className={`mt-1 flex ${justifyClass}`}>
-            <button
-              type="button"
-              className={`inline-flex items-center justify-center px-4 py-2 rounded-2xl text-xs md:text-sm font-semibold transition ${
+            {(() => {
+              const buttonClassName = `inline-flex items-center justify-center px-4 py-2 rounded-2xl text-xs md:text-sm font-semibold transition ${
                 block.variant === "outline"
                   ? "border border-sky-500 text-sky-700 bg-transparent hover:bg-sky-50"
                   : block.variant === "soft"
                   ? "bg-sky-100 text-sky-800 hover:bg-sky-200 border border-sky-100"
                   : "bg-sky-600 text-white hover:bg-sky-700 shadow-sm shadow-sky-200"
-              }`}
-              style={{
+              }`;
+
+              const buttonStyle = {
                 backgroundColor:
                   block.variant === "primary" && block.backgroundColor
                     ? block.backgroundColor
                     : undefined,
                 color: textColor,
                 fontSize: getFontSize(block, 14),
-              }}
-            >
-              {block.text || "Click me"}
-            </button>
+              };
+
+              const href =
+                typeof block.href === "string" ? block.href.trim() : "";
+              const hasLink = href.length > 0;
+              const openInNewTab = block.openInNewTab ?? true;
+
+              if (!hasLink) {
+                return (
+                  <button
+                    type="button"
+                    className={buttonClassName}
+                    style={buttonStyle}
+                  >
+                    {block.text || "Click me"}
+                  </button>
+                );
+              }
+
+              return (
+                <a
+                  href={href}
+                  target={openInNewTab ? "_blank" : undefined}
+                  rel={openInNewTab ? "noopener noreferrer" : undefined}
+                  className={buttonClassName}
+                  style={buttonStyle}
+                >
+                  {block.text || "Click me"}
+                </a>
+              );
+            })()}
           </div>
         )}
 
@@ -721,6 +764,7 @@ export default function BlockPreview({
         hoveredSectionId === sectionId ||
         isSelectedSection);
     const showDropHint =
+      isEditorMode &&
       dragItem &&
       (dragItem.kind === "block" || dragItem.kind === "section");
     const isDraggingSection = draggingNodeId === sectionId;
@@ -731,10 +775,22 @@ export default function BlockPreview({
         className={`transition ${
           isHover ? "ring-2 ring-sky-300 rounded-3xl" : ""
         } ${isDraggingSection ? "opacity-70" : ""}`}
-        onDragOver={handleCanvasDragOver}
-        onDrop={(e) => handleSectionDrop(e, sectionId)}
-        onDragEnter={(e) => handleSectionDragEnter(e, sectionId)}
-        onDragLeave={(e) => handleSectionDragLeave(e, sectionId)}
+        onDragOver={isEditorMode ? handleCanvasDragOver : undefined}
+        onDrop={
+          isEditorMode
+            ? (e) => handleSectionDrop(e, sectionId)
+            : undefined
+        }
+        onDragEnter={
+          isEditorMode
+            ? (e) => handleSectionDragEnter(e, sectionId)
+            : undefined
+        }
+        onDragLeave={
+          isEditorMode
+            ? (e) => handleSectionDragLeave(e, sectionId)
+            : undefined
+        }
         onMouseEnter={() => setHoveredSectionId(sectionId)}
         onMouseLeave={() =>
           setHoveredSectionId((prev) =>
@@ -768,15 +824,21 @@ export default function BlockPreview({
             width: settings.width || "100%",
             height: settings.height || "auto",
           }}
-          draggable
-          onDragStart={() =>
-            startCanvasDrag({ kind: "section", id: sectionId })
+          draggable={isEditorMode}
+          onDragStart={
+            isEditorMode
+              ? () => startCanvasDrag({ kind: "section", id: sectionId })
+              : undefined
           }
-          onDragEnd={stopCanvasDrag}
-          onClick={(e) => {
-            e.stopPropagation();
-            onSelect?.({ kind: "section", id: sectionId });
-          }}
+          onDragEnd={isEditorMode ? stopCanvasDrag : undefined}
+          onClick={
+            isEditorMode
+              ? (e) => {
+                e.stopPropagation();
+                onSelect?.({ kind: "section", id: sectionId });
+              }
+              : undefined
+          }
         >
           {showDropHint && (
             <div
@@ -956,10 +1018,10 @@ export default function BlockPreview({
       <div
         ref={scrollRef}
         className="rounded-2xl border border-slate-100 bg-gradient-to-b from-slate-50 to-slate-100 p-3 flex-1 overflow-auto relative"
-        onDragOver={handleCanvasDragOver}
-        onDrop={handleRootDrop}
-        onDragEnter={handleRootDragEnter}
-        onDragLeave={handleRootDragLeave}
+        onDragOver={isEditorMode ? handleCanvasDragOver : undefined}
+        onDrop={isEditorMode ? handleRootDrop : undefined}
+        onDragEnter={isEditorMode ? handleRootDragEnter : undefined}
+        onDragLeave={isEditorMode ? handleRootDragLeave : undefined}
       >
         {dragItem?.kind === "section" && (
           <div

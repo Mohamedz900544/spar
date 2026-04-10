@@ -440,6 +440,28 @@ export default function BlockPropertiesPanel({
                   <option value="soft">Soft</option>
                 </select>
               </div>
+              <div>
+                <label className="block text-slate-600 mb-1">
+                  Button link URL
+                </label>
+                <input
+                  type="text"
+                  value={block.href || ""}
+                  onChange={(e) => updateField("href", e.target.value)}
+                  className="w-full rounded-2xl border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-400"
+                  placeholder="https://example.com or /about"
+                />
+              </div>
+              <label className="inline-flex items-center gap-2 text-slate-600 text-[11px]">
+                <input
+                  type="checkbox"
+                  checked={block.openInNewTab ?? true}
+                  onChange={(e) =>
+                    updateField("openInNewTab", e.target.checked)
+                  }
+                />
+                Open link in new tab
+              </label>
             </>
           )}
 

@@ -118,6 +118,8 @@ const createBlockNode = (type, parentId) => {
         text: "Click me",
         align: "center",
         variant: "primary",
+        href: "",
+        openInNewTab: true,
         fontSize: 14,
         textColor: "black",
       };
