@@ -12,9 +12,9 @@ import { useSalesDashboard } from "./hooks/useSalesDashboard";
 
 const navItems = [
   { to: "/sales", label: "Overview", icon: TrendingUp },
+  { to: "/sales/new", label: "New Lead", icon: UserPlus },
   { to: "/sales/free-session", label: "Assign Free Session", icon: CalendarClock },
   { to: "/sales/pipeline", label: "Pipeline", icon: ClipboardList },
-  { to: "/sales/new", label: "New Lead", icon: UserPlus },
   { to: "/sales/follow-ups", label: "Follow-ups", icon: Users },
   { to: "/sales/closed", label: "Closed Deals", icon: Users },
 ];
