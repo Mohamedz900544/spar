@@ -549,10 +549,13 @@ export default function BlockPreview({
         {/* محتوى البلوك نفسه بدون كروت/هيدر */}
 
         {block.type === "header" && (
-          <div className={alignClass} style={commonTextStyle}>
+          <div className={alignClass}>
             <h2
               className="font-extrabold"
-              style={{ fontSize: getFontSize(block, 24) }}
+              style={{
+                ...commonTextStyle,
+                fontSize: getFontSize(block, 24),
+              }}
             >
               {block.text || "Page header area"}
             </h2>
