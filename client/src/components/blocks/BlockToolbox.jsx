@@ -166,25 +166,17 @@ export default function BlockToolbox({
 
   return (
     <div className="rounded-3xl bg-white border border-slate-100 shadow-sm p-3">
-      <h2 className="text-sm font-semibold text-slate-900">
-        Block toolbox
-      </h2>
-      <p className="text-[11px] text-slate-500 mt-1 mb-3">
-        1. Drag a <span className="font-semibold text-sky-600">
-          Section
-        </span>{" "}
-        into the canvas. 2. Drag blocks into that section.
-      </p>
+
 
       <div className="space-y-3">
         <div className="flex flex-col xl:flex-row xl:items-end gap-3">
             <div className="xl:w-[280px] shrink-0">
-            <p className="text-[11px] font-semibold text-slate-500 mb-2">
+            {/* <p className="text-[11px] font-semibold text-slate-500 mb-2">
               Sections
-            </p>
-            <div className="toolbox-scrollbar flex gap-2 overflow-x-auto pb-1 scroll-smooth">
+            </p> */}
+            {/* <div className="toolbox-scrollbar flex gap-2 overflow-x-auto pb-1 scroll-smooth">
               {sectionTools.map(renderToolButton)}
-            </div>
+            </div> */}
           </div>
           
           <div className="flex-1 min-w-0 md:flex md:flex-col md:items-end">
@@ -251,14 +243,14 @@ export default function BlockToolbox({
 
         <div className="border-t border-slate-100 my-2" />
 
-        <div>
+        {/* <div>
           <p className="text-[11px] font-semibold text-slate-500 mb-2">
             Blocks
           </p>
           <div className="toolbox-scrollbar flex gap-2 overflow-x-auto pb-1 scroll-smooth">
             {blockTools.map(renderToolButton)}
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

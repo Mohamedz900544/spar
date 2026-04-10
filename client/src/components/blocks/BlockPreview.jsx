@@ -90,6 +90,75 @@ const blockInsertOptions = [
   },
 ];
 
+const insertOptionTones = {
+  section: {
+    icon: "bg-sky-100 text-sky-700",
+    hover: "hover:border-sky-200 hover:bg-sky-50/70",
+    title: "text-sky-900",
+    desc: "text-sky-700/80",
+  },
+  header: {
+    icon: "bg-violet-100 text-violet-700",
+    hover: "hover:border-violet-200 hover:bg-violet-50/70",
+    title: "text-violet-900",
+    desc: "text-violet-700/80",
+  },
+  footer: {
+    icon: "bg-slate-200 text-slate-700",
+    hover: "hover:border-slate-300 hover:bg-slate-50/80",
+    title: "text-slate-900",
+    desc: "text-slate-600",
+  },
+  heading: {
+    icon: "bg-emerald-100 text-emerald-700",
+    hover: "hover:border-emerald-200 hover:bg-emerald-50/70",
+    title: "text-emerald-900",
+    desc: "text-emerald-700/80",
+  },
+  paragraph: {
+    icon: "bg-amber-100 text-amber-700",
+    hover: "hover:border-amber-200 hover:bg-amber-50/70",
+    title: "text-amber-900",
+    desc: "text-amber-700/80",
+  },
+  button: {
+    icon: "bg-sky-100 text-sky-700",
+    hover: "hover:border-sky-200 hover:bg-sky-50/70",
+    title: "text-sky-900",
+    desc: "text-sky-700/80",
+  },
+  image: {
+    icon: "bg-pink-100 text-pink-700",
+    hover: "hover:border-pink-200 hover:bg-pink-50/70",
+    title: "text-pink-900",
+    desc: "text-pink-700/80",
+  },
+  list: {
+    icon: "bg-lime-100 text-lime-700",
+    hover: "hover:border-lime-200 hover:bg-lime-50/70",
+    title: "text-lime-900",
+    desc: "text-lime-700/80",
+  },
+  input: {
+    icon: "bg-emerald-100 text-emerald-700",
+    hover: "hover:border-emerald-200 hover:bg-emerald-50/70",
+    title: "text-emerald-900",
+    desc: "text-emerald-700/80",
+  },
+  icons: {
+    icon: "bg-violet-100 text-violet-700",
+    hover: "hover:border-violet-200 hover:bg-violet-50/70",
+    title: "text-violet-900",
+    desc: "text-violet-700/80",
+  },
+  default: {
+    icon: "bg-slate-100 text-slate-600",
+    hover: "hover:border-slate-200 hover:bg-slate-50",
+    title: "text-slate-800",
+    desc: "text-slate-500",
+  },
+};
+
 /**
  * builder = {
  *   rootSectionIds: string[],
@@ -210,23 +279,26 @@ export default function BlockPreview({
 
   const renderQuickInsertOption = (option, sectionId = null) => {
     const Icon = option.icon;
+    const tone = insertOptionTones[option.type] || insertOptionTones.default;
 
     return (
       <button
         key={`${option.kind}-${option.type}`}
         type="button"
         onClick={(event) => handleQuickInsert(event, option, sectionId)}
-        className="w-full rounded-xl border border-transparent px-2.5 py-2 text-left transition hover:border-slate-200 hover:bg-slate-50"
+        className={`w-full rounded-xl border border-transparent px-2.5 py-2 text-left transition ${tone.hover}`}
       >
         <div className="flex items-start gap-2">
-          <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+          <div
+            className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${tone.icon}`}
+          >
             <Icon className="h-3.5 w-3.5" />
           </div>
           <div className="min-w-0">
-            <p className="truncate text-[12px] font-semibold text-slate-800">
+            <p className={`truncate text-[12px] font-semibold ${tone.title}`}>
               {option.label}
             </p>
-            <p className="text-[10px] text-slate-500 leading-tight">
+            <p className={`text-[10px] leading-tight ${tone.desc}`}>
               {option.description}
             </p>
           </div>
