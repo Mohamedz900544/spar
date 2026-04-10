@@ -14,7 +14,7 @@ const AdminHeader = ({ isLoading, searchValue, setSearchValue }) => {
             className="relative text-white px-5 md:px-8 py-3.5 shadow-lg border-b border-[#FBBF24]/20"
             style={{ background: "linear-gradient(135deg, #071228 0%, #102a5a 55%, #1a3a6b 100%)" }}
         >
-            <div className="flex items-center justify-between">
+            <div className="flex items-center">
                 {/* Logo + role badge */}
                 <Link to="/" className="inline-flex items-center gap-3">
                     <img src="/logo-white.png" alt="Sparvi Lab" className="h-8" />
@@ -26,6 +26,11 @@ const AdminHeader = ({ isLoading, searchValue, setSearchValue }) => {
                         Admin Panel
                     </span>
                 </Link>
+
+                <div
+                    id="admin-header-tabs-slot"
+                    className="mx-4 flex-1 min-w-0"
+                />
 
                 {/* Search dropdown (students page only) */}
                 {isStudentsPage && <>
@@ -41,7 +46,7 @@ const AdminHeader = ({ isLoading, searchValue, setSearchValue }) => {
                 </>
                 }
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 shrink-0">
                     {isStudentsPage && <button onClick={() => {
                         setSearchAppear(!searchAppear)
                     }} className="p-2 rounded-lg hover:bg-white/10 transition-colors">
@@ -62,8 +67,6 @@ const AdminHeader = ({ isLoading, searchValue, setSearchValue }) => {
                     </div>
                 </div>
             </div>
-
-            <div id="admin-header-tabs-slot" />
         </header>
         <Outlet />
     </div>

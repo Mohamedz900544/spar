@@ -31,8 +31,8 @@ const Tabs = ({ activeTab, setActiveTab, tabButtonBase, newMessagesCount }) => {
   }, []);
 
   const tabsContent = (
-    <nav className="mt-3 border-t border-white/10 pt-2">
-      <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide pb-1">
+    <nav className="w-full">
+      <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide py-1">
         {ADMIN_TABS.map((tab) => {
           const isActive = activeTab === tab.id;
           const TabIcon = tab.icon;
@@ -70,11 +70,8 @@ const Tabs = ({ activeTab, setActiveTab, tabButtonBase, newMessagesCount }) => {
     </nav>
   );
 
-  if (portalTarget) {
-    return createPortal(tabsContent, portalTarget);
-  }
-
-  return tabsContent;
+  if (!portalTarget) return null;
+  return createPortal(tabsContent, portalTarget);
 };
 
 export default Tabs;
