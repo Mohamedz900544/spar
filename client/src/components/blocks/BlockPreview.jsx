@@ -186,6 +186,7 @@ export default function BlockPreview({
   zoom = 1,
   breadcrumb,
   frame = true,
+  allowQuickInsert = true,
 }) {
   const [hoverSectionId, setHoverSectionId] = useState(null);
   const [hoverRoot, setHoverRoot] = useState(false);
@@ -220,6 +221,12 @@ export default function BlockPreview({
     };
   }, [quickInsertMenu]);
 
+  useEffect(() => {
+    if (!allowQuickInsert) {
+      setQuickInsertMenu(null);
+    }
+  }, [allowQuickInsert]);
+
   const startCanvasDrag = (payload) => {
     setQuickInsertMenu(null);
     setDragItem?.({
@@ -246,6 +253,7 @@ export default function BlockPreview({
   };
 
   const toggleQuickInsertMenu = (event, scope, sectionId = null) => {
+    if (!allowQuickInsert) return;
     event.preventDefault();
     event.stopPropagation();
 
@@ -474,7 +482,7 @@ export default function BlockPreview({
     const minHeight =
       typeof block.minHeight === "number" && block.minHeight > 0
         ? `${block.minHeight}px`
-        : "auto";
+        : null;
 
     const alignClass = getAlignClass(block.align);
     const justifyClass = getJustifyClass(block.align);
@@ -482,7 +490,7 @@ export default function BlockPreview({
     // wrapper شفاف (من غير كرت)، وفيه margin/padding من إعدادات البلوك
     const wrapperStyle = {
       gridColumn: `span ${span}`,
-      minHeight,
+      minHeight: block.type === "image" ? undefined : minHeight,
       backgroundColor:
         block.type === "button"
           ? "transparent"
@@ -676,9 +684,14 @@ export default function BlockPreview({
                 "https://placehold.co/360x220?text=Image"
               }
               alt={block.alt || "Image"}
-              className={`max-h-40 max-w-full object-cover ${
+              className={`max-w-full object-cover ${
                 block.rounded ?? true ? "rounded-2xl" : "rounded"
               }`}
+              style={
+                minHeight
+                  ? { minHeight }
+                  : { maxHeight: "160px" }
+              }
               onError={(e) => {
                 e.target.src =
                   "https://placehold.co/360x220?text=Image";
@@ -703,9 +716,10 @@ export default function BlockPreview({
     const isSelectedSection =
       selection?.kind === "section" && selection.id === sectionId;
     const showSectionAddTrigger =
-      isMenuOpen("section", sectionId) ||
-      hoveredSectionId === sectionId ||
-      isSelectedSection;
+      allowQuickInsert &&
+      (isMenuOpen("section", sectionId) ||
+        hoveredSectionId === sectionId ||
+        isSelectedSection);
     const showDropHint =
       dragItem &&
       (dragItem.kind === "block" || dragItem.kind === "section");
@@ -854,25 +868,39 @@ export default function BlockPreview({
       >
         {builder.rootSectionIds.length === 0 && (
           <div
-            role="button"
-            tabIndex={0}
-            data-quick-insert-trigger="true"
-            onClick={(event) => toggleQuickInsertMenu(event, "root")}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                toggleQuickInsertMenu(event, "root");
-              }
-            }}
+            role={allowQuickInsert ? "button" : undefined}
+            tabIndex={allowQuickInsert ? 0 : undefined}
+            data-quick-insert-trigger={
+              allowQuickInsert ? "true" : undefined
+            }
+            onClick={
+              allowQuickInsert
+                ? (event) => toggleQuickInsertMenu(event, "root")
+                : undefined
+            }
+            onKeyDown={
+              allowQuickInsert
+                ? (event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    toggleQuickInsertMenu(event, "root");
+                  }
+                }
+                : undefined
+            }
             className={`flex items-center justify-center text-xs text-slate-400 text-center px-4 py-10 rounded-2xl border border-dashed ${
               hoverRoot
                 ? "border-sky-400 bg-sky-50/60"
                 : "border-slate-200"
             }`}
           >
-            <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-600 shadow-sm">
-              <Plus className="h-3.5 w-3.5" />
-              Add your first section
-            </span>
+            {allowQuickInsert ? (
+              <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-600 shadow-sm">
+                <Plus className="h-3.5 w-3.5" />
+                Add your first section
+              </span>
+            ) : (
+              <span>No sections yet.</span>
+            )}
           </div>
         )}
 
@@ -880,8 +908,9 @@ export default function BlockPreview({
           renderSection(sectionId, 0)
         )}
 
-        {(isMenuOpen("root") ||
-          (isPageBodyHovered && !hoveredSectionId)) && (
+        {allowQuickInsert &&
+          (isMenuOpen("root") ||
+            (isPageBodyHovered && !hoveredSectionId)) && (
           <div className="relative mt-4 flex justify-center">
             <button
               type="button"

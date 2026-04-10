@@ -71,6 +71,7 @@ export default function PublicPreview() {
                 setDragItem={() => { }}
                 zoom={1}
                 frame={false}
+                allowQuickInsert={false}
               />
             </div>
           </div>
