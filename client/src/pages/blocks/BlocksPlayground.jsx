@@ -1,6 +1,7 @@
 // src/pages/blocks/BlocksPlayground.jsx
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Sparkles, Save, RotateCw, Undo2, Redo2 } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { CheckCircle2, AlertCircle } from "lucide-react";
 
 import BlockToolbox from "../../components/blocks/BlockToolbox";
 import BlockCanvas from "../../components/blocks/BlockCanvas";
@@ -182,10 +183,30 @@ export default function BlocksPlayground() {
   const [dragItem, setDragItem] = useState(null);
   const [autoSaveReady, setAutoSaveReady] = useState(false);
 
-  const { current, loading, saving, error, loadLastProject, saveProject } =
+  const {
+    current,
+    loading,
+    saving,
+    error,
+    setError,
+    loadLastProject,
+    saveProject,
+  } =
     useBlockProjects();
 
   const combinedError = localError || error;
+
+  useEffect(() => {
+    if (!statusMessage && !combinedError) return;
+
+    const timer = setTimeout(() => {
+      setStatusMessage("");
+      setLocalError("");
+      setError?.("");
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [statusMessage, combinedError, setError]);
 
   // Undo / redo
   const historyRef = useRef([]);
@@ -365,6 +386,65 @@ export default function BlocksPlayground() {
       console.error("manual save error:", err);
       setLocalError(err.message || "Failed to save your page.");
     }
+  };
+
+  const handleSharePreview = () => {
+    if (!current?._id) {
+      toast.error("Save your page first!");
+      return;
+    }
+
+    const shareUrl = `${window.location.origin}/blocks/share/${current._id}`;
+    navigator.clipboard.writeText(shareUrl);
+    toast.custom((t) => {
+      const user = JSON.parse(localStorage.getItem("sparvi_user") || "{}");
+
+      return (
+        <div
+          className={`
+            ${t.visible ? "animate-enter" : "animate-leave"}
+            max-w-md w-full bg-white shadow-2xl rounded-2xl pointer-events-auto flex ring-1 ring-black ring-opacity-5 overflow-hidden
+          `}
+        >
+          <div className="flex-1 w-0 p-4">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 pt-0.5">
+                <img
+                  className="h-12 w-12 rounded-full object-cover border-2 border-green-100"
+                  src={user.photoUrl || "https://via.placeholder.com/40"}
+                  alt={user.name}
+                />
+              </div>
+
+              <div className="ml-4 flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-bold text-gray-900">
+                    Link Copied!
+                  </p>
+                  <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
+                    {user.name}
+                  </span>
+                </div>
+                <p className="mt-1 text-sm text-gray-500 truncate w-60 block">
+                  {shareUrl}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex border-l border-gray-200">
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-green-600 hover:text-green-500 focus:outline-none"
+            >
+              <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
+                <span className="text-lg">&#10003;</span>
+              </div>
+            </button>
+          </div>
+        </div>
+      );
+    });
   };
 
   const handleReloadLatest = async () => {
@@ -976,175 +1056,53 @@ export default function BlocksPlayground() {
   }, [selection, state.builder]);
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-gradient-to-b from-sky-50 via-white to-amber-50 pt-16 pb-10">
+    <div className="min-h-[calc(100vh-64px)] bg-gradient-to-b from-sky-50 via-white to-amber-50 pb-10">
       <div className="mx-auto px-4">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-sky-100 px-3 py-1 text-xs font-medium text-sky-700 mb-2">
-              <Sparkles className="w-4 h-4" />
-              Kids Frontend Playground · Sections Builder
-            </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900">
-              Build your page with sections &amp; blocks
-            </h1>
-            <p className="text-xs md:text-sm text-slate-600 mt-1">
-              Drag a Section into the canvas, then fill it with colourful
-              Header, List, Button and Image blocks.
-            </p>
-          </div>
+        {/* Top: toolbox navbar */}
+        <BlockToolbox
+          onToolDragStart={setDragItem}
+          onToolDragEnd={() => setDragItem(null)}
+          pageTitle={state.title}
+          onPageTitleChange={(value) =>
+            setState((prev) => ({ ...prev, title: value }))
+          }
+          onLoadLatest={handleReloadLatest}
+          loading={loading}
+          onSharePreview={handleSharePreview}
+          onSave={handleManualSave}
+          saving={saving}
+          onUndo={handleUndo}
+          onRedo={handleRedo}
+          canUndo={canUndo}
+          canRedo={canRedo}
+          onQuickAddSection={() => {
+            if (selection?.kind === "section") {
+              addChildSection(selection.id);
+            } else {
+              addRootSection();
+            }
+          }}
+          onQuickAddBlock={(type) => {
+            let targetSectionId = getDefaultTargetSectionId();
+            if (targetSectionId) {
+              addBlockToSection(targetSectionId, type);
+            } else {
+              const newSection = addRootSection();
+              addBlockToSection(newSection.id, type);
+            }
+          }}
+        />
 
-          <div className="flex flex-col items-stretch md:items-end gap-2 text-xs min-w-[260px]">
-            <input
-              type="text"
-
-              value={state.title}
-              onChange={(e) =>
-                setState((prev) => ({ ...prev, title: e.target.value }))
-              }
-              placeholder="Page title"
-              className="w-full text-black rounded-2xl border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-400 bg-white"
-            />
-            <div className="flex gap-2 flex-wrap">
-              <button
-                type="button"
-                onClick={handleReloadLatest}
-                disabled={loading}
-                className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-3 py-2 font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed transition"
-              >
-                <RotateCw className="w-3 h-3 mr-1" />
-                {loading ? "Loading..." : "Load latest"}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (!current?._id) {
-                    toast.error("Save your page first!");
-                    return;
-                  }
-                  const shareUrl = `${window.location.origin}/blocks/share/${current._id}`;
-                  navigator.clipboard.writeText(shareUrl);
-                  toast.custom((t) => {
-                    const user = JSON.parse(localStorage.getItem('sparvi_user') || '{}');
-
-                    return (
-                      <div
-                        className={`
-                        ${t.visible ? 'animate-enter' : 'animate-leave'}
-                        max-w-md w-full bg-white shadow-2xl rounded-2xl pointer-events-auto flex ring-1 ring-black ring-opacity-5 overflow-hidden
-                      `}
-                      >
-                        <div className="flex-1 w-0 p-4">
-                          <div className="flex items-center">
-
-                            {/* 1. Profile Photo (with fallback circle if no photo) */}
-                            <div className="flex-shrink-0 pt-0.5">
-                              <img
-                                className="h-12 w-12 rounded-full object-cover border-2 border-green-100"
-                                src={user.photoUrl || "https://via.placeholder.com/40"} // Fallback image
-                                alt={user.name}
-                              />
-                            </div>
-
-                            <div className="ml-4 flex-1">
-                              <div className="flex items-center gap-2">
-                                <p className="text-sm font-bold text-gray-900">Link Copied!</p>
-                                <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
-                                  {user.name}
-                                </span>
-                              </div>
-                              <p className="mt-1 text-sm text-gray-500 truncate w-60 block">
-                                {shareUrl}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex border-l border-gray-200">
-                          <button
-                            onClick={() => toast.dismiss(t.id)}
-                            className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-green-600 hover:text-green-500 focus:outline-none"
-                          >
-                            <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
-                              <span className="text-lg">✓</span>
-                            </div>
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  });
-                }}
-                className="inline-flex items-center justify-center rounded-2xl bg-emerald-600 px-3 py-2 font-semibold text-white shadow-md shadow-emerald-200 hover:bg-emerald-700 transition"
-              >
-                Share Preview
-              </button>
-
-              <button
-                type="button"
-                onClick={handleManualSave}
-                disabled={saving}
-                className="inline-flex items-center justify-center rounded-2xl bg-sky-600 px-3 py-2 font-semibold text-white shadow-md shadow-sky-200 hover:bg-sky-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
-              >
-                <Save className="w-3 h-3 mr-1" />
-                {saving ? "Saving..." : "Save"}
-              </button>
-              <button
-                type="button"
-                onClick={handleUndo}
-                disabled={!canUndo}
-                className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-2 py-2 text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Undo2 className="w-3 h-3" />
-              </button>
-              <button
-                type="button"
-                onClick={handleRedo}
-                disabled={!canRedo}
-                className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-2 py-2 text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Redo2 className="w-3 h-3" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {(statusMessage || combinedError) && (
-          <div className="mb-4 text-xs">
-            {statusMessage && (
-              <div className="mb-1 rounded-2xl bg-emerald-50 text-emerald-700 px-3 py-2 border border-emerald-100">
-                {statusMessage}
-              </div>
-            )}
-            {combinedError && (
-              <div className="rounded-2xl bg-rose-50 text-rose-700 px-3 py-2 border border-rose-100">
-                {combinedError}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Layout: toolbox | preview | right side */}
-        <div className="grid grid-cols-1 lg:grid-cols-[230px_minmax(0,2.1fr)_320px] gap-4">
-          {/* Left: toolbox */}
-          <BlockToolbox
-            onToolDragStart={setDragItem}
-            onToolDragEnd={() => setDragItem(null)}
-            onQuickAddSection={() => {
-              if (selection?.kind === "section") {
-                addChildSection(selection.id);
-              } else {
-                addRootSection();
-              }
-            }}
-            onQuickAddBlock={(type) => {
-              let targetSectionId = getDefaultTargetSectionId();
-              if (targetSectionId) {
-                addBlockToSection(targetSectionId, type);
-              } else {
-                const newSection = addRootSection();
-                addBlockToSection(newSection.id, type);
-              }
-            }}
+        {/* Main layout: settings | preview | page tree */}
+        <div className="grid grid-cols-1 xl:grid-cols-[320px_minmax(0,2fr)_320px] gap-4 mt-4">
+          {/* Left: Block settings panel */}
+          <BlockPropertiesPanel
+            selection={selection}
+            builder={state.builder}
+            onChangeSection={handleUpdateSection}
+            onChangeBlock={handleUpdateBlock}
+            zoom={state.zoom}
+            onZoomChange={handleZoomChange}
           />
 
           {/* Center: Canvas preview */}
@@ -1164,8 +1122,7 @@ export default function BlocksPlayground() {
             breadcrumb={breadcrumb}
           />
 
-          {/* Right: Tree + settings */}
-          <div className="space-y-4">
+          {/* Right: page tree */}
           <div>
             <BlockCanvas
               builder={state.builder}
@@ -1176,30 +1133,56 @@ export default function BlocksPlayground() {
               onDuplicateBlock={duplicateBlock}
               onMoveNode={moveNode}
             />
-              <div className="mt-4 flex justify-end">
-                <button
-                  type="button"
-                  onClick={handleClearAll}
-                  className="text-[11px] rounded-2xl border border-slate-200 bg-white px-3 py-1.5 text-slate-500 hover:bg-slate-50 transition"
-                >
-                  Clear all sections &amp; blocks
-                </button>
-              </div>
-              <BlockPropertiesPanel
-                selection={selection}
-                builder={state.builder}
-                onChangeSection={handleUpdateSection}
-                onChangeBlock={handleUpdateBlock}
-                zoom={state.zoom}
-                onZoomChange={handleZoomChange}
-              />
-
+            <div className="mt-4 flex justify-end">
+              <button
+                type="button"
+                onClick={handleClearAll}
+                className="text-[11px] rounded-2xl border border-slate-200 bg-white px-3 py-1.5 text-slate-500 hover:bg-slate-50 transition"
+              >
+                Clear all sections &amp; blocks
+              </button>
             </div>
           </div>
         </div>
 
         {/* Clear all */}
 
+      </div>
+
+      <div className="fixed bottom-5 right-5 z-50 pointer-events-none">
+        <AnimatePresence>
+          {statusMessage && (
+            <motion.div
+              key={`status-${statusMessage}`}
+              initial={{ opacity: 0, y: 28, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.98 }}
+              transition={{ duration: 0.28, ease: "easeOut" }}
+              className="mb-2 w-[min(92vw,360px)] rounded-2xl border border-emerald-200 bg-emerald-50/95 px-4 py-3 text-emerald-800 shadow-lg backdrop-blur-sm"
+            >
+              <div className="flex items-start gap-2 text-sm">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{statusMessage}</span>
+              </div>
+            </motion.div>
+          )}
+
+          {combinedError && (
+            <motion.div
+              key={`error-${combinedError}`}
+              initial={{ opacity: 0, y: 28, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.98 }}
+              transition={{ duration: 0.28, ease: "easeOut" }}
+              className="w-[min(92vw,360px)] rounded-2xl border border-rose-200 bg-rose-50/95 px-4 py-3 text-rose-800 shadow-lg backdrop-blur-sm"
+            >
+              <div className="flex items-start gap-2 text-sm">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{combinedError}</span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
