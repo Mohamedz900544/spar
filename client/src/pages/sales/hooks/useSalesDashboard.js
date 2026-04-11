@@ -365,7 +365,7 @@ export const useSalesDashboard = () => {
 
       if (!res.ok) {
         const details = data?.details?.error || data?.details?.reason || "";
-        throw new Error(data.message || details || "Failed to send email test");
+        throw new Error(details || data.message || "Failed to send email test");
       }
 
       toast.success(data.message || "Email test sent");

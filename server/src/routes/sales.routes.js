@@ -12,6 +12,7 @@ import {
   sendWhatsAppText,
 } from "../services/whatsapp.service.js";
 import { sendBrevoEmail } from "../services/brevoEmail.service.js";
+import { sendBrevoSms } from "../services/brevoSms.service.js";
 
 const router = express.Router();
 const FREE_SESSION_DEFAULT_DURATION_MINUTES = Number(
@@ -25,6 +26,8 @@ const WHATSAPP_TEST_TEMPLATE = process.env.WHATSAPP_TEMPLATE_DEFAULT || "hello_w
 const WHATSAPP_TEMPLATE_LANGUAGE = process.env.WHATSAPP_TEMPLATE_LANGUAGE || "en_US";
 const EMAIL_TEST_RECIPIENT =
   process.env.BREVO_TEST_EMAIL || "mohamedz90054@gmail.com";
+const SMS_TEST_RECIPIENT =
+  process.env.BREVO_TEST_SMS_NUMBER || "01280669844";
 
 const assertValidStatus = (status) => LEAD_STATUSES.includes(status);
 
@@ -159,6 +162,56 @@ router.post("/email/test", authRequired, agentOrAdmin, async (req, res) => {
     });
   } catch (err) {
     console.error("Email test error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.post("/sms/test", authRequired, agentOrAdmin, async (req, res) => {
+  try {
+    const requestedPhone = req.body?.phone || SMS_TEST_RECIPIENT;
+    const to = normalizePhoneForWhatsApp(requestedPhone);
+
+    if (!to) {
+      return res.status(400).json({ message: "Invalid test SMS phone number" });
+    }
+
+    const agentName = req.user?.name || "Sales Agent";
+    const now = new Date().toLocaleString("en-GB", { timeZone: "Africa/Cairo" });
+    const content = [
+      "Sparvi SMS test",
+      "",
+      "Agent:",
+      agentName,
+      "",
+      "Time:",
+      now,
+    ].join("\n");
+
+    const result = await sendBrevoSms({
+      recipient: to,
+      content,
+      tag: "sales_sms_test",
+    });
+
+    if (!result?.sent) {
+      const reason = result?.reason || result?.error || "";
+      const message =
+        reason === "no_sms_credits"
+          ? "SMS credits are 0 on Brevo account"
+          : "SMS test failed";
+      return res.status(502).json({
+        message,
+        details: result,
+      });
+    }
+
+    return res.json({
+      message: `SMS test sent to ${requestedPhone}`,
+      to,
+      result,
+    });
+  } catch (err) {
+    console.error("SMS test error:", err);
     return res.status(500).json({ message: "Server error" });
   }
 });
