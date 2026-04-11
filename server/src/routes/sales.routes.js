@@ -101,6 +101,39 @@ const isInsideWorkingHours = (scheduledDate, durationMinutes, workingHours) => {
   });
 };
 
+const resolveFreeSessionRange = (freeSession, fallbackDurationMinutes) => {
+  const startRaw = freeSession?.scheduledAt;
+  const startDate = startRaw ? new Date(startRaw) : null;
+  if (!startDate || Number.isNaN(startDate.getTime())) {
+    return null;
+  }
+
+  const durationRaw = Number(freeSession?.durationMinutes);
+  const durationMinutes =
+    Number.isFinite(durationRaw) && durationRaw > 0
+      ? durationRaw
+      : fallbackDurationMinutes;
+
+  const explicitEnd = freeSession?.endsAt ? new Date(freeSession.endsAt) : null;
+  const endDate =
+    explicitEnd && !Number.isNaN(explicitEnd.getTime())
+      ? explicitEnd
+      : new Date(startDate.getTime() + durationMinutes * 60 * 1000);
+
+  return {
+    startDate,
+    endDate,
+  };
+};
+
+const rangesOverlap = (firstRange, secondRange) => {
+  if (!firstRange || !secondRange) return false;
+  return (
+    firstRange.startDate.getTime() < secondRange.endDate.getTime() &&
+    secondRange.startDate.getTime() < firstRange.endDate.getTime()
+  );
+};
+
 router.get("/dashboard", authRequired, agentOrAdmin, async (_req, res) => {
   try {
     const [leads, instructors] = await Promise.all([
@@ -514,6 +547,44 @@ router.patch("/leads/:id/free-session", authRequired, agentOrAdmin, async (req, 
     const leadBefore = await Lead.findById(req.params.id).lean();
     if (!leadBefore) {
       return res.status(404).json({ message: "Lead not found" });
+    }
+
+    const targetRange = {
+      startDate: scheduledDate,
+      endDate: endsAt,
+    };
+    const instructorAssignedSessions = await Lead.find({
+      _id: { $ne: req.params.id },
+      "freeSession.isAssigned": true,
+      "freeSession.instructor": instructor._id,
+      "freeSession.scheduledAt": { $ne: null },
+    })
+      .select("parentName childName freeSession")
+      .lean();
+
+    const conflictingLead = instructorAssignedSessions.find((existingLead) => {
+      const existingRange = resolveFreeSessionRange(
+        existingLead.freeSession,
+        durationMinutes
+      );
+      return rangesOverlap(targetRange, existingRange);
+    });
+
+    if (conflictingLead) {
+      const conflictStart = conflictingLead.freeSession?.scheduledAt
+        ? new Date(conflictingLead.freeSession.scheduledAt).toLocaleString("en-GB", {
+            timeZone: "Africa/Cairo",
+          })
+        : "this selected time";
+      return res.status(409).json({
+        message: `This instructor already has a session at ${conflictStart}. Choose another slot.`,
+        conflict: {
+          leadId: conflictingLead._id?.toString?.() || "",
+          parentName: conflictingLead.parentName || "",
+          childName: conflictingLead.childName || "",
+          scheduledAt: conflictingLead.freeSession?.scheduledAt || null,
+        },
+      });
     }
 
     const updated = await Lead.findByIdAndUpdate(

@@ -88,7 +88,64 @@ const formatSlotTime = (date) =>
     minute: "2-digit",
   }).format(date);
 
-const buildInstructorSlots = (instructor, daysAhead = 21) => {
+const resolveLeadSessionRange = (lead, fallbackDurationMinutes = 60) => {
+  const freeSession = lead?.freeSession;
+  const leadId = (lead?.id || lead?._id || "").toString();
+  const instructorId = freeSession?.instructor?.toString
+    ? freeSession.instructor.toString()
+    : (freeSession?.instructor || "").toString();
+
+  if (!freeSession?.isAssigned || !leadId || !instructorId || !freeSession?.scheduledAt) {
+    return null;
+  }
+
+  const startDate = new Date(freeSession.scheduledAt);
+  if (Number.isNaN(startDate.getTime())) {
+    return null;
+  }
+
+  const durationRaw = Number(freeSession.durationMinutes);
+  const durationMinutes =
+    Number.isFinite(durationRaw) && durationRaw > 0
+      ? durationRaw
+      : fallbackDurationMinutes;
+
+  const explicitEndDate = freeSession.endsAt ? new Date(freeSession.endsAt) : null;
+  const endDate =
+    explicitEndDate && !Number.isNaN(explicitEndDate.getTime())
+      ? explicitEndDate
+      : new Date(startDate.getTime() + durationMinutes * 60 * 1000);
+
+  return {
+    leadId,
+    instructorId,
+    startDate,
+    endDate,
+  };
+};
+
+const buildBusyRangesByInstructor = (leads) => {
+  const rangesByInstructor = {};
+
+  for (const lead of leads || []) {
+    const range = resolveLeadSessionRange(lead);
+    if (!range) continue;
+    if (!rangesByInstructor[range.instructorId]) {
+      rangesByInstructor[range.instructorId] = [];
+    }
+    rangesByInstructor[range.instructorId].push(range);
+  }
+
+  for (const key of Object.keys(rangesByInstructor)) {
+    rangesByInstructor[key].sort(
+      (first, second) => first.startDate.getTime() - second.startDate.getTime()
+    );
+  }
+
+  return rangesByInstructor;
+};
+
+const buildInstructorSlots = (instructor, busyRanges = [], daysAhead = 21) => {
   if (!instructor) return [];
 
   const normalizedHours = normalizeWorkingHours(instructor.workingHours);
@@ -120,12 +177,20 @@ const buildInstructorSlots = (instructor, daysAhead = 21) => {
           continue;
         }
 
+        const slotEndsAt = new Date(slotDate.getTime() + slotDurationMinutes * 60 * 1000);
+        const hasConflict = busyRanges.some(
+          (busyRange) =>
+            slotDate.getTime() < busyRange.endDate.getTime() &&
+            busyRange.startDate.getTime() < slotEndsAt.getTime()
+        );
+
         slots.push({
           value: toLocalDateTimeInputValue(slotDate),
           startsAt: slotDate.getTime(),
           dateKey: `${slotDate.getFullYear()}-${slotDate.getMonth() + 1}-${slotDate.getDate()}`,
           dateLabel: formatSlotDate(slotDate),
           timeLabel: formatSlotTime(slotDate),
+          isAvailable: !hasConflict,
         });
       }
     }
@@ -175,6 +240,11 @@ const SalesFreeSessionPage = () => {
     }
     return map;
   }, [sales.instructors]);
+
+  const busyRangesByInstructor = useMemo(
+    () => buildBusyRangesByInstructor(sales.leads || []),
+    [sales.leads]
+  );
 
   const groupedSlotPickerDates = useMemo(() => {
     return (slotPicker.slots || []).reduce((acc, slot) => {
@@ -237,7 +307,11 @@ const SalesFreeSessionPage = () => {
 
   const openSlotPicker = (leadId, instructorId) => {
     const instructor = instructorById[instructorId];
-    const slots = buildInstructorSlots(instructor);
+    const normalizedLeadId = (leadId || "").toString();
+    const instructorBusyRanges = (busyRangesByInstructor[instructorId] || []).filter(
+      (busyRange) => busyRange.leadId !== normalizedLeadId
+    );
+    const slots = buildInstructorSlots(instructor, instructorBusyRanges);
     setSlotPicker({
       open: true,
       leadId,
@@ -521,7 +595,7 @@ const SalesFreeSessionPage = () => {
             <div className="max-h-[70vh] overflow-y-auto px-5 py-4">
               {slotPicker.slots.length === 0 ? (
                 <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                  This instructor does not have available hours yet. Ask them to set Working Hours first.
+                  No available slots right now. Either working hours are not set or all slots are already booked.
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -535,18 +609,21 @@ const SalesFreeSessionPage = () => {
                       <div className="flex flex-wrap gap-2">
                         {group.slots.map((slot) => {
                           const isSelected = selectedSlotValue === slot.value;
+                          const buttonClass = !slot.isAvailable
+                            ? "border-rose-300 bg-rose-50 text-rose-500 cursor-not-allowed"
+                            : isSelected
+                              ? "border-[#102a5a] bg-[#102a5a] text-white"
+                              : "border-slate-200 bg-white text-slate-700 hover:border-[#FBBF24] hover:text-[#102a5a]";
                           return (
                             <button
                               key={`${slot.dateKey}-${slot.value}`}
                               type="button"
+                              disabled={!slot.isAvailable}
                               onClick={() => selectSlotFromPicker(slot.value)}
-                              className={`rounded-xl border px-3 py-2 text-sm font-semibold transition-all ${
-                                isSelected
-                                  ? "border-[#102a5a] bg-[#102a5a] text-white"
-                                  : "border-slate-200 bg-white text-slate-700 hover:border-[#FBBF24] hover:text-[#102a5a]"
-                              }`}
+                              className={`rounded-xl border px-3 py-2 text-sm font-semibold transition-all ${buttonClass}`}
                             >
                               {slot.timeLabel}
+                              {!slot.isAvailable ? " - Booked" : ""}
                             </button>
                           );
                         })}
