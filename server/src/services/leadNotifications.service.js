@@ -180,6 +180,17 @@ const sendNotification = async ({
     });
     if (templateResult?.sent) {
       console.log(`[whatsapp][${logPrefix}] custom template sent to ${normalizePhoneForWhatsApp(phone)}`);
+
+      // Send formatted details as a follow-up text so the message shape stays readable.
+      if (textBody) {
+        const textResult = await sendWhatsAppText({ to: phone, body: textBody });
+        if (textResult?.sent) {
+          console.log(`[whatsapp][${logPrefix}] follow-up text also sent`);
+        } else {
+          console.warn(`[whatsapp][${logPrefix}] follow-up text failed after custom template:`, textResult);
+        }
+      }
+
       return templateResult;
     }
     console.warn(`[whatsapp][${logPrefix}] custom template failed:`, templateResult);
@@ -241,12 +252,24 @@ export const notifySalesFollowUpReminder = async ({
 
   const textBody = [
     "تذكير متابعة عميل",
-    `اسم ولي الأمر: ${lead.parentName || "-"}`,
-    `رقم ولي الأمر: ${lead.phone || "-"}`,
-    `اسم الطفل: ${lead.childName || "-"}`,
-    `سن الطفل: ${lead.childAge || "-"}`,
-    `الحالة الحالية: ${lead.status || "Follow-up"}`,
-    `موعد المتابعة: ${formatCairoDateTime(new Date())}`,
+    "",
+    "اسم ولي الأمر:",
+    `${lead.parentName || "-"}`,
+    "",
+    "رقم ولي الأمر:",
+    `${lead.phone || "-"}`,
+    "",
+    "اسم الطفل:",
+    `${lead.childName || "-"}`,
+    "",
+    "سن الطفل:",
+    `${lead.childAge || "-"}`,
+    "",
+    "الحالة الحالية:",
+    `${lead.status || "Follow-up"}`,
+    "",
+    "موعد المتابعة:",
+    `${formatCairoDateTime(new Date())}`,
   ].join("\n");
 
   const result = await sendNotification({
@@ -302,12 +325,25 @@ export const notifyInstructorFreeSessionAssigned = async ({
 
   const textBody = [
     "تم تعيين حصة مجانية جديدة",
-    `اسم ولي الأمر: ${lead.parentName || "-"}`,
-    `رقم ولي الأمر: ${lead.phone || "-"}`,
-    `اسم الطفل: ${lead.childName || "-"}`,
-    `سن الطفل: ${lead.childAge || "-"}`,
-    `موعد الحصة: ${formatCairoDateTime(lead?.freeSession?.scheduledAt)}`,
-    `اسم المدرب: ${instructor.name || "-"}`,
+    "",
+    "اسم ولي الأمر:",
+    `${lead.parentName || "-"}`,
+    "",
+    "رقم ولي الأمر:",
+    `${lead.phone || "-"}`,
+    "",
+    "اسم الطفل:",
+    `${lead.childName || "-"}`,
+    "",
+    "سن الطفل:",
+    `${lead.childAge || "-"}`,
+    "",
+    "موعد الحصة:",
+    `${formatCairoDateTime(lead?.freeSession?.scheduledAt)}`,
+    "",
+    "اسم المدرب:",
+    `${instructor.name || "-"}`,
+    "",
     "ملاحظات العميل:",
     extractLatestNotes(lead),
   ].join("\n");
@@ -368,12 +404,23 @@ export const notifyInstructorSessionReminder = async ({
   const textBody = [
     "⏰ تذكير: لديك حصة مجانية بعد ساعة",
     "",
-    `اسم ولي الأمر: ${lead.parentName || "-"}`,
-    `رقم ولي الأمر: ${lead.phone || "-"}`,
-    `اسم الطفل: ${lead.childName || "-"}`,
-    `سن الطفل: ${lead.childAge || "-"}`,
-    `موعد الحصة: ${formatCairoDateTime(lead?.freeSession?.scheduledAt)}`,
-    `اسم المدرب: ${instructor.name || "-"}`,
+    "اسم ولي الأمر:",
+    `${lead.parentName || "-"}`,
+    "",
+    "رقم ولي الأمر:",
+    `${lead.phone || "-"}`,
+    "",
+    "اسم الطفل:",
+    `${lead.childName || "-"}`,
+    "",
+    "سن الطفل:",
+    `${lead.childAge || "-"}`,
+    "",
+    "موعد الحصة:",
+    `${formatCairoDateTime(lead?.freeSession?.scheduledAt)}`,
+    "",
+    "اسم المدرب:",
+    `${instructor.name || "-"}`,
     "",
     "ملاحظات العميل:",
     extractLatestNotes(lead),
