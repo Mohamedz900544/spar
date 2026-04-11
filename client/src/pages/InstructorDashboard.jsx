@@ -32,13 +32,62 @@ const TABS = [
 ];
 
 const WEEK_DAY_ITEMS = [
-  { key: "saturday", label: "Saturday" },
-  { key: "sunday", label: "Sunday" },
-  { key: "monday", label: "Monday" },
-  { key: "tuesday", label: "Tuesday" },
-  { key: "wednesday", label: "Wednesday" },
-  { key: "thursday", label: "Thursday" },
-  { key: "friday", label: "Friday" },
+  {
+    key: "saturday",
+    label: "Saturday",
+    rowClass: "bg-rose-50/50",
+    stickyClass: "bg-rose-50/95",
+    checkedCellClass: "border-rose-400 bg-rose-100",
+    checkboxClass: "text-rose-600 focus:ring-rose-500",
+  },
+  {
+    key: "sunday",
+    label: "Sunday",
+    rowClass: "bg-orange-50/50",
+    stickyClass: "bg-orange-50/95",
+    checkedCellClass: "border-orange-400 bg-orange-100",
+    checkboxClass: "text-orange-600 focus:ring-orange-500",
+  },
+  {
+    key: "monday",
+    label: "Monday",
+    rowClass: "bg-amber-50/45",
+    stickyClass: "bg-amber-50/95",
+    checkedCellClass: "border-amber-400 bg-amber-100",
+    checkboxClass: "text-amber-600 focus:ring-amber-500",
+  },
+  {
+    key: "tuesday",
+    label: "Tuesday",
+    rowClass: "bg-lime-50/45",
+    stickyClass: "bg-lime-50/95",
+    checkedCellClass: "border-lime-400 bg-lime-100",
+    checkboxClass: "text-lime-600 focus:ring-lime-500",
+  },
+  {
+    key: "wednesday",
+    label: "Wednesday",
+    rowClass: "bg-sky-50/45",
+    stickyClass: "bg-sky-50/95",
+    checkedCellClass: "border-sky-400 bg-sky-100",
+    checkboxClass: "text-sky-600 focus:ring-sky-500",
+  },
+  {
+    key: "thursday",
+    label: "Thursday",
+    rowClass: "bg-indigo-50/45",
+    stickyClass: "bg-indigo-50/95",
+    checkedCellClass: "border-indigo-400 bg-indigo-100",
+    checkboxClass: "text-indigo-600 focus:ring-indigo-500",
+  },
+  {
+    key: "friday",
+    label: "Friday",
+    rowClass: "bg-violet-50/45",
+    stickyClass: "bg-violet-50/95",
+    checkedCellClass: "border-violet-400 bg-violet-100",
+    checkboxClass: "text-violet-600 focus:ring-violet-500",
+  },
 ];
 const HOURS_IN_DAY = 24;
 const DISPLAY_START_HOUR = 9;
@@ -1217,7 +1266,10 @@ const InstructorDashboard = () => {
                   Check the hours where you are available. Each checkbox means one full hour.
                 </div>
 
-                <div className="overflow-x-auto rounded-2xl border border-slate-200">
+                <div
+                  className="overflow-x-auto rounded-2xl border border-slate-200 [&::-webkit-scrollbar]:h-2.5 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-slate-100 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-400 [&::-webkit-scrollbar-thumb]:hover:bg-slate-500"
+                  style={{ scrollbarColor: "#94a3b8 #e2e8f0", scrollbarWidth: "thin" }}
+                >
                   <table className="min-w-[1480px] w-full border-collapse">
                     <thead className="bg-slate-100/90">
                       <tr>
@@ -1245,8 +1297,8 @@ const InstructorDashboard = () => {
                           .some(Boolean);
 
                         return (
-                          <tr key={dayItem.key} className="even:bg-slate-50/50">
-                            <th className="sticky left-0 z-10 w-[96px] min-w-[96px] max-w-[96px] border-b border-r border-slate-200 bg-white px-2 py-1.5 text-left align-top">
+                          <tr key={dayItem.key} className={dayItem.rowClass}>
+                            <th className={`sticky left-0 z-10 w-[96px] min-w-[96px] max-w-[96px] border-b border-r border-slate-200 px-2 py-1.5 text-left align-top ${dayItem.stickyClass}`}>
                               <p title={dayItem.label} className="truncate text-xs font-semibold text-[#102a5a]">
                                 {dayItem.label}
                               </p>
@@ -1255,7 +1307,7 @@ const InstructorDashboard = () => {
                                   type="checkbox"
                                   checked={isEnabled}
                                   onChange={(e) => toggleWorkingDay(dayItem.key, e.target.checked)}
-                                  className="h-3 w-3 rounded border-slate-300 text-[#102a5a] focus:ring-[#FBBF24]"
+                                  className={`h-3 w-3 rounded border-slate-300 ${dayItem.checkboxClass}`}
                                 />
                                 All day
                               </label>
@@ -1267,12 +1319,12 @@ const InstructorDashboard = () => {
                                   key={`${dayItem.key}-hour-${column.hour}`}
                                   className="border-b border-r border-slate-200 p-1 text-center"
                                 >
-                                  <label className={`mx-auto inline-flex h-6 w-6 items-center justify-center rounded-md transition-all ${checked ? "border-emerald-500 bg-emerald-100" : "border-slate-300 bg-white hover:border-[#FBBF24]"}`}>
+                                  <label className={`mx-auto inline-flex h-6 w-6 items-center justify-center rounded-md transition-all ${checked ? dayItem.checkedCellClass : "border-slate-300 bg-white/80 hover:border-[#FBBF24]"}`}>
                                     <input
                                       type="checkbox"
                                       checked={checked}
                                       onChange={() => toggleWorkingHourCell(dayItem.key, column.hour)}
-                                      className="h-3.5 w-3.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                                      className={`h-3.5 w-3.5 rounded border-slate-300 ${dayItem.checkboxClass}`}
                                     />
                                   </label>
                                 </td>
