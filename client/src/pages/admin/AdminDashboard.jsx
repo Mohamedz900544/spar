@@ -76,6 +76,7 @@ const AdminDashboard = () => {
     handleCreateInstructor,
     handleInstructorCampusChange,
     handleUpdateInstructorCampus,
+    handleDeleteInstructor,
     salesAgents,
     newSalesAgent,
     isCreatingSalesAgent,
@@ -337,6 +338,7 @@ const AdminDashboard = () => {
                               <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Campus</th>
                               <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Linked Rounds</th>
                               <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Created</th>
+                              <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Actions</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -398,10 +400,20 @@ const AdminDashboard = () => {
                                         ).toLocaleDateString()
                                         : "-"}
                                     </td>
+                                    <td className="py-3 pr-3">
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeleteInstructor(instructorId)}
+                                        className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-[11px] font-semibold text-rose-700 hover:bg-rose-100 transition-colors"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                        Delete
+                                      </button>
+                                    </td>
                                   </tr>
                                   {isExpanded && (
                                     <tr className="border-b border-slate-100 text-slate-600">
-                                      <td colSpan={6} className="py-3 pr-3">
+                                      <td colSpan={7} className="py-3 pr-3">
                                         <div className="text-xs bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
                                           <span className="font-semibold text-[#102a5a]">Linked rounds: </span>
                                           {linkedRounds.length

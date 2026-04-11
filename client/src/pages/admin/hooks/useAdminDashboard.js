@@ -478,6 +478,47 @@ export const useAdminDashboard = () => {
       toast.error(err.message || "Failed to update campus");
     }
   };
+
+  const handleDeleteInstructor = async (id) => {
+    const token = getTokenOrRedirect();
+    if (!token) return;
+
+    const targetInstructor = instructors.find(
+      (inst) => (inst.id || inst._id) === id
+    );
+    const confirmed = window.confirm(
+      `Delete instructor "${targetInstructor?.name || "this instructor"}"?`
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/instructors/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await parseResponseOrThrow(res, "Failed to delete instructor");
+      const deletedId = data.instructorId || id;
+
+      setInstructors((prev) =>
+        prev.filter((inst) => {
+          const currentId = inst.id || inst._id;
+          return currentId !== deletedId;
+        })
+      );
+      setInstructorCampusDrafts((prev) => {
+        const next = { ...prev };
+        delete next[deletedId];
+        return next;
+      });
+      toast.success("Instructor deleted successfully");
+    } catch (err) {
+      console.error("Delete instructor error:", err);
+      toast.error(err.message || "Failed to delete instructor");
+    }
+  };
   // ***********************
 
   async function deleteSessions(id) {
@@ -1341,6 +1382,7 @@ export const useAdminDashboard = () => {
     handleCreateInstructor,
     handleInstructorCampusChange,
     handleUpdateInstructorCampus,
+    handleDeleteInstructor,
     handleNewSalesAgentChange,
     handleCreateSalesAgent,
 

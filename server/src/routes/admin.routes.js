@@ -11,8 +11,72 @@ import ChildPhoto from "../models/ChildPhoto.js";
 import SessionRating from "../models/SessionRating.js";
 import User from "../models/User.js";
 import SiteVisit from "../models/SiteVisit.js";
+import Lead from "../models/Lead.js";
+import { sendBrevoEmail } from "../services/brevoEmail.service.js";
 
 const router = express.Router();
+const INSTRUCTOR_LOGIN_URL = `${(process.env.CLIENT_URL || "").replace(/\/$/, "")}/login`;
+
+const escapeHtml = (value = "") =>
+  `${value}`
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+const buildInstructorWelcomeEmail = ({
+  name,
+  email,
+  password,
+  campusCode,
+}) => {
+  const safeName = escapeHtml(name || "Instructor");
+  const safeEmail = escapeHtml(email || "");
+  const safePassword = escapeHtml(password || "");
+  const safeCampus = escapeHtml(campusCode || "N/A");
+  const safeLoginUrl = escapeHtml(INSTRUCTOR_LOGIN_URL || "/login");
+
+  return {
+    subject: "Welcome to Sparvi Lab - Instructor Account Ready",
+    textContent: [
+      `Hello ${name || "Instructor"},`,
+      "",
+      "Welcome to Sparvi Lab. Your instructor account has been created.",
+      "",
+      "Login details:",
+      `Email: ${email || ""}`,
+      `Password: ${password || ""}`,
+      `Campus Code: ${campusCode || "N/A"}`,
+      "",
+      `Login URL: ${INSTRUCTOR_LOGIN_URL || "/login"}`,
+      "",
+      "Please sign in and change your password after first login.",
+    ].join("\n"),
+    htmlContent: `
+      <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
+        <div style="background:#102a5a;color:#ffffff;padding:14px 16px;">
+          <h2 style="margin:0;font-size:18px;line-height:1.2;">Welcome to Sparvi Lab</h2>
+        </div>
+        <div style="padding:16px;color:#0f172a;">
+          <p style="margin:0 0 12px;font-size:14px;">Hello <strong>${safeName}</strong>, your instructor account is ready.</p>
+          <p style="margin:0 0 10px;font-size:13px;color:#475569;">Please use the credentials below to sign in:</p>
+          <div style="border:1px solid #e2e8f0;border-radius:10px;padding:12px;background:#f8fafc;">
+            <p style="margin:0 0 8px;font-size:13px;"><strong>Email:</strong> ${safeEmail}</p>
+            <p style="margin:0 0 8px;font-size:13px;"><strong>Password:</strong> ${safePassword}</p>
+            <p style="margin:0;font-size:13px;"><strong>Campus Code:</strong> ${safeCampus}</p>
+          </div>
+          <p style="margin:14px 0 0;font-size:13px;">
+            <a href="${safeLoginUrl}" style="color:#102a5a;font-weight:700;text-decoration:underline;">Go to Login Page</a>
+          </p>
+          <p style="margin:12px 0 0;font-size:12px;color:#64748b;">
+            For security, please change your password after the first login.
+          </p>
+        </div>
+      </div>
+    `,
+  };
+};
 
 /* =====================================================
    GET ADMIN DASHBOARD (MAIN AGGREGATED ENDPOINT)
@@ -168,8 +232,32 @@ router.post("/instructors", authRequired, adminOnly, async (req, res) => {
       campusCode: campusCode || undefined,
     });
 
+    let welcomeEmail = { sent: false, skipped: true, reason: "not_attempted" };
+    try {
+      const emailPayload = buildInstructorWelcomeEmail({
+        name,
+        email,
+        password,
+        campusCode,
+      });
+      welcomeEmail = await sendBrevoEmail({
+        to: email,
+        toName: name || "",
+        subject: emailPayload.subject,
+        textContent: emailPayload.textContent,
+        htmlContent: emailPayload.htmlContent,
+      });
+    } catch (emailErr) {
+      console.error("Instructor welcome email error:", emailErr);
+      welcomeEmail = {
+        sent: false,
+        error: emailErr?.message || "welcome_email_failed",
+      };
+    }
+
     return res.status(201).json({
       instructor: instructor.toJSON(),
+      welcomeEmail,
     });
   } catch (err) {
     console.error("Create instructor error:", err);
@@ -224,6 +312,44 @@ router.patch("/instructors/:id", authRequired, adminOnly, async (req, res) => {
     return res.json({ instructor: updated.toJSON() });
   } catch (err) {
     console.error("Update instructor error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.delete("/instructors/:id", authRequired, adminOnly, async (req, res) => {
+  try {
+    const instructor = await User.findOne({
+      _id: req.params.id,
+      role: "instructor",
+    })
+      .select("name email")
+      .lean();
+
+    if (!instructor) {
+      return res.status(404).json({ message: "Instructor not found" });
+    }
+
+    const assignedSessionsCount = await Lead.countDocuments({
+      "freeSession.isAssigned": true,
+      "freeSession.instructor": instructor._id,
+    });
+
+    if (assignedSessionsCount > 0) {
+      return res.status(409).json({
+        message:
+          "This instructor has assigned free sessions. Reassign or clear them first.",
+        assignedSessionsCount,
+      });
+    }
+
+    await User.deleteOne({ _id: instructor._id, role: "instructor" });
+
+    return res.json({
+      message: "Instructor deleted successfully",
+      instructorId: instructor._id.toString(),
+    });
+  } catch (err) {
+    console.error("Delete instructor error:", err);
     return res.status(500).json({ message: "Server error" });
   }
 });
