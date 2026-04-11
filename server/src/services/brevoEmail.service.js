@@ -2,12 +2,13 @@ import axios from "axios";
 import { createTransport } from "nodemailer";
 
 const BREVO_API_BASE_URL = "https://api.brevo.com/v3";
+const BREVO_FIXED_SENDER_NAME = "Sparvi Lab";
 
 const getBrevoConfig = () => ({
   enabled: process.env.BREVO_EMAIL_ENABLED !== "false",
   apiKey: process.env.BREVO_API_KEY || "",
   senderEmail: process.env.BREVO_SENDER_EMAIL || "",
-  senderName: process.env.BREVO_SENDER_NAME || "Sparvi Lab",
+  senderName: BREVO_FIXED_SENDER_NAME,
   overrideRecipient: process.env.BREVO_OVERRIDE_RECIPIENT || "",
   smtpHost: process.env.BREVO_SMTP_HOST || "smtp-relay.brevo.com",
   smtpPort: Number(process.env.BREVO_SMTP_PORT || 587),
