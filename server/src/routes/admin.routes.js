@@ -354,6 +354,47 @@ router.delete("/instructors/:id", authRequired, adminOnly, async (req, res) => {
   }
 });
 
+router.delete("/parents/:id", authRequired, adminOnly, async (req, res) => {
+  try {
+    const parent = await User.findOne({
+      _id: req.params.id,
+      role: "parent",
+    })
+      .select("name email children")
+      .lean();
+
+    if (!parent) {
+      return res.status(404).json({ message: "Parent not found" });
+    }
+
+    const parentEnrollments = await Enrollment.find({ user: parent._id })
+      .select("_id")
+      .lean();
+    const enrollmentIds = parentEnrollments.map((e) => e._id);
+    const deletedEnrollmentIds = enrollmentIds.map((enrollmentId) =>
+      enrollmentId.toString()
+    );
+
+    if (enrollmentIds.length > 0) {
+      await ChildPhoto.deleteMany({ enrollment: { $in: enrollmentIds } });
+      await Enrollment.deleteMany({ user: parent._id });
+    }
+
+    await User.deleteOne({ _id: parent._id, role: "parent" });
+
+    return res.json({
+      message: "Parent account deleted successfully",
+      parentId: parent._id.toString(),
+      deletedEnrollmentsCount: enrollmentIds.length,
+      deletedEnrollmentIds,
+      deletedChildrenCount: parent.children?.length || 0,
+    });
+  } catch (err) {
+    console.error("Delete parent error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
 /* =====================================================
    ENROLLMENTS
 ===================================================== */

@@ -519,6 +519,79 @@ export const useAdminDashboard = () => {
       toast.error(err.message || "Failed to delete instructor");
     }
   };
+
+  const handleDeleteParent = async (id) => {
+    const token = getTokenOrRedirect();
+    if (!token) return;
+
+    const targetParent = users.find((u) => (u.id || u._id) === id);
+    const confirmed = window.confirm(
+      `Delete parent "${targetParent?.name || "this parent"}"? This removes the parent account and linked enrollments/photos.`
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/parents/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await parseResponseOrThrow(res, "Failed to delete parent");
+      const deletedId = data.parentId || id;
+      const deletedEnrollmentIdSet = new Set(
+        Array.isArray(data.deletedEnrollmentIds)
+          ? data.deletedEnrollmentIds.map((enrollmentId) =>
+            enrollmentId?.toString?.()
+          )
+          : []
+      );
+
+      setUsers((prev) =>
+        prev.filter((user) => {
+          const userId = user.id || user._id;
+          return userId !== deletedId;
+        })
+      );
+
+      setEnrollments((prev) =>
+        prev.filter((enrollment) => {
+          const enrollmentId = (enrollment.id || enrollment._id)?.toString?.();
+          if (deletedEnrollmentIdSet.size > 0 && deletedEnrollmentIdSet.has(enrollmentId)) {
+            return false;
+          }
+          const enrollmentUserId = enrollment.user?._id || enrollment.user;
+          return enrollmentUserId?.toString?.() !== deletedId?.toString?.();
+        })
+      );
+
+      setStudentPhotos((prev) => {
+        if (!prev || typeof prev !== "object" || Array.isArray(prev)) return prev;
+        const next = { ...prev };
+
+        Object.keys(next).forEach((enrollmentId) => {
+          if (
+            deletedEnrollmentIdSet.size > 0 &&
+            deletedEnrollmentIdSet.has(enrollmentId?.toString?.())
+          ) {
+            delete next[enrollmentId];
+          }
+        });
+
+        return next;
+      });
+
+      if (targetParent?.children?.length) {
+        setTotalKids((prev) => Math.max(0, prev - targetParent.children.length));
+      }
+
+      toast.success("Parent account deleted successfully");
+    } catch (err) {
+      console.error("Delete parent error:", err);
+      toast.error(err.message || "Failed to delete parent");
+    }
+  };
   // ***********************
 
   async function deleteSessions(id) {
@@ -1390,6 +1463,7 @@ export const useAdminDashboard = () => {
     users,
     userSearch,
     setUserSearch,
+    handleDeleteParent,
 
     // rounds
     rounds,

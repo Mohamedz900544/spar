@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Search } from "lucide-react";
+import { Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
 const normalizePhone = (value) => (value || "").toString().replace(/\D/g, "");
@@ -10,6 +10,7 @@ export const UsersTab = ({
   setUserSearch,
   enrollments,
   rounds,
+  handleDeleteParent,
 }) => {
   const MotionContainer = motion.div;
   const [selectedUserId, setSelectedUserId] = useState(null);
@@ -124,11 +125,25 @@ export const UsersTab = ({
                   {selectedUser.email || "-"} · {selectedUser.phone || "-"}
                 </p>
               </div>
-              <div className="text-[11px] text-slate-500">
-                Signed up:{" "}
-                {selectedUser.createdAt
-                  ? new Date(selectedUser.createdAt).toLocaleDateString()
-                  : "-"}
+              <div className="flex items-center gap-2">
+                <div className="text-[11px] text-slate-500">
+                  Signed up:{" "}
+                  {selectedUser.createdAt
+                    ? new Date(selectedUser.createdAt).toLocaleDateString()
+                    : "-"}
+                </div>
+                {typeof handleDeleteParent === "function" && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleDeleteParent(selectedUser.id || selectedUser._id)
+                    }
+                    className="inline-flex items-center gap-1 rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-[11px] font-semibold text-red-700 hover:bg-red-100 transition"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Delete parent
+                  </button>
+                )}
               </div>
             </div>
 

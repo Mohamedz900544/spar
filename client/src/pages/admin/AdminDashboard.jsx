@@ -85,6 +85,7 @@ const AdminDashboard = () => {
     users,
     userSearch,
     setUserSearch,
+    handleDeleteParent,
     rounds,
     newRound,
     handleNewRoundChange,
@@ -224,6 +225,7 @@ const AdminDashboard = () => {
                 setUserSearch={setUserSearch}
                 enrollments={enrollments}
                 rounds={rounds}
+                handleDeleteParent={handleDeleteParent}
               />
             )}
 
