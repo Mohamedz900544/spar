@@ -1,5 +1,5 @@
 import { Link, useOutletContext } from "react-router-dom";
-import { ArrowRight, CalendarClock, Send } from "lucide-react";
+import { ArrowRight, CalendarClock, Mail, Send } from "lucide-react";
 import { LEAD_STATUSES, statusPill, formatDateTime } from "./salesHelpers";
 
 const SalesOverviewPage = () => {
@@ -32,6 +32,14 @@ const SalesOverviewPage = () => {
           >
             {sales.isSendingWhatsAppTest ? "Sending Test..." : "Test WhatsApp (01007775705)"}
             <Send className="w-4 h-4" />
+          </button>
+          <button
+            onClick={sales.sendEmailTest}
+            disabled={sales.isSendingEmailTest}
+            className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-60 transition-all"
+          >
+            {sales.isSendingEmailTest ? "Sending Test..." : "Test Email (mohamedz90054@gmail.com)"}
+            <Mail className="w-4 h-4" />
           </button>
           <Link
             to="/sales/free-session"

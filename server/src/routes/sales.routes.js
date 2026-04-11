@@ -11,6 +11,7 @@ import {
   sendWhatsAppTemplate,
   sendWhatsAppText,
 } from "../services/whatsapp.service.js";
+import { sendBrevoEmail } from "../services/brevoEmail.service.js";
 
 const router = express.Router();
 const FREE_SESSION_DEFAULT_DURATION_MINUTES = Number(
@@ -22,6 +23,8 @@ const FOLLOW_UP_DELAY_AFTER_END_MINUTES = Number(
 const WHATSAPP_TEST_PHONE = process.env.WHATSAPP_TEST_PHONE || "01007775705";
 const WHATSAPP_TEST_TEMPLATE = process.env.WHATSAPP_TEMPLATE_DEFAULT || "hello_world";
 const WHATSAPP_TEMPLATE_LANGUAGE = process.env.WHATSAPP_TEMPLATE_LANGUAGE || "en_US";
+const EMAIL_TEST_RECIPIENT =
+  process.env.BREVO_TEST_EMAIL || "mohamedz90054@gmail.com";
 
 const assertValidStatus = (status) => LEAD_STATUSES.includes(status);
 
@@ -103,6 +106,59 @@ router.post("/whatsapp/test", authRequired, agentOrAdmin, async (req, res) => {
     });
   } catch (err) {
     console.error("WhatsApp test error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.post("/email/test", authRequired, agentOrAdmin, async (req, res) => {
+  try {
+    const to = EMAIL_TEST_RECIPIENT;
+    const agentName = req.user?.name || "Sales Agent";
+    const now = new Date().toLocaleString("en-GB", { timeZone: "Africa/Cairo" });
+
+    const subject = "Brevo Email Test from Sales Dashboard";
+    const textContent = [
+      "Brevo test email",
+      `Agent: ${agentName}`,
+      `Time: ${now}`,
+      "Source: Sales Dashboard",
+    ].join("\n");
+
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 620px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+        <div style="background: #102a5a; color: #fff; padding: 12px 16px; font-size: 16px; font-weight: 700;">
+          Brevo Test Email
+        </div>
+        <div style="padding: 16px; color: #0f172a; line-height: 1.6; font-size: 14px;">
+          <p style="margin: 0 0 8px;">This is a test email from Sales Dashboard.</p>
+          <p style="margin: 0 0 6px;"><strong>Agent:</strong> ${agentName}</p>
+          <p style="margin: 0;"><strong>Time:</strong> ${now}</p>
+        </div>
+      </div>
+    `;
+
+    const result = await sendBrevoEmail({
+      to,
+      toName: "Mohamed Zalama",
+      subject,
+      textContent,
+      htmlContent,
+    });
+
+    if (!result?.sent) {
+      return res.status(502).json({
+        message: "Email test failed",
+        details: result,
+      });
+    }
+
+    return res.json({
+      message: `Email test sent to ${to}`,
+      to,
+      result,
+    });
+  } catch (err) {
+    console.error("Email test error:", err);
     return res.status(500).json({ message: "Server error" });
   }
 });
@@ -198,22 +254,28 @@ router.patch("/leads/:id/status", authRequired, agentOrAdmin, async (req, res) =
     const statusChangedToFollowUp =
       status === "Follow-up" && (leadBefore.status || "") !== "Follow-up";
 
-    let whatsappNotification = null;
+    let notificationResult = null;
     if (statusChangedToFollowUp && updated) {
       try {
-        whatsappNotification = await notifySalesFollowUpReminder({
+        notificationResult = await notifySalesFollowUpReminder({
           lead: updated.toObject(),
           fallbackSalesUser: req.user,
         });
       } catch (waErr) {
-        console.error("[sales][status] follow-up WhatsApp notification error:", waErr);
-        whatsappNotification = { sent: false, error: waErr.message || "notification_error" };
+        console.error("[sales][status] follow-up notification error:", waErr);
+        notificationResult = { sent: false, error: waErr.message || "notification_error" };
       }
     }
 
     return res.json({
       ...updated.toJSON(),
-      ...(whatsappNotification ? { whatsappNotification } : {}),
+      ...(notificationResult
+        ? {
+            notificationResult,
+            whatsappNotification: notificationResult.whatsapp || null,
+            emailNotification: notificationResult.email || null,
+          }
+        : {}),
     });
   } catch (err) {
     console.error("Update lead status error:", err);
@@ -354,7 +416,7 @@ router.patch("/leads/:id/free-session", authRequired, agentOrAdmin, async (req, 
       return res.status(404).json({ message: "Lead not found" });
     }
 
-    const whatsappNotification = await notifyInstructorFreeSessionAssigned({
+    const notificationResult = await notifyInstructorFreeSessionAssigned({
       lead: updated.toObject(),
       instructor,
     });
@@ -365,18 +427,20 @@ router.patch("/leads/:id/free-session", authRequired, agentOrAdmin, async (req, 
       instructorPhoneNormalized: normalizePhoneForWhatsApp(instructor.phone || ""),
     };
 
-    if (!whatsappNotification?.sent) {
+    if (!notificationResult?.whatsappSent) {
       console.warn("[sales][free-session] instructor whatsapp notification failed:", {
         leadId: updated._id?.toString?.() || updated.id,
         instructorId: whatsappNotificationTarget.instructorId,
         instructorPhone: whatsappNotificationTarget.instructorPhoneRaw,
-        result: whatsappNotification,
+        result: notificationResult?.whatsapp || notificationResult,
       });
     }
 
     return res.json({
       ...updated.toJSON(),
-      whatsappNotification,
+      notificationResult,
+      whatsappNotification: notificationResult?.whatsapp || null,
+      emailNotification: notificationResult?.email || null,
       whatsappNotificationTarget,
     });
   } catch (err) {

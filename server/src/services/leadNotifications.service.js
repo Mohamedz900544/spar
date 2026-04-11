@@ -4,6 +4,7 @@ import {
   sendWhatsAppTemplate,
   sendWhatsAppText,
 } from "./whatsapp.service.js";
+import { sendBrevoEmail } from "./brevoEmail.service.js";
 
 const getNotificationConfig = () => ({
   followUpTemplateName: process.env.WHATSAPP_TEMPLATE_FOLLOW_UP || "",
@@ -12,6 +13,58 @@ const getNotificationConfig = () => ({
   defaultTemplateLanguage: process.env.WHATSAPP_TEMPLATE_LANGUAGE || "en_US",
   defaultTemplateFallback: process.env.WHATSAPP_TEMPLATE_DEFAULT || "hello_world",
   defaultSalesPhone: process.env.WHATSAPP_DEFAULT_SALES_PHONE || "",
+  defaultSalesEmail: process.env.BREVO_DEFAULT_SALES_EMAIL || "",
+});
+
+const escapeHtml = (value = "") =>
+  `${value}`
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+const toHtmlFromText = (text, title = "Notification") => {
+  const safeTitle = escapeHtml(title);
+  const safeBody = escapeHtml(text || "").replace(/\n/g, "<br />");
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 680px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+      <div style="background: #102a5a; color: #ffffff; padding: 14px 16px; font-size: 16px; font-weight: 700;">
+        ${safeTitle}
+      </div>
+      <div style="padding: 16px; color: #0f172a; line-height: 1.6; font-size: 14px;">
+        ${safeBody}
+      </div>
+    </div>
+  `;
+};
+
+const sendNotificationEmail = async ({
+  toEmail,
+  toName,
+  subject,
+  textBody,
+  title,
+}) => {
+  if (!toEmail) {
+    return { sent: false, skipped: true, reason: "missing_recipient_email" };
+  }
+
+  return sendBrevoEmail({
+    to: toEmail,
+    toName: toName || "",
+    subject,
+    textContent: textBody,
+    htmlContent: toHtmlFromText(textBody, title),
+  });
+};
+
+const combineChannelResults = (whatsappResult, emailResult) => ({
+  sent: Boolean(whatsappResult?.sent || emailResult?.sent),
+  whatsappSent: Boolean(whatsappResult?.sent),
+  emailSent: Boolean(emailResult?.sent),
+  whatsapp: whatsappResult,
+  email: emailResult,
 });
 
 const formatCairoDateTime = (value) => {
@@ -49,46 +102,53 @@ const resolveSalesRecipient = async (
 ) => {
   if (lead?.createdBy) {
     const owner = await User.findById(lead.createdBy)
-      .select("name phone role")
+      .select("name phone email role")
       .lean();
-    if (owner?.phone && ["agent", "admin"].includes(owner.role)) {
+    if ((owner?.phone || owner?.email) && ["agent", "admin"].includes(owner.role)) {
       return {
         id: owner._id?.toString(),
         name: owner.name || "Sales",
         phone: owner.phone,
+        email: owner.email || "",
       };
     }
   }
 
   if (
-    fallbackSalesUser?.phone &&
+    (fallbackSalesUser?.phone || fallbackSalesUser?.email) &&
     ["agent", "admin"].includes(fallbackSalesUser?.role || "")
   ) {
     return {
       id: fallbackSalesUser._id?.toString(),
       name: fallbackSalesUser.name || "Sales",
       phone: fallbackSalesUser.phone,
+      email: fallbackSalesUser.email || "",
     };
   }
 
   if (lead?.freeSession?.assignedBy) {
     const assignedBy = await User.findById(lead.freeSession.assignedBy)
-      .select("name phone role")
+      .select("name phone email role")
       .lean();
-    if (assignedBy?.phone && ["agent", "admin"].includes(assignedBy.role)) {
+    if (
+      (assignedBy?.phone || assignedBy?.email) &&
+      ["agent", "admin"].includes(assignedBy.role)
+    ) {
       return {
         id: assignedBy._id?.toString(),
         name: assignedBy.name || "Sales",
         phone: assignedBy.phone,
+        email: assignedBy.email || "",
       };
     }
   }
 
-  if (config.defaultSalesPhone) {
+  if (config.defaultSalesPhone || config.defaultSalesEmail) {
     return {
       id: null,
       name: "Default Sales",
       phone: config.defaultSalesPhone,
+      email: config.defaultSalesEmail,
     };
   }
 
@@ -209,7 +269,19 @@ export const notifySalesFollowUpReminder = async ({
   if (!result?.sent) {
     console.warn("[whatsapp][follow-up] NOT sent:", result);
   }
-  return result;
+
+  const emailResult = await sendNotificationEmail({
+    toEmail: recipient.email,
+    toName: recipient.name,
+    subject: `Follow-up reminder: ${lead.parentName || "Lead"}`,
+    textBody,
+    title: "Sales Follow-up Reminder",
+  });
+  if (!emailResult?.sent && !emailResult?.skipped) {
+    console.warn("[brevo][follow-up] NOT sent:", emailResult);
+  }
+
+  return combineChannelResults(result, emailResult);
 };
 
 export const notifyInstructorFreeSessionAssigned = async ({
@@ -217,9 +289,9 @@ export const notifyInstructorFreeSessionAssigned = async ({
   instructor,
 }) => {
   const config = getNotificationConfig();
-  if (!instructor?.phone) {
+  if (!instructor?.phone && !instructor?.email) {
     console.warn("[whatsapp][assign] skipped – instructor has no phone:", instructor?.name || instructor?._id);
-    return { sent: false, skipped: true, reason: "missing_instructor_phone" };
+    return { sent: false, skipped: true, reason: "missing_instructor_phone_and_email" };
   }
 
   console.log("[whatsapp][assign] sending to instructor:", {
@@ -261,7 +333,19 @@ export const notifyInstructorFreeSessionAssigned = async ({
   if (!result?.sent) {
     console.warn("[whatsapp][assign] NOT sent:", result);
   }
-  return result;
+
+  const emailResult = await sendNotificationEmail({
+    toEmail: instructor.email || "",
+    toName: instructor.name || "",
+    subject: `New free session assigned: ${lead.childName || "-"}`,
+    textBody,
+    title: "Free Session Assigned",
+  });
+  if (!emailResult?.sent && !emailResult?.skipped) {
+    console.warn("[brevo][assign] NOT sent:", emailResult);
+  }
+
+  return combineChannelResults(result, emailResult);
 };
 
 export const notifyInstructorSessionReminder = async ({
@@ -269,9 +353,9 @@ export const notifyInstructorSessionReminder = async ({
   instructor,
 }) => {
   const config = getNotificationConfig();
-  if (!instructor?.phone) {
+  if (!instructor?.phone && !instructor?.email) {
     console.warn("[whatsapp][reminder] skipped – instructor has no phone:", instructor?.name || instructor?._id);
-    return { sent: false, skipped: true, reason: "missing_instructor_phone" };
+    return { sent: false, skipped: true, reason: "missing_instructor_phone_and_email" };
   }
 
   console.log("[whatsapp][reminder] sending 1-hour reminder to instructor:", {
@@ -308,5 +392,17 @@ export const notifyInstructorSessionReminder = async ({
   if (!result?.sent) {
     console.warn("[whatsapp][reminder] NOT sent:", result);
   }
-  return result;
+
+  const emailResult = await sendNotificationEmail({
+    toEmail: instructor.email || "",
+    toName: instructor.name || "",
+    subject: `Session reminder (1 hour): ${lead.childName || "-"}`,
+    textBody,
+    title: "Upcoming Session Reminder",
+  });
+  if (!emailResult?.sent && !emailResult?.skipped) {
+    console.warn("[brevo][reminder] NOT sent:", emailResult);
+  }
+
+  return combineChannelResults(result, emailResult);
 };

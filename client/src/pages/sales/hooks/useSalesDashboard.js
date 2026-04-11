@@ -17,6 +17,7 @@ export const useSalesDashboard = () => {
   const [paymentDrafts, setPaymentDrafts] = useState({});
   const [isCreatingLead, setIsCreatingLead] = useState(false);
   const [isSendingWhatsAppTest, setIsSendingWhatsAppTest] = useState(false);
+  const [isSendingEmailTest, setIsSendingEmailTest] = useState(false);
 
   const checkAuth = useCallback(() => {
     const token = localStorage.getItem("sparvi_token");
@@ -338,6 +339,46 @@ export const useSalesDashboard = () => {
     }
   };
 
+  const sendEmailTest = async () => {
+    const token = checkAuth();
+    if (!token) return false;
+
+    try {
+      setIsSendingEmailTest(true);
+      const res = await fetch(`${API_BASE_URL}/api/sales/email/test`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const raw = await res.text();
+      let data = {};
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch {
+        throw new Error(
+          "API returned invalid response. Check VITE_API_BASE_URL and backend server."
+        );
+      }
+
+      if (!res.ok) {
+        const details = data?.details?.error || data?.details?.reason || "";
+        throw new Error(data.message || details || "Failed to send email test");
+      }
+
+      toast.success(data.message || "Email test sent");
+      return true;
+    } catch (err) {
+      console.error("Send email test error:", err);
+      toast.error(err.message || "Failed to send email test");
+      return false;
+    } finally {
+      setIsSendingEmailTest(false);
+    }
+  };
+
   const copyPaymentLink = async (link) => {
     if (!link?.trim()) {
       toast.error("No payment link to copy yet.");
@@ -366,6 +407,7 @@ export const useSalesDashboard = () => {
     isRefreshing,
     isCreatingLead,
     isSendingWhatsAppTest,
+    isSendingEmailTest,
     error,
     leads,
     instructors,
@@ -382,6 +424,7 @@ export const useSalesDashboard = () => {
     savePaymentLink,
     assignFreeSession,
     sendWhatsAppTest,
+    sendEmailTest,
     copyPaymentLink,
     logout,
   };

@@ -7,7 +7,7 @@ import { notifyInstructorSessionReminder } from "./services/leadNotifications.se
 /**
  * Cron job that runs every minute.
  * Finds free sessions starting within the next 55-65 minute window
- * and sends a WhatsApp reminder to the assigned instructor.
+ * and sends reminders (WhatsApp + email) to the assigned instructor.
  *
  * Uses `freeSession.reminderSentAt` flag to avoid duplicate reminders.
  */
@@ -52,7 +52,7 @@ export async function automateSessionReminder() {
           }
 
           const instructor = await User.findById(instructorId)
-            .select("name phone role")
+            .select("name phone email role")
             .lean();
 
           if (!instructor) {
