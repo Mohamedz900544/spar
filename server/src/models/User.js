@@ -24,6 +24,64 @@ const childSchema = new mongoose.Schema(
   }, { timestamps: true }
 );
 
+const TIME_RANGE_REGEX = /^(?:([01]\d|2[0-3]):([0-5]\d)|24:00)$/;
+
+const workingHourSlotSchema = new mongoose.Schema(
+  {
+    start: {
+      type: String,
+      required: true,
+      trim: true,
+      match: TIME_RANGE_REGEX,
+    },
+    end: {
+      type: String,
+      required: true,
+      trim: true,
+      match: TIME_RANGE_REGEX,
+    },
+  },
+  { _id: false }
+);
+
+const workingHoursDaysSchema = new mongoose.Schema(
+  {
+    sunday: { type: [workingHourSlotSchema], default: [] },
+    monday: { type: [workingHourSlotSchema], default: [] },
+    tuesday: { type: [workingHourSlotSchema], default: [] },
+    wednesday: { type: [workingHourSlotSchema], default: [] },
+    thursday: { type: [workingHourSlotSchema], default: [] },
+    friday: { type: [workingHourSlotSchema], default: [] },
+    saturday: { type: [workingHourSlotSchema], default: [] },
+  },
+  { _id: false }
+);
+
+const workingHoursSchema = new mongoose.Schema(
+  {
+    timezone: {
+      type: String,
+      trim: true,
+      default: "Africa/Cairo",
+    },
+    slotDurationMinutes: {
+      type: Number,
+      default: 60,
+      min: 15,
+      max: 180,
+    },
+    days: {
+      type: workingHoursDaysSchema,
+      default: () => ({}),
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: false }
+);
+
 const userSchema = new mongoose.Schema(
   {
     // اسم ولي الأمر أو الأدمن
@@ -100,6 +158,10 @@ const userSchema = new mongoose.Schema(
         trim: true,
       },
     ],
+    workingHours: {
+      type: workingHoursSchema,
+      default: () => ({}),
+    },
   },
   {
     timestamps: true,

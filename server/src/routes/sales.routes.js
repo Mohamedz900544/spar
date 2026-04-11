@@ -28,15 +28,85 @@ const EMAIL_TEST_RECIPIENT =
   process.env.BREVO_TEST_EMAIL || "mohamedz90054@gmail.com";
 const SMS_TEST_RECIPIENT =
   process.env.BREVO_TEST_SMS_NUMBER || "01280669844";
+const WEEK_DAYS = [
+  "sunday",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+];
+const TIME_RANGE_REGEX = /^(?:([01]\d|2[0-3]):([0-5]\d)|24:00)$/;
 
 const assertValidStatus = (status) => LEAD_STATUSES.includes(status);
+
+const toMinutes = (timeValue) => {
+  const [hours, minutes] = timeValue.split(":").map(Number);
+  return hours * 60 + minutes;
+};
+
+const normalizeInstructorWorkingHours = (workingHours) => {
+  const daysSource = workingHours?.days || {};
+  const days = {
+    sunday: [],
+    monday: [],
+    tuesday: [],
+    wednesday: [],
+    thursday: [],
+    friday: [],
+    saturday: [],
+  };
+
+  for (const day of WEEK_DAYS) {
+    days[day] = (Array.isArray(daysSource[day]) ? daysSource[day] : [])
+      .map((slot) => ({
+        start: (slot?.start || "").toString().trim(),
+        end: (slot?.end || "").toString().trim(),
+      }))
+      .filter(
+        (slot) =>
+          TIME_RANGE_REGEX.test(slot.start) &&
+          TIME_RANGE_REGEX.test(slot.end) &&
+          toMinutes(slot.start) < toMinutes(slot.end)
+      )
+      .sort((a, b) => toMinutes(a.start) - toMinutes(b.start));
+  }
+
+  const slotDuration = Number(workingHours?.slotDurationMinutes);
+
+  return {
+    timezone: workingHours?.timezone?.trim?.() || "Africa/Cairo",
+    slotDurationMinutes:
+      Number.isFinite(slotDuration) && slotDuration >= 15 && slotDuration <= 180
+        ? Math.round(slotDuration)
+        : 60,
+    days,
+    updatedAt: workingHours?.updatedAt || null,
+  };
+};
+
+const isInsideWorkingHours = (scheduledDate, durationMinutes, workingHours) => {
+  const dayKey = WEEK_DAYS[scheduledDate.getDay()];
+  const slots = workingHours?.days?.[dayKey] || [];
+  if (!slots.length) return false;
+
+  const startMinutes = scheduledDate.getHours() * 60 + scheduledDate.getMinutes();
+  const endMinutes = startMinutes + durationMinutes;
+
+  return slots.some((slot) => {
+    const slotStart = toMinutes(slot.start);
+    const slotEnd = toMinutes(slot.end);
+    return startMinutes >= slotStart && endMinutes <= slotEnd;
+  });
+};
 
 router.get("/dashboard", authRequired, agentOrAdmin, async (_req, res) => {
   try {
     const [leads, instructors] = await Promise.all([
       Lead.find().sort({ createdAt: -1 }).lean(),
       User.find({ role: "instructor" })
-        .select("name email phone campusCode")
+        .select("name email phone campusCode workingHours")
         .sort({ createdAt: -1 })
         .lean(),
     ]);
@@ -62,6 +132,7 @@ router.get("/dashboard", authRequired, agentOrAdmin, async (_req, res) => {
       instructors: instructors.map((instructor) => ({
         ...instructor,
         id: instructor._id.toString(),
+        workingHours: normalizeInstructorWorkingHours(instructor.workingHours),
       })),
     });
   } catch (err) {
@@ -429,6 +500,15 @@ router.patch("/leads/:id/free-session", authRequired, agentOrAdmin, async (req, 
 
     if (!instructor) {
       return res.status(404).json({ message: "Instructor not found" });
+    }
+    const normalizedWorkingHours = normalizeInstructorWorkingHours(
+      instructor.workingHours
+    );
+
+    if (!isInsideWorkingHours(scheduledDate, durationMinutes, normalizedWorkingHours)) {
+      return res.status(400).json({
+        message: "Selected time is outside the instructor working hours",
+      });
     }
 
     const leadBefore = await Lead.findById(req.params.id).lean();

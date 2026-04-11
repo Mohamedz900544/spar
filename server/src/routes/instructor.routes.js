@@ -7,6 +7,154 @@ import User from "../models/User.js";
 import Lead from "../models/Lead.js";
 
 const router = express.Router();
+const WEEK_DAYS = [
+  "sunday",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+];
+const TIME_RANGE_REGEX = /^(?:([01]\d|2[0-3]):([0-5]\d)|24:00)$/;
+
+const createEmptyWorkingDays = () => ({
+  sunday: [],
+  monday: [],
+  tuesday: [],
+  wednesday: [],
+  thursday: [],
+  friday: [],
+  saturday: [],
+});
+
+const toMinutes = (timeValue) => {
+  const [hours, minutes] = timeValue.split(":").map(Number);
+  return hours * 60 + minutes;
+};
+
+const normalizeWorkingHoursForResponse = (workingHours) => {
+  const source = workingHours || {};
+  const daysSource = source.days || {};
+  const days = createEmptyWorkingDays();
+
+  for (const day of WEEK_DAYS) {
+    days[day] = (Array.isArray(daysSource[day]) ? daysSource[day] : [])
+      .map((slot) => ({
+        start: (slot?.start || "").toString().trim(),
+        end: (slot?.end || "").toString().trim(),
+      }))
+      .filter(
+        (slot) =>
+          TIME_RANGE_REGEX.test(slot.start) &&
+          TIME_RANGE_REGEX.test(slot.end) &&
+          toMinutes(slot.start) < toMinutes(slot.end)
+      )
+      .sort((a, b) => toMinutes(a.start) - toMinutes(b.start));
+  }
+
+  const slotDuration = Number(source.slotDurationMinutes);
+  return {
+    timezone: source.timezone?.trim?.() || "Africa/Cairo",
+    slotDurationMinutes:
+      Number.isFinite(slotDuration) && slotDuration >= 15 && slotDuration <= 180
+        ? Math.round(slotDuration)
+        : 60,
+    days,
+    updatedAt: source.updatedAt || null,
+  };
+};
+
+const parseWorkingHoursInput = (rawWorkingHours) => {
+  const source = rawWorkingHours || {};
+  const sourceDays = source.days && typeof source.days === "object" ? source.days : {};
+  const days = createEmptyWorkingDays();
+
+  for (const day of WEEK_DAYS) {
+    const slots = Array.isArray(sourceDays[day]) ? sourceDays[day] : [];
+    const normalized = slots.map((slot, index) => {
+      const start = (slot?.start || "").toString().trim();
+      const end = (slot?.end || "").toString().trim();
+
+      if (!TIME_RANGE_REGEX.test(start) || !TIME_RANGE_REGEX.test(end)) {
+        throw new Error(`Invalid time format in ${day} slot ${index + 1}`);
+      }
+
+      if (toMinutes(start) >= toMinutes(end)) {
+        throw new Error(`Start time must be before end time in ${day} slot ${index + 1}`);
+      }
+
+      return { start, end };
+    });
+
+    normalized.sort((a, b) => toMinutes(a.start) - toMinutes(b.start));
+
+    for (let i = 1; i < normalized.length; i += 1) {
+      if (toMinutes(normalized[i].start) < toMinutes(normalized[i - 1].end)) {
+        throw new Error(`Overlapping slots found in ${day}`);
+      }
+    }
+
+    days[day] = normalized;
+  }
+
+  const slotDuration = Number(source.slotDurationMinutes);
+  const timezone = source.timezone?.toString?.().trim() || "Africa/Cairo";
+
+  return {
+    timezone,
+    slotDurationMinutes:
+      Number.isFinite(slotDuration) && slotDuration >= 15 && slotDuration <= 180
+        ? Math.round(slotDuration)
+        : 60,
+    days,
+    updatedAt: new Date(),
+  };
+};
+
+router.get("/working-hours", authRequired, instructorOnly, async (req, res) => {
+  try {
+    const instructor = await User.findById(req.user._id).select("workingHours").lean();
+    if (!instructor) {
+      return res.status(404).json({ message: "Instructor not found" });
+    }
+
+    return res.json({
+      workingHours: normalizeWorkingHoursForResponse(instructor.workingHours),
+    });
+  } catch (err) {
+    console.error("Get instructor working hours error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.put("/working-hours", authRequired, instructorOnly, async (req, res) => {
+  try {
+    const payload = parseWorkingHoursInput(req.body?.workingHours || req.body);
+
+    const updated = await User.findByIdAndUpdate(
+      req.user._id,
+      { $set: { workingHours: payload } },
+      { new: true }
+    )
+      .select("workingHours")
+      .lean();
+
+    if (!updated) {
+      return res.status(404).json({ message: "Instructor not found" });
+    }
+
+    return res.json({
+      workingHours: normalizeWorkingHoursForResponse(updated.workingHours),
+    });
+  } catch (err) {
+    if (err?.message?.toLowerCase?.().includes("slot") || err?.message?.toLowerCase?.().includes("time")) {
+      return res.status(400).json({ message: err.message });
+    }
+    console.error("Update instructor working hours error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
 
 router.get("/dashboard", authRequired, instructorOnly, async (req, res) => {
   try {

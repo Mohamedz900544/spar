@@ -17,6 +17,7 @@ import {
   LayoutDashboard,
   GraduationCap,
   Save,
+  Clock3,
 } from "lucide-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -27,7 +28,131 @@ const TABS = [
   { id: "attendance", label: "Attendance", icon: ClipboardList },
   { id: "sessions", label: "Upcoming", icon: CalendarClock },
   { id: "evaluations", label: "Evaluations", icon: Sparkles },
+  { id: "workingHours", label: "Working Hours", icon: Clock3 },
 ];
+
+const WEEK_DAY_ITEMS = [
+  { key: "saturday", label: "Saturday" },
+  { key: "sunday", label: "Sunday" },
+  { key: "monday", label: "Monday" },
+  { key: "tuesday", label: "Tuesday" },
+  { key: "wednesday", label: "Wednesday" },
+  { key: "thursday", label: "Thursday" },
+  { key: "friday", label: "Friday" },
+];
+const HOURS_IN_DAY = 24;
+const DISPLAY_START_HOUR = 9;
+const DISPLAY_END_HOUR = 23;
+const TIME_RANGE_REGEX = /^(?:([01]\d|2[0-3]):([0-5]\d)|24:00)$/;
+const HOUR_COLUMNS = Array.from(
+  { length: DISPLAY_END_HOUR - DISPLAY_START_HOUR + 1 },
+  (_, index) => {
+    const hour = DISPLAY_START_HOUR + index;
+    return {
+      hour,
+      numberLabel: hour % 12 || 12,
+      periodLabel: hour < 12 ? "AM" : "PM",
+    };
+  }
+);
+
+const createEmptyWorkingHours = () => ({
+  timezone: "Africa/Cairo",
+  slotDurationMinutes: 60,
+  days: WEEK_DAY_ITEMS.reduce((acc, day) => {
+    acc[day.key] = [];
+    return acc;
+  }, {}),
+});
+
+const normalizeWorkingHours = (value) => ({
+  ...createEmptyWorkingHours(),
+  ...(value || {}),
+  days: {
+    ...createEmptyWorkingHours().days,
+    ...(value?.days || {}),
+  },
+});
+
+const toMinutes = (timeValue) => {
+  if (timeValue === "24:00") return 24 * 60;
+  const [hours, minutes] = (timeValue || "").split(":").map(Number);
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return 0;
+  return hours * 60 + minutes;
+};
+
+const formatHourToTime = (hour) => `${String(hour).padStart(2, "0")}:00`;
+
+const createEmptyWorkingHoursGrid = () =>
+  WEEK_DAY_ITEMS.reduce((acc, day) => {
+    acc[day.key] = Array(HOURS_IN_DAY).fill(false);
+    return acc;
+  }, {});
+
+const buildGridFromWorkingHours = (workingHoursValue) => {
+  const grid = createEmptyWorkingHoursGrid();
+  const normalized = normalizeWorkingHours(workingHoursValue);
+
+  for (const day of WEEK_DAY_ITEMS) {
+    const slots = Array.isArray(normalized.days?.[day.key]) ? normalized.days[day.key] : [];
+    for (const slot of slots) {
+      const start = (slot?.start || "").toString().trim();
+      const end = (slot?.end || "").toString().trim();
+      if (!TIME_RANGE_REGEX.test(start) || !TIME_RANGE_REGEX.test(end)) continue;
+      const startMinutes = toMinutes(start);
+      const endMinutes = toMinutes(end);
+      if (startMinutes >= endMinutes) continue;
+
+      for (let hour = 0; hour < HOURS_IN_DAY; hour += 1) {
+        const cellStart = hour * 60;
+        const cellEnd = (hour + 1) * 60;
+        if (startMinutes < cellEnd && endMinutes > cellStart) {
+          grid[day.key][hour] = true;
+        }
+      }
+    }
+  }
+
+  return grid;
+};
+
+const buildWorkingHoursFromGrid = (grid, previousWorkingHours) => {
+  const normalizedPrevious = normalizeWorkingHours(previousWorkingHours);
+  const days = {};
+
+  for (const day of WEEK_DAY_ITEMS) {
+    const row = Array.isArray(grid?.[day.key]) ? grid[day.key] : [];
+    const slots = [];
+    let startHour = null;
+
+    for (let hour = DISPLAY_START_HOUR; hour <= DISPLAY_END_HOUR; hour += 1) {
+      const checked = Boolean(row[hour]);
+      if (checked && startHour === null) {
+        startHour = hour;
+      }
+      const isLastColumn = hour === DISPLAY_END_HOUR;
+      if ((!checked || isLastColumn) && startHour !== null) {
+        const endHour = checked && isLastColumn ? hour + 1 : hour;
+        slots.push({
+          start: formatHourToTime(startHour),
+          end: endHour === HOURS_IN_DAY ? "24:00" : formatHourToTime(endHour),
+        });
+        startHour = null;
+      }
+    }
+
+    days[day.key] = slots;
+  }
+
+  return {
+    timezone: normalizedPrevious.timezone || "Africa/Cairo",
+    slotDurationMinutes:
+      Number(normalizedPrevious.slotDurationMinutes) > 0
+        ? Number(normalizedPrevious.slotDurationMinutes)
+        : 60,
+    days,
+  };
+};
 
 /* ======= STAT CARD ======= */
 const StatCard = ({ icon: Icon, label, value, accent, extra }) => (
@@ -70,6 +195,10 @@ const InstructorDashboard = () => {
   const [evaluationDrafts, setEvaluationDrafts] = useState({});
   const [isSavingEvaluationId, setIsSavingEvaluationId] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
+  const [workingHours, setWorkingHours] = useState(createEmptyWorkingHours());
+  const [workingHoursGrid, setWorkingHoursGrid] = useState(createEmptyWorkingHoursGrid());
+  const [isSavingWorkingHours, setIsSavingWorkingHours] = useState(false);
+  const [workingHoursMessage, setWorkingHoursMessage] = useState("");
 
   const fetchDashboard = useCallback(async () => {
     const token = localStorage.getItem("sparvi_token");
@@ -77,7 +206,7 @@ const InstructorDashboard = () => {
     if (!token || role !== "instructor") { navigate("/login"); return; }
     try {
       setIsLoading(true);
-      const [dashboardRes, trialLeadsRes, freeSessionsRes] = await Promise.all([
+      const [dashboardRes, trialLeadsRes, freeSessionsRes, workingHoursRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/instructor/dashboard`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
@@ -85,6 +214,9 @@ const InstructorDashboard = () => {
           headers: { Authorization: `Bearer ${token}` },
         }),
         fetch(`${API_BASE_URL}/api/instructor/my-free-sessions`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${API_BASE_URL}/api/instructor/working-hours`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -97,10 +229,11 @@ const InstructorDashboard = () => {
         }
       };
 
-      const [dashboardData, trialLeadsData, freeSessionsData] = await Promise.all([
+      const [dashboardData, trialLeadsData, freeSessionsData, workingHoursData] = await Promise.all([
         safeJson(dashboardRes),
         safeJson(trialLeadsRes),
         safeJson(freeSessionsRes),
+        safeJson(workingHoursRes),
       ]);
 
       if (!dashboardRes.ok) {
@@ -128,6 +261,12 @@ const InstructorDashboard = () => {
 
       if (freeSessionsRes.ok) {
         setFreeSessions(freeSessionsData.freeSessions || []);
+      }
+
+      if (workingHoursRes.ok) {
+        const normalizedWorkingHours = normalizeWorkingHours(workingHoursData.workingHours);
+        setWorkingHours(normalizedWorkingHours);
+        setWorkingHoursGrid(buildGridFromWorkingHours(normalizedWorkingHours));
       }
 
       setError("");
@@ -358,6 +497,63 @@ const InstructorDashboard = () => {
       setError(err.message || "Failed to save evaluation");
     } finally {
       setIsSavingEvaluationId("");
+    }
+  };
+
+  const toggleWorkingHourCell = (dayKey, hour) => {
+    setWorkingHoursGrid((prev) => {
+      const row = [...(prev[dayKey] || Array(HOURS_IN_DAY).fill(false))];
+      row[hour] = !row[hour];
+      return {
+        ...prev,
+        [dayKey]: row,
+      };
+    });
+  };
+
+  const toggleWorkingDay = (dayKey, enabled) => {
+    setWorkingHoursGrid((prev) => {
+      const nextRow = Array(HOURS_IN_DAY).fill(false);
+      for (let hour = DISPLAY_START_HOUR; hour <= DISPLAY_END_HOUR; hour += 1) {
+        nextRow[hour] = enabled;
+      }
+      return {
+        ...prev,
+        [dayKey]: nextRow,
+      };
+    });
+  };
+
+  const saveWorkingHours = async () => {
+    const token = localStorage.getItem("sparvi_token");
+    if (!token) { navigate("/login"); return; }
+
+    try {
+      setIsSavingWorkingHours(true);
+      setWorkingHoursMessage("");
+      const payloadWorkingHours = buildWorkingHoursFromGrid(workingHoursGrid, workingHours);
+
+      const res = await fetch(`${API_BASE_URL}/api/instructor/working-hours`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ workingHours: payloadWorkingHours }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to save working hours");
+
+      const normalizedWorkingHours = normalizeWorkingHours(data.workingHours);
+      setWorkingHours(normalizedWorkingHours);
+      setWorkingHoursGrid(buildGridFromWorkingHours(normalizedWorkingHours));
+      setWorkingHoursMessage("Working hours saved successfully.");
+      setError("");
+    } catch (err) {
+      setError(err.message || "Failed to save working hours");
+    } finally {
+      setIsSavingWorkingHours(false);
     }
   };
 
@@ -975,6 +1171,119 @@ const InstructorDashboard = () => {
                     })}
                   </div>
                 )}
+              </div>
+            </Motion.div>
+          )}
+
+          {/* ===== TAB: WORKING HOURS ===== */}
+          {activeTab === "workingHours" && (
+            <Motion.div
+              key="working-hours"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-5"
+            >
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-[#102a5a]/10 flex items-center justify-center">
+                      <Clock3 className="w-4 h-4 text-[#102a5a]" />
+                    </div>
+                    <div>
+                      <h2 className="text-base font-bold text-[#102a5a]">Working Hours</h2>
+                      <p className="text-xs text-slate-500">
+                        Choose your available hours each day. Sales can only book from these slots.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={saveWorkingHours}
+                    disabled={isSavingWorkingHours}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#102a5a] px-4 py-2.5 text-xs font-semibold text-white hover:bg-[#1a3a6b] disabled:opacity-50 transition-all"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                    {isSavingWorkingHours ? "Saving..." : "Save Working Hours"}
+                  </button>
+                </div>
+
+                {workingHoursMessage && (
+                  <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700">
+                    {workingHoursMessage}
+                  </div>
+                )}
+
+                <div className="mb-3 text-xs text-slate-500">
+                  Check the hours where you are available. Each checkbox means one full hour.
+                </div>
+
+                <div className="overflow-x-auto rounded-2xl border border-slate-200">
+                  <table className="min-w-[1480px] w-full border-collapse">
+                    <thead className="bg-slate-100/90">
+                      <tr>
+                        <th className="sticky left-0 z-20 w-[96px] min-w-[96px] max-w-[96px] border-b border-r border-slate-200 bg-slate-100 px-2 py-1.5 text-left text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                          Day
+                        </th>
+                        {HOUR_COLUMNS.map((column) => (
+                          <th
+                            key={`hour-header-${column.hour}`}
+                            className="border-b border-r border-slate-200 px-1.5 py-2 text-center"
+                          >
+                            <p className="text-xs font-bold text-[#102a5a] leading-none">{column.numberLabel}</p>
+                            <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                              {column.periodLabel}
+                            </p>
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {WEEK_DAY_ITEMS.map((dayItem) => {
+                        const row = workingHoursGrid[dayItem.key] || [];
+                        const isEnabled = row
+                          .slice(DISPLAY_START_HOUR, DISPLAY_END_HOUR + 1)
+                          .some(Boolean);
+
+                        return (
+                          <tr key={dayItem.key} className="even:bg-slate-50/50">
+                            <th className="sticky left-0 z-10 w-[96px] min-w-[96px] max-w-[96px] border-b border-r border-slate-200 bg-white px-2 py-1.5 text-left align-top">
+                              <p title={dayItem.label} className="truncate text-xs font-semibold text-[#102a5a]">
+                                {dayItem.label}
+                              </p>
+                              <label className="mt-0.5 inline-flex items-center gap-1 text-[9px] font-semibold text-slate-500">
+                                <input
+                                  type="checkbox"
+                                  checked={isEnabled}
+                                  onChange={(e) => toggleWorkingDay(dayItem.key, e.target.checked)}
+                                  className="h-3 w-3 rounded border-slate-300 text-[#102a5a] focus:ring-[#FBBF24]"
+                                />
+                                All day
+                              </label>
+                            </th>
+                            {HOUR_COLUMNS.map((column) => {
+                              const checked = Boolean(row[column.hour]);
+                              return (
+                                <td
+                                  key={`${dayItem.key}-hour-${column.hour}`}
+                                  className="border-b border-r border-slate-200 p-1 text-center"
+                                >
+                                  <label className={`mx-auto inline-flex h-6 w-6 items-center justify-center rounded-md transition-all ${checked ? "border-emerald-500 bg-emerald-100" : "border-slate-300 bg-white hover:border-[#FBBF24]"}`}>
+                                    <input
+                                      type="checkbox"
+                                      checked={checked}
+                                      onChange={() => toggleWorkingHourCell(dayItem.key, column.hour)}
+                                      className="h-3.5 w-3.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                                    />
+                                  </label>
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </Motion.div>
           )}
