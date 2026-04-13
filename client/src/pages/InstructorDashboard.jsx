@@ -2,20 +2,15 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import {
-  BookOpen,
   Users,
-  CheckCircle2,
-  Link2,
   Search,
   RefreshCw,
-  Zap,
   LogOut,
   CalendarClock,
   ChevronDown,
   Sparkles,
   ClipboardList,
   LayoutDashboard,
-  GraduationCap,
   Save,
   Clock3,
 } from "lucide-react";
@@ -203,28 +198,91 @@ const buildWorkingHoursFromGrid = (grid, previousWorkingHours) => {
   };
 };
 
-/* ======= STAT CARD ======= */
-const StatCard = ({ icon: Icon, label, value, accent, extra }) => (
-  <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow group">
-    <div className="flex items-center gap-4">
-      <div
-        className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform"
-        style={{ backgroundColor: `${accent}15` }}
-      >
-        <Icon className="w-5 h-5" style={{ color: accent }} />
-      </div>
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-          {label}
-        </p>
-        <div className="flex items-baseline gap-2 mt-0.5">
-          <span className="text-2xl font-bold text-[#102a5a]">{value}</span>
-          {extra}
-        </div>
-      </div>
-    </div>
-  </div>
-);
+const SESSION_DURATION_MS = 60 * 60 * 1000;
+const SESSION_STATUS_META = {
+  upcoming: {
+    label: "Upcoming",
+    badgeClass: "border border-amber-200 bg-amber-50 text-amber-700",
+    hintClass: "text-amber-700",
+  },
+  active: {
+    label: "Active",
+    badgeClass: "border border-emerald-200 bg-emerald-50 text-emerald-700",
+    hintClass: "text-emerald-700",
+  },
+  completed: {
+    label: "Completed",
+    badgeClass: "border border-slate-300 bg-slate-100 text-slate-600",
+    hintClass: "text-slate-600",
+  },
+};
+const STATUS_SORT_ORDER = { active: 0, upcoming: 1, completed: 2 };
+
+const toNextDayStartTs = (sourceTs) => {
+  if (!Number.isFinite(sourceTs)) return Number.NEGATIVE_INFINITY;
+  const nextDay = new Date(sourceTs);
+  nextDay.setHours(24, 0, 0, 0);
+  return nextDay.getTime();
+};
+
+const parseRoundSessionStartTs = (session) => {
+  const dateText = (session?.date || "").toString().trim();
+  const timeTextRaw = (session?.time || "").toString().trim();
+  if (!dateText) return Number.NaN;
+
+  const timeText = /^\d{2}:\d{2}$/.test(timeTextRaw) ? `${timeTextRaw}:00` : timeTextRaw;
+  const candidates = [
+    `${dateText}T${timeText || "00:00:00"}`,
+    `${dateText} ${timeTextRaw || "00:00"}`,
+    dateText,
+  ];
+
+  for (const candidate of candidates) {
+    const parsed = Date.parse(candidate);
+    if (!Number.isNaN(parsed)) return parsed;
+  }
+
+  return Number.NaN;
+};
+
+const getSessionLifecycleStatus = (startTs, endTs, nowTs) => {
+  if (nowTs < startTs) return "upcoming";
+  if (nowTs >= startTs && nowTs < endTs) return "active";
+  return "completed";
+};
+
+const formatSessionDateLabel = (ts) =>
+  new Date(ts).toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+
+const formatSessionTimeLabel = (ts) =>
+  new Date(ts).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
+const formatCountdownLabel = (startTs, nowTs) => {
+  const diffMinutes = Math.max(1, Math.round((startTs - nowTs) / 60000));
+  if (diffMinutes < 60) return `After ${diffMinutes}m`;
+  const hours = Math.floor(diffMinutes / 60);
+  const minutes = diffMinutes % 60;
+  return `After ${hours}h${minutes ? ` ${minutes}m` : ""}`;
+};
+
+const buildLifecycleHint = (status, startTs, endTs, nowTs) => {
+  if (status === "upcoming") {
+    return formatCountdownLabel(startTs, nowTs);
+  }
+  if (status === "active") {
+    return `Ends ${formatSessionTimeLabel(endTs)}`;
+  }
+  return "Completed";
+};
+
+const getStatusMeta = (status) => SESSION_STATUS_META[status] || SESSION_STATUS_META.upcoming;
 
 /* ================= MAIN COMPONENT ================= */
 const InstructorDashboard = () => {
@@ -244,6 +302,9 @@ const InstructorDashboard = () => {
   const [evaluationDrafts, setEvaluationDrafts] = useState({});
   const [isSavingEvaluationId, setIsSavingEvaluationId] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
+  const [timelineNow, setTimelineNow] = useState(() => Date.now());
+  const [selectedOverviewSessionKey, setSelectedOverviewSessionKey] = useState("");
+  const [showLinkedRounds, setShowLinkedRounds] = useState(false);
   const [workingHours, setWorkingHours] = useState(createEmptyWorkingHours());
   const [workingHoursGrid, setWorkingHoursGrid] = useState(createEmptyWorkingHoursGrid());
   const [isSavingWorkingHours, setIsSavingWorkingHours] = useState(false);
@@ -327,69 +388,117 @@ const InstructorDashboard = () => {
   }, [navigate]);
 
   useEffect(() => { fetchDashboard(); }, [fetchDashboard]);
+  useEffect(() => {
+    const timer = setInterval(() => setTimelineNow(Date.now()), 30000);
+    return () => clearInterval(timer);
+  }, []);
 
   const selectedRound = useMemo(
     () => rounds.find((r) => (r.id || r._id) === selectedRoundId),
     [rounds, selectedRoundId]
   );
   const sessions = useMemo(() => selectedRound?.sessions || [], [selectedRound]);
-  const totalRounds = rounds.length;
-  const totalStudents = useMemo(
-    () => rounds.reduce((sum, r) => sum + (r.enrollments?.length || 0), 0),
-    [rounds]
-  );
   const selectedEnrollments = useMemo(
     () => selectedRound?.enrollments || [],
     [selectedRound]
   );
   const upcomingSessions = useMemo(() => {
-    const now = Date.now();
-    const norm = (v) => (v || "").toString().trim();
-    const toTs = (s) => {
-      const d = norm(s.date); const t = norm(s.time);
-      if (!d) return Infinity;
-      const p = Date.parse(t ? `${d} ${t}` : d);
-      return Number.isNaN(p) ? Infinity : p;
-    };
+    const nowTs = timelineNow;
 
-    const roundSessions = rounds
-      .flatMap((r) =>
-        (r.sessions || []).map((s) => ({
-          ...s, roundName: r.name, roundCode: r.code, roundLevel: r.level,
-          _type: "round",
-        }))
-      )
-      .map((s) => ({ session: s, ts: toTs(s) }))
-      .filter((i) => i.ts >= now);
+    const roundItems = rounds.flatMap((round) =>
+      (round.sessions || []).map((session) => {
+        const startTs = parseRoundSessionStartTs(session);
+        const endTs = Number.isFinite(startTs) ? startTs + SESSION_DURATION_MS : Number.NaN;
+        const lifecycleStatus = Number.isFinite(startTs)
+          ? getSessionLifecycleStatus(startTs, endTs, nowTs)
+          : "upcoming";
 
-    const freeItems = freeSessions
-      .map((fs) => {
-        const ts = fs.scheduledAt ? new Date(fs.scheduledAt).getTime() : Infinity;
-        const dateObj = new Date(fs.scheduledAt);
         return {
-          session: {
-            id: fs.id,
-            _type: "free",
-            title: `Free Session — ${fs.childName}`,
-            date: dateObj.toLocaleDateString("en-US"),
-            time: dateObj.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: "UTC" }),
-            parentName: fs.parentName,
-            childName: fs.childName,
-            childAge: fs.childAge,
-            phone: fs.phone,
-            notes: fs.notes || [],
-            leadStatus: fs.status,
-          },
-          ts,
+          key: `round:${session.id || session._id}`,
+          id: session.id || session._id,
+          sessionType: "round",
+          _type: "round",
+          sessionId: session.id || session._id,
+          roundId: round.id || round._id,
+          roundName: round.name,
+          roundCode: round.code,
+          roundLevel: round.level,
+          title: session.title || "Untitled Session",
+          date: session.date,
+          time: session.time,
+          startTs,
+          endTs,
+          visibleUntilTs: toNextDayStartTs(startTs),
+          lifecycleStatus,
+          hintText: Number.isFinite(startTs)
+            ? buildLifecycleHint(lifecycleStatus, startTs, endTs, nowTs)
+            : "Time unavailable",
+          dateLabel: Number.isFinite(startTs) ? formatSessionDateLabel(startTs) : session.date || "-",
+          timeLabel: Number.isFinite(startTs) ? formatSessionTimeLabel(startTs) : session.time || "-",
         };
       })
-      .filter((i) => i.ts >= now);
+    );
 
-    return [...roundSessions, ...freeItems]
-      .sort((a, b) => a.ts - b.ts)
-      .slice(0, 10)
-      .map((i) => i.session);
-  }, [rounds, freeSessions]);
+    const freeItems = freeSessions.map((session) => {
+      const startTs = session.scheduledAt ? new Date(session.scheduledAt).getTime() : Number.NaN;
+      const fallbackEndTs = Number.isFinite(startTs)
+        ? startTs + (Number(session.durationMinutes) || 60) * 60 * 1000
+        : Number.NaN;
+      const endTs = session.endsAt ? new Date(session.endsAt).getTime() : fallbackEndTs;
+      const lifecycleStatus = Number.isFinite(startTs)
+        ? getSessionLifecycleStatus(startTs, endTs, nowTs)
+        : "upcoming";
+
+      return {
+        key: `free:${session.id}`,
+        id: session.id,
+        sessionType: "free",
+        _type: "free",
+        leadId: session.id,
+        title: `Free Session - ${session.childName || "Child"}`,
+        parentName: session.parentName,
+        childName: session.childName,
+        childAge: session.childAge,
+        phone: session.phone,
+        notes: session.notes || [],
+        leadStatus: session.status,
+        startTs,
+        endTs,
+        visibleUntilTs: toNextDayStartTs(startTs),
+        lifecycleStatus,
+        hintText: Number.isFinite(startTs)
+          ? buildLifecycleHint(lifecycleStatus, startTs, endTs, nowTs)
+          : "Time unavailable",
+        dateLabel: Number.isFinite(startTs) ? formatSessionDateLabel(startTs) : "-",
+        timeLabel: Number.isFinite(startTs) ? formatSessionTimeLabel(startTs) : "-",
+      };
+    });
+
+    return [...roundItems, ...freeItems]
+      .filter((session) => Number.isFinite(session.startTs))
+      .filter((session) => nowTs < session.visibleUntilTs)
+      .sort((a, b) => {
+        const statusDiff =
+          (STATUS_SORT_ORDER[a.lifecycleStatus] ?? 99) -
+          (STATUS_SORT_ORDER[b.lifecycleStatus] ?? 99);
+        if (statusDiff !== 0) return statusDiff;
+        if (a.lifecycleStatus === "completed") return b.startTs - a.startTs;
+        return a.startTs - b.startTs;
+      })
+      .slice(0, 20);
+  }, [freeSessions, rounds, timelineNow]);
+
+  useEffect(() => {
+    if (!upcomingSessions.length) {
+      setSelectedOverviewSessionKey("");
+      return;
+    }
+
+    const stillExists = upcomingSessions.some((session) => session.key === selectedOverviewSessionKey);
+    if (!selectedOverviewSessionKey || !stillExists) {
+      setSelectedOverviewSessionKey(upcomingSessions[0].key);
+    }
+  }, [upcomingSessions, selectedOverviewSessionKey]);
 
   useEffect(() => {
     if (!selectedRound) return;
@@ -426,20 +535,22 @@ const InstructorDashboard = () => {
     }
   };
 
-  const updateAttendance = async (enrollmentId, present) => {
+  const updateAttendance = async (enrollmentId, present, context = {}) => {
+    const targetSessionId = context.sessionId || selectedSessionId;
+    const targetRoundId = context.roundId || selectedRoundId;
     const token = localStorage.getItem("sparvi_token");
-    if (!token || !selectedSessionId) { navigate("/login"); return; }
+    if (!token || !targetSessionId) { navigate("/login"); return; }
     try {
       const res = await fetch(`${API_BASE_URL}/api/instructor/attendance`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ enrollmentId, sessionId: selectedSessionId, present }),
+        body: JSON.stringify({ enrollmentId, sessionId: targetSessionId, present }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to update attendance");
       setRounds((prev) =>
         prev.map((round) => {
-          if ((round.id || round._id) !== selectedRoundId) return round;
+          if ((round.id || round._id) !== targetRoundId) return round;
           return {
             ...round,
             enrollments: (round.enrollments || []).map((e) =>
@@ -456,9 +567,11 @@ const InstructorDashboard = () => {
   };
 
   const getAttendanceStatus = useCallback(
-    (enrollment) => {
+    (enrollment, sessionIdOverride) => {
+      const targetSessionId = sessionIdOverride || selectedSessionId;
+      if (!targetSessionId) return false;
       const record = (enrollment.attendance || []).find(
-        (a) => (a.session || "").toString() === selectedSessionId
+        (a) => (a.session || "").toString() === targetSessionId
       );
       return record?.present || false;
     },
@@ -486,12 +599,94 @@ const InstructorDashboard = () => {
     return { present, absent: selectedEnrollments.length - present, total: selectedEnrollments.length };
   }, [getAttendanceStatus, selectedEnrollments]);
 
+  const selectedOverviewSession = useMemo(
+    () => upcomingSessions.find((session) => session.key === selectedOverviewSessionKey) || null,
+    [upcomingSessions, selectedOverviewSessionKey]
+  );
+
+  const overviewRound = useMemo(() => {
+    if (!selectedOverviewSession || selectedOverviewSession.sessionType !== "round") return null;
+    return (
+      rounds.find((round) => (round.id || round._id) === selectedOverviewSession.roundId) || null
+    );
+  }, [rounds, selectedOverviewSession]);
+
+  const overviewEnrollments = useMemo(() => overviewRound?.enrollments || [], [overviewRound]);
+
+  const overviewAttendanceCounts = useMemo(() => {
+    if (!selectedOverviewSession || selectedOverviewSession.sessionType !== "round") {
+      return { present: 0, total: 0 };
+    }
+    const total = overviewEnrollments.length;
+    const present = overviewEnrollments.filter((enrollment) =>
+      getAttendanceStatus(enrollment, selectedOverviewSession.sessionId)
+    ).length;
+    return { present, total };
+  }, [getAttendanceStatus, overviewEnrollments, selectedOverviewSession]);
+
+  const selectedOverviewLead = useMemo(() => {
+    if (!selectedOverviewSession || selectedOverviewSession.sessionType !== "free") return null;
+    return (
+      trialLeads.find((lead) => (lead.id || lead._id) === selectedOverviewSession.leadId) || null
+    );
+  }, [selectedOverviewSession, trialLeads]);
+
+  const selectedOverviewLeadId = selectedOverviewLead
+    ? selectedOverviewLead.id || selectedOverviewLead._id
+    : "";
+
+  const selectedOverviewEvaluationDraft = selectedOverviewLeadId
+    ? (evaluationDrafts[selectedOverviewLeadId] || { strengths: "", favoriteProject: "" })
+    : { strengths: "", favoriteProject: "" };
+
+  const handleSelectOverviewSession = (session) => {
+    setSelectedOverviewSessionKey(session.key);
+    if (session.sessionType === "round") {
+      setSelectedRoundId(session.roundId);
+      setSelectedSessionId(session.sessionId);
+      return;
+    }
+
+    const matchingLead = trialLeads.find((lead) => (lead.id || lead._id) === session.leadId);
+    if (!matchingLead) return;
+    const leadId = matchingLead.id || matchingLead._id;
+    setEvaluationDrafts((prev) => {
+      if (prev[leadId]) return prev;
+      return {
+        ...prev,
+        [leadId]: {
+          strengths: matchingLead.trainerEvaluation?.strengths || "",
+          favoriteProject: matchingLead.trainerEvaluation?.favoriteProject || "",
+        },
+      };
+    });
+  };
+
   const handleBulkUpdate = async (present) => {
     if (!selectedSessionId || filteredEnrollments.length === 0) return;
     setIsBulkUpdating(true);
     try {
       await Promise.all(
         filteredEnrollments.map((e) => updateAttendance(e.id || e._id, present))
+      );
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  };
+
+  const handleOverviewBulkUpdate = async (present) => {
+    if (!selectedOverviewSession || selectedOverviewSession.sessionType !== "round") return;
+    if (overviewEnrollments.length === 0) return;
+
+    setIsBulkUpdating(true);
+    try {
+      await Promise.all(
+        overviewEnrollments.map((enrollment) =>
+          updateAttendance(enrollment.id || enrollment._id, present, {
+            sessionId: selectedOverviewSession.sessionId,
+            roundId: selectedOverviewSession.roundId,
+          })
+        )
       );
     } finally {
       setIsBulkUpdating(false);
@@ -710,133 +905,306 @@ const InstructorDashboard = () => {
             )}
           </AnimatePresence>
 
-          {/* ===== TAB: OVERVIEW ===== */}
+                    {/* ===== TAB: OVERVIEW ===== */}
           {activeTab === "overview" && (
             <Motion.div
               key="overview"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="space-y-6"
+              className="space-y-5"
             >
-              {/* Stats Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <StatCard icon={BookOpen} label="Linked Rounds" value={totalRounds} accent="#102a5a" />
-                <StatCard icon={Users} label="Total Students" value={totalStudents} accent="#10b981" />
-                <StatCard icon={CalendarClock} label="Upcoming" value={upcomingSessions.length} accent="#FBBF24" />
-                <StatCard
-                  icon={CheckCircle2}
-                  label="Attendance"
-                  value={attendanceCounts.present}
-                  accent="#8b5cf6"
-                  extra={
-                    <span className="text-sm text-slate-500 font-medium">
-                      / {attendanceCounts.total}
-                    </span>
-                  }
-                />
+              <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+                <form
+                  onSubmit={handleLinkRound}
+                  className="grid grid-cols-1 gap-2 lg:grid-cols-[150px_1fr_auto_auto]"
+                >
+                  <label className="self-center text-sm font-semibold text-[#102a5a]">
+                    Link New Round
+                  </label>
+                  <input
+                    type="text"
+                    value={roundCode}
+                    onChange={(e) => setRoundCode(e.target.value)}
+                    placeholder="Enter code here"
+                    className="rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-sm text-slate-800 outline-none focus:border-[#FBBF24] focus:ring-2 focus:ring-[#FBBF24]/50"
+                  />
+                  <button
+                    type="submit"
+                    disabled={isLinking || !roundCode.trim()}
+                    className="rounded-xl bg-[#FBBF24] px-5 py-2.5 text-sm font-bold text-[#102a5a] transition-all hover:bg-[#F59E0B] disabled:opacity-50"
+                  >
+                    {isLinking ? "Linking..." : "Link"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowLinkedRounds((prev) => !prev)}
+                    className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition-all hover:bg-slate-50"
+                  >
+                    {showLinkedRounds ? "Hide linked rounds" : "See all rounds linked"}
+                  </button>
+                </form>
               </div>
 
-              {/* Quick Actions + Link Round */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {/* Link Round */}
-                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-9 h-9 rounded-xl bg-[#FBBF24]/10 flex items-center justify-center">
-                      <Link2 className="w-4 h-4 text-[#FBBF24]" />
+              <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+                <div className="grid grid-cols-1 xl:grid-cols-[360px_1fr]">
+                  <div className="border-b border-slate-100 xl:border-b-0 xl:border-r">
+                    <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+                      <h2 className="text-sm font-bold text-[#102a5a]">Upcoming Sessions</h2>
+                      <span className="inline-flex items-center rounded-full bg-[#FBBF24]/10 px-2.5 py-0.5 text-xs font-semibold text-[#92400e]">
+                        {upcomingSessions.length}
+                      </span>
                     </div>
-                    <h2 className="text-base font-bold text-[#102a5a]">Link New Round</h2>
-                  </div>
-                  <form onSubmit={handleLinkRound} className="flex gap-2">
-                    <input
-                      type="text"
-                      value={roundCode}
-                      onChange={(e) => setRoundCode(e.target.value)}
-                      placeholder="Enter round code…"
-                      className="flex-1 rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] uppercase font-mono tracking-wide"
-                    />
-                    <Motion.button
-                      type="submit"
-                      disabled={isLinking || !roundCode.trim()}
-                      className="rounded-xl bg-[#FBBF24] hover:bg-[#F59E0B] text-[#102a5a] font-bold px-5 py-2.5 shadow-sm hover:shadow-md transition-all disabled:opacity-50 text-sm whitespace-nowrap"
-                      whileTap={{ scale: 0.97 }}
-                    >
-                      {isLinking ? "Linking…" : "Link"}
-                    </Motion.button>
-                  </form>
-                </div>
 
-                {/* Quick Nav Cards */}
-                <div className="grid grid-cols-2 gap-3">
-                  {TABS.filter((t) => t.id !== "overview").map((tab) => {
-                    const TabIcon = tab.icon;
-                    const count = tab.id === "sessions" ? upcomingSessions.length
-                      : tab.id === "attendance" ? totalRounds
-                      : tab.id === "evaluations" ? trialLeads.length
-                      : 0;
-                    return (
-                      <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 hover:shadow-md hover:border-[#FBBF24]/30 transition-all text-left group"
-                      >
-                        <div className="w-9 h-9 rounded-xl bg-[#102a5a]/5 flex items-center justify-center mb-3 group-hover:bg-[#FBBF24]/10 transition-colors">
-                          <TabIcon className="w-4 h-4 text-[#102a5a] group-hover:text-[#FBBF24] transition-colors" />
-                        </div>
-                        <p className="text-sm font-bold text-[#102a5a]">{tab.label}</p>
-                        <p className="text-xs text-slate-500 mt-0.5">{count} items</p>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+                    {isLoading ? (
+                      <div className="px-4 py-10 text-center text-sm text-slate-500">Loading sessions...</div>
+                    ) : upcomingSessions.length === 0 ? (
+                      <div className="px-4 py-10 text-center text-sm text-slate-500">
+                        No sessions yet. Linked sessions will appear here.
+                      </div>
+                    ) : (
+                      <div className="max-h-[620px] overflow-y-auto">
+                        {upcomingSessions.map((session) => {
+                          const statusMeta = getStatusMeta(session.lifecycleStatus);
+                          const isSelected = selectedOverviewSessionKey === session.key;
 
-              {/* Your Rounds List */}
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-                  <h2 className="text-base font-bold text-[#102a5a]">Your Rounds</h2>
-                  <span className="inline-flex items-center rounded-full bg-[#102a5a]/10 px-2.5 py-0.5 text-xs font-semibold text-[#102a5a]">
-                    {rounds.length}
-                  </span>
-                </div>
-                {isLoading ? (
-                  <div className="text-sm text-slate-500 text-center py-8">
-                    <div className="w-6 h-6 border-2 border-[#FBBF24]/30 border-t-[#FBBF24] rounded-full animate-spin mx-auto mb-2" />
-                    Loading…
+                          return (
+                            <button
+                              key={session.key}
+                              type="button"
+                              onClick={() => handleSelectOverviewSession(session)}
+                              className={`w-full border-b border-slate-100 px-4 py-3 text-left transition-colors ${
+                                isSelected ? "bg-[#FBBF24]/10" : "hover:bg-slate-50"
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <p className="text-sm font-semibold text-[#102a5a]">{session.title}</p>
+                                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusMeta.badgeClass}`}>
+                                  {statusMeta.label}
+                                </span>
+                              </div>
+                              <p className={`mt-1 text-xs font-medium ${statusMeta.hintClass}`}>
+                                {session.hintText} ({session.timeLabel})
+                              </p>
+                              <p className="mt-1 text-[11px] text-slate-400">
+                                {session.dateLabel}
+                                {session.roundName ? ` - ${session.roundName}` : ""}
+                              </p>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
-                ) : rounds.length === 0 ? (
-                  <div className="text-sm text-slate-500 text-center py-8 px-4">
-                    No rounds linked yet. Use the form above to get started.
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-4">
-                    {rounds.map((round) => (
-                      <button
-                        key={round.id || round._id}
-                        type="button"
-                        onClick={() => { setSelectedRoundId(round.id || round._id); setActiveTab("attendance"); }}
-                        className={`w-full text-left rounded-2xl p-4 transition-all duration-200 border ${
-                          selectedRoundId === (round.id || round._id)
-                            ? "border-[#FBBF24] bg-[#FBBF24]/5 shadow-sm"
-                            : "border-slate-100 bg-slate-50/50 hover:bg-slate-100/60 hover:border-slate-200"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
-                            selectedRoundId === (round.id || round._id) ? "bg-[#FBBF24] text-[#102a5a]" : "bg-slate-200/60 text-slate-500"
-                          }`}>
-                            <BookOpen className="w-3.5 h-3.5" />
+
+                  <div className="min-w-0">
+                    {showLinkedRounds && (
+                      <div className="border-b border-slate-100 p-4">
+                        {rounds.length === 0 ? (
+                          <p className="text-sm text-slate-500">No linked rounds yet.</p>
+                        ) : (
+                          <div className="flex flex-wrap gap-2">
+                            {rounds.map((round) => {
+                              const roundId = round.id || round._id;
+                              const isSelectedRound = selectedRoundId === roundId;
+
+                              return (
+                                <button
+                                  key={roundId}
+                                  type="button"
+                                  onClick={() => setSelectedRoundId(roundId)}
+                                  className={`rounded-xl border px-3 py-2 text-left text-xs font-semibold transition-all ${
+                                    isSelectedRound
+                                      ? "border-[#FBBF24] bg-[#FBBF24]/10 text-[#102a5a]"
+                                      : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                                  }`}
+                                >
+                                  <p>{round.name}</p>
+                                  <p className="mt-0.5 text-[11px] text-slate-500">{round.code}</p>
+                                </button>
+                              );
+                            })}
                           </div>
-                          <div className="min-w-0">
-                            <p className="font-semibold text-sm truncate text-[#102a5a]">{round.name}</p>
-                            <p className="text-xs text-slate-500 mt-0.5 truncate">
-                              {round.code} · {round.level} · {round.campus}
-                            </p>
-                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="p-4 lg:p-5">
+                      {!selectedOverviewSession ? (
+                        <div className="rounded-2xl border border-slate-100 bg-slate-50 px-5 py-8 text-center text-sm text-slate-500">
+                          Select any upcoming session from the list to add attendance or evaluation.
                         </div>
-                      </button>
-                    ))}
+                      ) : (
+                        <div className="space-y-4">
+                          <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
+                            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                              <div>
+                                <p className="text-sm font-semibold text-[#102a5a]">{selectedOverviewSession.title}</p>
+                                <p className="mt-1 text-xs text-slate-500">
+                                  {selectedOverviewSession.dateLabel} at {selectedOverviewSession.timeLabel}
+                                  {selectedOverviewSession.roundName ? ` - ${selectedOverviewSession.roundName}` : ""}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${getStatusMeta(selectedOverviewSession.lifecycleStatus).badgeClass}`}>
+                                  {getStatusMeta(selectedOverviewSession.lifecycleStatus).label}
+                                </span>
+                                <span className={`text-xs font-semibold ${getStatusMeta(selectedOverviewSession.lifecycleStatus).hintClass}`}>
+                                  {selectedOverviewSession.hintText}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {selectedOverviewSession.sessionType === "round" ? (
+                            <div className="overflow-hidden rounded-2xl border border-slate-100">
+                              <div className="flex flex-col gap-3 border-b border-slate-100 p-4 md:flex-row md:items-center md:justify-between">
+                                <div>
+                                  <h3 className="text-sm font-semibold text-[#102a5a]">Attendance</h3>
+                                  <p className="text-xs text-slate-500">
+                                    {overviewAttendanceCounts.present}/{overviewAttendanceCounts.total} marked present
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOverviewBulkUpdate(true)}
+                                    disabled={isBulkUpdating || overviewEnrollments.length === 0}
+                                    className="rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-semibold text-emerald-700 transition-all hover:bg-emerald-100 disabled:opacity-50"
+                                  >
+                                    All Present
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOverviewBulkUpdate(false)}
+                                    disabled={isBulkUpdating || overviewEnrollments.length === 0}
+                                    className="rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-semibold text-slate-600 transition-all hover:bg-slate-100 disabled:opacity-50"
+                                  >
+                                    All Absent
+                                  </button>
+                                </div>
+                              </div>
+
+                              {overviewEnrollments.length === 0 ? (
+                                <div className="px-4 py-8 text-center text-sm text-slate-500">
+                                  No students linked to this round.
+                                </div>
+                              ) : (
+                                <div className="max-h-[420px] overflow-auto">
+                                  <table className="min-w-full text-sm">
+                                    <thead>
+                                      <tr className="border-b border-slate-100 bg-slate-50/80">
+                                        <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Student</th>
+                                        <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Parent</th>
+                                        <th className="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">Attendance</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100 bg-white">
+                                      {overviewEnrollments.map((enrollment) => {
+                                        const enrollmentId = enrollment.id || enrollment._id;
+                                        const isPresent = getAttendanceStatus(
+                                          enrollment,
+                                          selectedOverviewSession.sessionId
+                                        );
+
+                                        return (
+                                          <tr key={enrollmentId} className="hover:bg-slate-50/70">
+                                            <td className="px-4 py-3 font-medium text-[#102a5a]">
+                                              {enrollment.childName || "-"}
+                                            </td>
+                                            <td className="px-4 py-3 text-slate-600">{enrollment.parentName || "-"}</td>
+                                            <td className="px-4 py-3 text-right">
+                                              <label className="inline-flex cursor-pointer items-center gap-2">
+                                                <span className={`text-xs font-semibold ${isPresent ? "text-emerald-600" : "text-slate-400"}`}>
+                                                  {isPresent ? "Present" : "Absent"}
+                                                </span>
+                                                <input
+                                                  type="checkbox"
+                                                  checked={isPresent}
+                                                  onChange={(e) =>
+                                                    updateAttendance(enrollmentId, e.target.checked, {
+                                                      sessionId: selectedOverviewSession.sessionId,
+                                                      roundId: selectedOverviewSession.roundId,
+                                                    })
+                                                  }
+                                                  className="h-4 w-4 rounded border-slate-300 text-emerald-600"
+                                                />
+                                              </label>
+                                            </td>
+                                          </tr>
+                                        );
+                                      })}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="rounded-2xl border border-slate-100 p-4">
+                              <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                                <div>
+                                  <h3 className="text-sm font-semibold text-[#102a5a]">Evaluation</h3>
+                                  <p className="text-xs text-slate-500">
+                                    Fill child strengths and favorite project directly from this free session.
+                                  </p>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setActiveTab("evaluations")}
+                                  className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                                >
+                                  Open all evaluations
+                                </button>
+                              </div>
+
+                              {selectedOverviewLead ? (
+                                <>
+                                  <p className="mb-3 text-xs text-slate-500">
+                                    Parent: {selectedOverviewLead.parentName || "-"} - Child: {selectedOverviewLead.childName || "-"}
+                                  </p>
+                                  <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+                                    <textarea
+                                      rows={3}
+                                      value={selectedOverviewEvaluationDraft.strengths}
+                                      onChange={(e) =>
+                                        handleEvaluationDraftChange(selectedOverviewLeadId, "strengths", e.target.value)
+                                      }
+                                      placeholder="Child strengths..."
+                                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-[#FBBF24] focus:ring-2 focus:ring-[#FBBF24]/50"
+                                    />
+                                    <textarea
+                                      rows={3}
+                                      value={selectedOverviewEvaluationDraft.favoriteProject}
+                                      onChange={(e) =>
+                                        handleEvaluationDraftChange(selectedOverviewLeadId, "favoriteProject", e.target.value)
+                                      }
+                                      placeholder="Favorite project..."
+                                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-[#FBBF24] focus:ring-2 focus:ring-[#FBBF24]/50"
+                                    />
+                                  </div>
+                                  <div className="mt-3 flex justify-end">
+                                    <button
+                                      type="button"
+                                      onClick={() => saveLeadEvaluation(selectedOverviewLeadId)}
+                                      disabled={!selectedOverviewLeadId || isSavingEvaluationId === selectedOverviewLeadId}
+                                      className="inline-flex items-center gap-2 rounded-xl bg-[#102a5a] px-4 py-2 text-xs font-semibold text-white transition-all hover:bg-[#1a3a6b] disabled:opacity-50"
+                                    >
+                                      <Save className="h-3.5 w-3.5" />
+                                      {isSavingEvaluationId === selectedOverviewLeadId ? "Saving..." : "Save Evaluation"}
+                                    </button>
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-700">
+                                  Evaluation is not available for this free session yet. Please refresh or open the Evaluations tab.
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                )}
+                </div>
               </div>
             </Motion.div>
           )}
@@ -1048,7 +1416,7 @@ const InstructorDashboard = () => {
             </Motion.div>
           )}
 
-          {/* ===== TAB: UPCOMING SESSIONS ===== */}
+                    {/* ===== TAB: UPCOMING SESSIONS ===== */}
           {activeTab === "sessions" && (
             <Motion.div
               key="sessions"
@@ -1065,67 +1433,84 @@ const InstructorDashboard = () => {
                     <h2 className="text-base font-bold text-[#102a5a]">Upcoming Sessions</h2>
                   </div>
                   <span className="inline-flex items-center rounded-full bg-[#FBBF24]/10 px-2.5 py-0.5 text-xs font-bold text-[#92400e]">
-                    {upcomingSessions.length} Scheduled
+                    {upcomingSessions.length} Visible
                   </span>
                 </div>
 
                 {upcomingSessions.length === 0 ? (
                   <div className="text-center py-10 border-t border-slate-100">
                     <CalendarClock className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-                    <p className="text-sm text-slate-500">No upcoming sessions on your schedule.</p>
+                    <p className="text-sm text-slate-500">No sessions on your schedule.</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-                    {upcomingSessions.map((session) => (
-                      <div
-                        key={session.id || session._id}
-                        className={`rounded-2xl border p-4 hover:shadow-md transition-all ${
-                          session._type === "free"
-                            ? "border-emerald-200 bg-emerald-50/50 hover:bg-white hover:border-emerald-300"
-                            : "border-slate-100 bg-slate-50/50 hover:bg-white hover:border-[#FBBF24]/30"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 mb-2">
-                          <p className="font-semibold text-[#102a5a] text-sm">
-                            {session.title || "Untitled Session"}
-                          </p>
-                          {session._type === "free" && (
-                            <span className="inline-flex items-center rounded-full bg-emerald-100 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
-                              Free
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium mb-3">
-                          <CalendarClock className="w-3.5 h-3.5 text-slate-400" />
-                          {session.date} · {session.time}
-                        </div>
+                    {upcomingSessions.map((session) => {
+                      const statusMeta = getStatusMeta(session.lifecycleStatus);
 
-                        {session._type === "free" ? (
-                          <div className="space-y-1.5 text-xs text-slate-600">
-                            <div className="flex flex-wrap gap-x-3 gap-y-1">
-                              <span><b className="text-[#102a5a]">Parent:</b> {session.parentName}</span>
-                              <span><b className="text-[#102a5a]">Phone:</b> {session.phone}</span>
+                      return (
+                        <button
+                          key={session.key}
+                          type="button"
+                          onClick={() => {
+                            handleSelectOverviewSession(session);
+                            setActiveTab("overview");
+                          }}
+                          className={`rounded-2xl border p-4 text-left transition-all hover:shadow-md ${
+                            session._type === "free"
+                              ? "border-emerald-200 bg-emerald-50/50 hover:bg-white hover:border-emerald-300"
+                              : "border-slate-100 bg-slate-50/50 hover:bg-white hover:border-[#FBBF24]/30"
+                          }`}
+                        >
+                          <div className="mb-2 flex items-center justify-between gap-2">
+                            <p className="text-sm font-semibold text-[#102a5a]">
+                              {session.title || "Untitled Session"}
+                            </p>
+                            <div className="flex items-center gap-1.5">
+                              {session._type === "free" && (
+                                <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                                  Free
+                                </span>
+                              )}
+                              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusMeta.badgeClass}`}>
+                                {statusMeta.label}
+                              </span>
                             </div>
-                            <p><b className="text-[#102a5a]">Child:</b> {session.childName}{session.childAge ? ` (${session.childAge} yrs)` : ""}</p>
-                            {session.notes?.length > 0 && (
-                              <div className="mt-1.5 text-[11px] text-slate-500 bg-white/70 rounded-lg px-2.5 py-1.5 border border-slate-100">
-                                <b className="text-slate-600">Notes:</b> {session.notes.join(" | ")}
+                          </div>
+
+                          <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-slate-500">
+                            <CalendarClock className="w-3.5 h-3.5 text-slate-400" />
+                            {session.dateLabel} - {session.timeLabel}
+                          </div>
+
+                          <p className={`mb-3 text-xs font-semibold ${statusMeta.hintClass}`}>
+                            {session.hintText}
+                          </p>
+
+                          {session._type === "free" ? (
+                            <div className="space-y-1.5 text-xs text-slate-600">
+                              <div className="flex flex-wrap gap-x-3 gap-y-1">
+                                <span><b className="text-[#102a5a]">Parent:</b> {session.parentName || "-"}</span>
+                                <span><b className="text-[#102a5a]">Phone:</b> {session.phone || "-"}</span>
                               </div>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="inline-flex items-center gap-1.5 rounded-xl bg-[#102a5a]/5 px-2.5 py-1 text-xs text-[#102a5a] border border-[#102a5a]/10">
-                            <span className="font-semibold truncate max-w-[120px]">{session.roundName}</span>
-                            {session.roundCode && (
-                              <>
-                                <span className="text-[#102a5a]/30">·</span>
-                                <span className="font-mono text-[#102a5a]/70">{session.roundCode}</span>
-                              </>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                              <p>
+                                <b className="text-[#102a5a]">Child:</b> {session.childName || "-"}
+                                {session.childAge ? ` (${session.childAge} yrs)` : ""}
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="inline-flex items-center gap-1.5 rounded-xl border border-[#102a5a]/10 bg-[#102a5a]/5 px-2.5 py-1 text-xs text-[#102a5a]">
+                              <span className="max-w-[120px] truncate font-semibold">{session.roundName}</span>
+                              {session.roundCode && (
+                                <>
+                                  <span className="text-[#102a5a]/30">-</span>
+                                  <span className="font-mono text-[#102a5a]/70">{session.roundCode}</span>
+                                </>
+                              )}
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
