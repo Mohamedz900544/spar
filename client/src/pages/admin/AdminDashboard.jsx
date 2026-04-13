@@ -86,6 +86,7 @@ const AdminDashboard = () => {
     userSearch,
     setUserSearch,
     handleDeleteParent,
+    blockProjectsByUser,
     rounds,
     newRound,
     handleNewRoundChange,
@@ -226,6 +227,7 @@ const AdminDashboard = () => {
                 enrollments={enrollments}
                 rounds={rounds}
                 handleDeleteParent={handleDeleteParent}
+                blockProjectsByUser={blockProjectsByUser}
               />
             )}
 

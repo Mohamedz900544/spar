@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
     Camera,
     Save,
@@ -63,6 +63,8 @@ const ParentProfile = ({ userData, setUserData }) => {
     const [previewUrl, setPreviewUrl] = useState(null);
     const [message, setMessage] = useState({ type: "", text: "" });
     const [stepIndex, setStepIndex] = useState(0);
+    const childNameRef = useRef(null);
+    const childAgeRef = useRef(null);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -123,6 +125,29 @@ const ParentProfile = ({ userData, setUserData }) => {
     };
 
     const handleNext = () => {
+        if (currentStep.key === "childName") {
+            const draftName = (childNameRef.current?.value || "").trim();
+            if (!draftName) {
+                setMessage({ type: "error", text: "Please complete this field to continue." });
+                return;
+            }
+            if (!isChildNameValid) {
+                handleChangeChild("name", draftName);
+            }
+        }
+
+        if (currentStep.key === "childAge") {
+            const draftAge = childAgeRef.current?.value || "";
+            const numericDraftAge = Number(draftAge);
+            if (!(numericDraftAge >= 3 && numericDraftAge <= 18)) {
+                setMessage({ type: "error", text: "Please complete this field to continue." });
+                return;
+            }
+            if (!isChildAgeValid) {
+                handleChangeChild("age", draftAge);
+            }
+        }
+
         if (!canProceed()) {
             setMessage({ type: "error", text: "Please complete this field to continue." });
             return;
@@ -311,6 +336,7 @@ const ParentProfile = ({ userData, setUserData }) => {
                                                     onChange={(e) =>
                                                         handleChangeChild("name", e.target.value)
                                                     }
+                                                    ref={childNameRef}
                                                     className={`${inputClass} pl-11`}
                                                     placeholder="Your child's name"
                                                 />
@@ -333,6 +359,7 @@ const ParentProfile = ({ userData, setUserData }) => {
                                                     onChange={(e) =>
                                                         handleChangeChild("age", e.target.value)
                                                     }
+                                                    ref={childAgeRef}
                                                     className={`${inputClass} pl-11`}
                                                     placeholder="e.g. 7"
                                                 />

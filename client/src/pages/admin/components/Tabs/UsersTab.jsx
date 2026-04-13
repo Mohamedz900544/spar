@@ -11,6 +11,7 @@ export const UsersTab = ({
   enrollments,
   rounds,
   handleDeleteParent,
+  blockProjectsByUser,
 }) => {
   const MotionContainer = motion.div;
   const [selectedUserId, setSelectedUserId] = useState(null);
@@ -35,6 +36,13 @@ export const UsersTab = ({
   const selectedUser = filteredUsers.find(
     (u) => (u.id || u._id) === selectedUserId
   );
+  const selectedUserIdValue = selectedUser?.id || selectedUser?._id || "";
+  const selectedUserProject = selectedUserIdValue
+    ? blockProjectsByUser?.[selectedUserIdValue?.toString?.()] || null
+    : null;
+  const shareUrl = selectedUserProject?.id
+    ? `${window.location.origin}/blocks/share/${selectedUserProject.id}`
+    : "";
 
   const selectedEnrollments = useMemo(() => {
     if (!selectedUser) return [];
@@ -212,6 +220,21 @@ export const UsersTab = ({
                         <span className="text-[11px] text-slate-500">
                           Age {child.age ?? "-"}
                         </span>
+                      </div>
+                      <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px]">
+                        <span className="text-slate-500">Blocks share:</span>
+                        {shareUrl ? (
+                          <a
+                            href={shareUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="font-semibold text-[#102a5a] hover:underline"
+                          >
+                            {shareUrl}
+                          </a>
+                        ) : (
+                          <span className="text-slate-400">Not available</span>
+                        )}
                       </div>
                       <p className="text-[11px] text-slate-500">
                         Enrolled rounds: {child.enrolledRounds?.length || 0}

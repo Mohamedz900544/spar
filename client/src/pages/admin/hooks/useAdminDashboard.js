@@ -257,6 +257,7 @@ export const useAdminDashboard = () => {
 
   const [users, setUsers] = useState([]);
   const [userSearch, setUserSearch] = useState("");
+  const [blockProjectsByUser, setBlockProjectsByUser] = useState({});
 
   // rounds
   const [rounds, setRounds] = useState([]);
@@ -771,6 +772,12 @@ export const useAdminDashboard = () => {
           id: p._id?.toString() || p.id,
         }));
         setUsers(normalizedParents);
+      }
+
+      if (data.blockProjectsByUser && typeof data.blockProjectsByUser === "object") {
+        setBlockProjectsByUser(data.blockProjectsByUser);
+      } else {
+        setBlockProjectsByUser({});
       }
 
       if (Array.isArray(data.roundRatings))
@@ -1464,6 +1471,7 @@ export const useAdminDashboard = () => {
     userSearch,
     setUserSearch,
     handleDeleteParent,
+    blockProjectsByUser,
 
     // rounds
     rounds,

@@ -301,6 +301,7 @@ const InstructorDashboard = () => {
   const [freeSessions, setFreeSessions] = useState([]);
   const [evaluationDrafts, setEvaluationDrafts] = useState({});
   const [isSavingEvaluationId, setIsSavingEvaluationId] = useState("");
+  const [evaluationMessage, setEvaluationMessage] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
   const [timelineNow, setTimelineNow] = useState(() => Date.now());
   const [selectedOverviewSessionKey, setSelectedOverviewSessionKey] = useState("");
@@ -716,6 +717,7 @@ const InstructorDashboard = () => {
 
     try {
       setIsSavingEvaluationId(leadId);
+      setEvaluationMessage("");
       const res = await fetch(`${API_BASE_URL}/api/instructor/trial-leads/${leadId}/evaluation`, {
         method: "PATCH",
         headers: {
@@ -737,6 +739,8 @@ const InstructorDashboard = () => {
         })
       );
       setError("");
+      setEvaluationMessage("Evaluation saved successfully.");
+      setTimeout(() => setEvaluationMessage(""), 3000);
     } catch (err) {
       setError(err.message || "Failed to save evaluation");
     } finally {
@@ -887,6 +891,20 @@ const InstructorDashboard = () => {
       {/* ===== Main Content ===== */}
       <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6">
         <div className="max-w-7xl mx-auto space-y-6">
+          <AnimatePresence>
+            {evaluationMessage && (
+              <Motion.div
+                key="evaluation-toast"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 12 }}
+                className="fixed right-6 top-20 z-50 rounded-2xl border border-emerald-200 bg-white/95 px-4 py-3 text-sm font-semibold text-emerald-700 shadow-[0_18px_40px_-20px_rgba(16,42,90,0.55)] backdrop-blur"
+              >
+                {evaluationMessage}
+              </Motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Error */}
           <AnimatePresence>
             {error && (

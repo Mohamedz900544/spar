@@ -12,6 +12,7 @@ import SessionRating from "../models/SessionRating.js";
 import User from "../models/User.js";
 import SiteVisit from "../models/SiteVisit.js";
 import Lead from "../models/Lead.js";
+import BlockProject from "../models/BlockProject.js";
 import { sendBrevoEmail } from "../services/brevoEmail.service.js";
 
 const router = express.Router();
@@ -123,6 +124,26 @@ router.get("/dashboard", authRequired, adminOnly, async (req, res) => {
       0
     );
 
+    /* ================= BLOCK PROJECTS (LATEST PER PARENT) ================= */
+    const parentIds = parents.map((p) => p._id).filter(Boolean);
+    const blockProjectsByUser = {};
+    if (parentIds.length > 0) {
+      const projects = await BlockProject.find({ user: { $in: parentIds } })
+        .select("_id user title updatedAt")
+        .sort({ updatedAt: -1 })
+        .lean();
+
+      for (const project of projects) {
+        const userId = project.user?.toString?.();
+        if (!userId || blockProjectsByUser[userId]) continue;
+        blockProjectsByUser[userId] = {
+          id: project._id?.toString?.() || project._id,
+          title: project.title || "My page",
+          updatedAt: project.updatedAt || null,
+        };
+      }
+    }
+
     /* ---------- studentPhotos: grouped by enrollmentId ---------- */
     const studentPhotos = {};
     for (const photo of childPhotos) {
@@ -202,6 +223,7 @@ router.get("/dashboard", authRequired, adminOnly, async (req, res) => {
       instructors,
       salesAgents,
       parents,
+      blockProjectsByUser,
     });
   } catch (err) {
     console.error("Admin dashboard error:", err);
