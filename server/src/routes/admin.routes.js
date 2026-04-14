@@ -18,6 +18,25 @@ import { sendBrevoEmail } from "../services/brevoEmail.service.js";
 const router = express.Router();
 const INSTRUCTOR_LOGIN_URL = `${(process.env.CLIENT_URL || "").replace(/\/$/, "")}/login`;
 
+const formatDateInCairo = (value) => {
+  if (!value) return "";
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("en-CA", { timeZone: "Africa/Cairo" });
+};
+
+const formatTimeInCairo = (value) => {
+  if (!value) return "";
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "Africa/Cairo",
+  });
+};
+
 const escapeHtml = (value = "") =>
   `${value}`
     .replace(/&/g, "&amp;")
@@ -96,6 +115,7 @@ router.get("/dashboard", authRequired, adminOnly, async (req, res) => {
       parents,
       instructors,
       salesAgents,
+      freeSessionLeads,
     ] = await Promise.all([
       Session.find({ date: { $gte: today } }).sort({ date: 'asc', time: 'asc' }).lean(),
       Enrollment.find().lean(),
@@ -116,7 +136,50 @@ router.get("/dashboard", authRequired, adminOnly, async (req, res) => {
         .select("name email phone photoUrl createdAt")
         .sort({ createdAt: "desc" })
         .lean(),
+      Lead.find({
+        $or: [
+          { source: "Free Session" },
+          { "freeSession.requested": true },
+          { "freeSession.isAssigned": true },
+          { status: "Demo Booked" },
+          { "freeSession.scheduledAt": { $ne: null } },
+        ],
+      })
+        .sort({ "freeSession.scheduledAt": 1, createdAt: -1 })
+        .lean(),
     ]);
+
+    const freeSessionsForAdmin = (freeSessionLeads || []).map((lead) => ({
+      id: `free-${lead._id.toString()}`,
+      leadId: lead._id.toString(),
+      sessionType: "free",
+      title: `Free Session - ${lead.childName || "Child"}`,
+      level: "Free Session",
+      date: formatDateInCairo(lead.freeSession?.scheduledAt),
+      time: formatTimeInCairo(lead.freeSession?.scheduledAt),
+      campus: lead.freeSession?.instructorName || "Free Session",
+      enrolled: 1,
+      capacity: 1,
+      status: lead.status || "Free Session",
+      parentName: lead.parentName || "",
+      childName: lead.childName || "",
+      childAge: lead.childAge || null,
+      phone: lead.phone || "",
+      source: lead.source || "Free Session",
+      scheduledAt: lead.freeSession?.scheduledAt || null,
+      endsAt: lead.freeSession?.endsAt || null,
+      durationMinutes: lead.freeSession?.durationMinutes || 60,
+      instructorName: lead.freeSession?.instructorName || "",
+    }));
+
+    const dashboardSessions = [
+      ...sessions,
+      ...freeSessionsForAdmin,
+    ].sort((a, b) => {
+      const aDate = a.scheduledAt ? new Date(a.scheduledAt).getTime() : new Date(`${a.date || "9999-12-31"}T${a.time || "00:00"}`).getTime();
+      const bDate = b.scheduledAt ? new Date(b.scheduledAt).getTime() : new Date(`${b.date || "9999-12-31"}T${b.time || "00:00"}`).getTime();
+      return (Number.isNaN(aDate) ? Number.MAX_SAFE_INTEGER : aDate) - (Number.isNaN(bDate) ? Number.MAX_SAFE_INTEGER : bDate);
+    });
 
     /* ================= TOTAL KIDS ================= */
     const totalKids = parents.reduce(
@@ -213,7 +276,7 @@ router.get("/dashboard", authRequired, adminOnly, async (req, res) => {
       totalKids,        // ✅ correct kids count
       todayVisitors,    // ✅ unique visitors today
       liveVisitors,     // ✅ active visitors last 5 minutes
-      sessions: sessions,
+      sessions: dashboardSessions,
       enrollments,      // still used for rounds
       rounds,
       galleryItems,

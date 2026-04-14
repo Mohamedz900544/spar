@@ -27,11 +27,19 @@ export const normalizePhoneForWhatsApp = (phone) => {
     return digits || "";
   }
 
-  const digits = raw.replace(/\D/g, "");
+  let digits = raw.replace(/\D/g, "");
   if (!digits) return "";
+  // International prefix like 0020... → drop leading 00
+  if (digits.startsWith("00")) {
+    digits = digits.slice(2);
+  }
 
   // Already has the default country code
   if (digits.startsWith(DEFAULT_COUNTRY_CODE)) return digits;
+  // Common case: Egyptian mobile without leading 0 (10 digits starting with 1)
+  if (digits.length === 10 && digits.startsWith("1")) {
+    return `${DEFAULT_COUNTRY_CODE}${digits}`;
+  }
   // Local number starting with 0 → replace leading 0 with country code
   if (digits.startsWith("0")) return `${DEFAULT_COUNTRY_CODE}${digits.slice(1)}`;
   return digits;

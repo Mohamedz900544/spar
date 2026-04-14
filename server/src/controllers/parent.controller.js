@@ -5,6 +5,31 @@ import SessionRating from "../models/SessionRating.js";
 import User from "../models/User.js";
 import ChildPhoto from "../models/ChildPhoto.js";
 import { uploadFromStream } from "../helpers.js";
+import Lead from "../models/Lead.js";
+import { normalizePhoneForWhatsApp } from "../services/whatsapp.service.js";
+
+const normalizePhoneDigits = (value) => (value || "").toString().replace(/\D/g, "");
+
+const toComparableEgyptPhone = (value) => {
+    let digits = normalizePhoneDigits(value);
+    if (!digits) return { local: "", core: "", raw: "" };
+    if (digits.startsWith("00")) digits = digits.slice(2);
+    if (digits.startsWith("20") && digits.length >= 12) {
+        digits = `0${digits.slice(2)}`;
+    }
+    const core = digits.startsWith("0") ? digits.slice(1) : digits;
+    return { local: digits, core, raw: normalizePhoneDigits(value) };
+};
+
+const phonesMatch = (left, right) => {
+    const a = toComparableEgyptPhone(left);
+    const b = toComparableEgyptPhone(right);
+    if (!a.core || !b.core) return false;
+    if (a.local === b.local || a.core === b.core) return true;
+    if (a.core.length >= 9 && b.raw.endsWith(a.core)) return true;
+    if (b.core.length >= 9 && a.raw.endsWith(b.core)) return true;
+    return normalizePhoneForWhatsApp(left) === normalizePhoneForWhatsApp(right);
+};
 
 const formatDate = (value) => {
     if (!value) return null;
@@ -23,32 +48,48 @@ export const getDashboardData = async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
+        const userPhone = user.phone || "";
+        const userPhoneMatch = toComparableEgyptPhone(userPhone);
+
+        const leadCandidates = userPhoneMatch.core
+            ? await Lead.find({
+                $or: [
+                    { source: "Free Session" },
+                    { "freeSession.requested": true },
+                    { "freeSession.isAssigned": true },
+                    { status: "Demo Booked" },
+                    { "freeSession.scheduledAt": { $ne: null } },
+                ],
+            }).lean()
+            : [];
+
+        const freeSessions = (leadCandidates || [])
+            .filter((lead) => phonesMatch(userPhone, lead.phone || ""))
+            .sort((a, b) => new Date(a.freeSession?.scheduledAt || a.createdAt || 0) - new Date(b.freeSession?.scheduledAt || b.createdAt || 0))
+            .map((lead) => ({
+                id: lead._id.toString(),
+                parentName: lead.parentName || "-",
+                childName: lead.childName || "-",
+                childAge: lead.childAge || null,
+                phone: lead.phone || "-",
+                scheduledAt: lead.freeSession?.scheduledAt || null,
+                durationMinutes: lead.freeSession?.durationMinutes || 60,
+                endsAt: lead.freeSession?.endsAt || null,
+                status: lead.status || "",
+            }));
+
         const linkedCodes = (user.linkedRoundCodes || []).map((c) =>
             c.toString().toUpperCase().trim()
         );
 
-        if (!linkedCodes.length) {
-            return res.json({
-                parent: {
-                    id: user._id.toString(),
-                    name: user.name,
-                    email: user.email,
-                    children: user.children,
-                    photoUrl: user.photoUrl
-                },
-                rounds: [],
-                enrollments: [],
-                photos: [],
-                studentPhotos: {},
-            });
-        }
-
         // all rounds of specific user
-        const rounds = await Round.find({
-            code: { $in: linkedCodes },
-        }).populate({
-            path: 'sessions',
-        }).lean();
+        const rounds = linkedCodes.length
+            ? await Round.find({
+                code: { $in: linkedCodes },
+            }).populate({
+                path: 'sessions',
+            }).lean()
+            : [];
 
         // session ratings for each user for each round
         const userRatings = await SessionRating.find({ user: req.user?._id })
@@ -58,16 +99,20 @@ export const getDashboardData = async (req, res) => {
             ratingMap[r.sessionId.toString()] = { rating: r?.rating, description: r.description }
         })
 
-        const enrollments = await Enrollment.find({
-            user: user._id,
-            roundCode: { $in: linkedCodes },
-        }).lean();
+        const enrollments = linkedCodes.length
+            ? await Enrollment.find({
+                user: user._id,
+                roundCode: { $in: linkedCodes },
+            }).lean()
+            : [];
 
         const enrollmentIds = enrollments.map((e) => e._id);
 
-        const photos = await ChildPhoto.find({
-            enrollment: { $in: enrollmentIds },
-        }).lean();
+        const photos = enrollmentIds.length
+            ? await ChildPhoto.find({
+                enrollment: { $in: enrollmentIds },
+            }).lean()
+            : [];
 
         const studentPhotos = {};
         for (const p of photos) {
@@ -123,6 +168,7 @@ export const getDashboardData = async (req, res) => {
                 caption: p.caption || "",
             })),
             studentPhotos,
+            freeSessions,
         });
     } catch (err) {
         console.error("Parent Dashboard error:", err);

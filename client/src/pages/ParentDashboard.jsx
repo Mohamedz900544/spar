@@ -104,6 +104,50 @@ const formatCountdown = (diffMs) => {
   return parts.join(" ");
 };
 
+const formatTime24 = (value) => {
+  if (!value) return "";
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
+};
+
+const getParentSessionLifecycle = (session, now) => {
+  if (session?.status === "Completed") return "completed";
+  const dateTime = getSessionDateTime(session);
+  if (!dateTime) return "upcoming";
+  const start = dateTime.getTime();
+  const end = start + 60 * 60 * 1000;
+  const nowMs = now.getTime();
+  if (nowMs < start) return "upcoming";
+  if (nowMs <= end) return "active";
+  return "completed";
+};
+
+const getParentStatusMeta = (lifecycle) => {
+  switch (lifecycle) {
+    case "active":
+      return {
+        label: "Active",
+        badgeClass: "border-emerald-200 bg-emerald-50 text-emerald-700",
+        hintClass: "text-emerald-700",
+      };
+    case "completed":
+      return {
+        label: "Completed",
+        badgeClass: "border-slate-200 bg-slate-100 text-slate-600",
+        hintClass: "text-slate-500",
+      };
+    default:
+      return {
+        label: "Upcoming",
+        badgeClass: "border-amber-200 bg-amber-50 text-amber-700",
+        hintClass: "text-amber-700",
+      };
+  }
+};
+
 /* ====== STAT CARD ====== */
 const StatCard = ({ icon: Icon, label, value, accent, subtext, onClick }) => (
   <button
@@ -144,6 +188,7 @@ const ParentDashboard = ({ parent, setParent }) => {
   const [roundCodeInput, setRoundCodeInput] = useState("");
   const [linkedRounds, setLinkedRounds] = useState([]);
   const [linkErrorMessage, setLinkErrorMessage] = useState("");
+  const [freeSessions, setFreeSessions] = useState([]);
 
   const [sessionRatings, setSessionRatings] = useState({});
   const [sessionFeedback, setSessionFeedback] = useState({});
@@ -153,6 +198,7 @@ const ParentDashboard = ({ parent, setParent }) => {
   const [selectedChildId, setSelectedChildId] = useState("");
   const [isEnrollingChild, setIsEnrollingChild] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
+  const [selectedOverviewSessionKey, setSelectedOverviewSessionKey] = useState(null);
 
   const getToken = () =>
     typeof window !== "undefined" ? localStorage.getItem("sparvi_token") : null;
@@ -203,6 +249,7 @@ const ParentDashboard = ({ parent, setParent }) => {
       setEnrollments(json.enrollments || []);
       setRounds(enrichRoundsWithAllPhotos(json));
       setLinkedRounds((json.rounds || []).map((r) => r.code));
+      setFreeSessions(json.freeSessions || []);
     } catch (err) {
       if (err?.name === "AbortError") return;
       setGlobalError(err.message || "Could not load dashboard data.");
@@ -274,6 +321,97 @@ const ParentDashboard = ({ parent, setParent }) => {
     () => allSessions.filter((s) => s.status === "Completed"),
     [allSessions]
   );
+
+  const overviewSessions = useMemo(() => {
+    const roundItems = allSessions.map((session) => ({
+      ...session,
+      sessionType: "round",
+      title: session.title || "Session",
+    }));
+
+    const freeItems = (freeSessions || []).map((session) => {
+      const scheduledAt = session.scheduledAt ? new Date(session.scheduledAt) : null;
+      const date = scheduledAt ? scheduledAt.toISOString().slice(0, 10) : null;
+      const time = scheduledAt ? formatTime24(scheduledAt) : null;
+      return {
+        ...session,
+        sessionType: "free",
+        title: `Free Session - ${session.childName || "Child"}`,
+        date,
+        time,
+        roundCode: "FREE",
+      };
+    });
+
+    return [...roundItems, ...freeItems]
+      .map((session) => {
+        const sessionId = session.id || session._id;
+        const dateTime = getSessionDateTime(session);
+        const startMs = dateTime ? dateTime.getTime() : null;
+        const lifecycle = getParentSessionLifecycle(session, now);
+        const diffMs = startMs != null ? startMs - now.getTime() : null;
+        const timeLabel = session.time || (dateTime ? dateTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "TBA");
+        const dateLabel = dateTime
+          ? dateTime.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" })
+          : "TBA";
+        const hintText = lifecycle === "active"
+          ? "Active now"
+          : lifecycle === "completed"
+            ? "Completed"
+            : diffMs != null
+              ? `After ${formatCountdown(diffMs)}`
+              : "TBA";
+        return {
+          ...session,
+          sessionId,
+          key: `${session.roundCode}-${sessionId}`,
+          lifecycle,
+          startMs,
+          dateLabel,
+          timeLabel,
+          hintText,
+        };
+      })
+      .sort((a, b) => {
+        const order = { active: 0, upcoming: 1, completed: 2 };
+        const statusDiff = order[a.lifecycle] - order[b.lifecycle];
+        if (statusDiff !== 0) return statusDiff;
+        if (a.startMs == null && b.startMs == null) return 0;
+        if (a.startMs == null) return 1;
+        if (b.startMs == null) return -1;
+        if (a.lifecycle === "completed") return b.startMs - a.startMs;
+        return a.startMs - b.startMs;
+      });
+  }, [allSessions, freeSessions, now]);
+
+  const selectedOverviewSession = useMemo(
+    () => overviewSessions.find((s) => s.key === selectedOverviewSessionKey) || null,
+    [overviewSessions, selectedOverviewSessionKey]
+  );
+
+  useEffect(() => {
+    if (overviewSessions.length === 0) {
+      setSelectedOverviewSessionKey(null);
+      return;
+    }
+    const exists = overviewSessions.some((s) => s.key === selectedOverviewSessionKey);
+    if (!selectedOverviewSessionKey || !exists) {
+      setSelectedOverviewSessionKey(overviewSessions[0].key);
+    }
+  }, [overviewSessions, selectedOverviewSessionKey]);
+
+  const selectedOverviewKey = selectedOverviewSession
+    ? `${selectedOverviewSession.roundCode}-${selectedOverviewSession.sessionId}`
+    : null;
+  const selectedOverviewRating = selectedOverviewKey
+    ? sessionRatings[selectedOverviewKey] || selectedOverviewSession.userRating || 0
+    : 0;
+  const selectedOverviewFeedback = selectedOverviewKey
+    ? sessionFeedback[selectedOverviewKey] || selectedOverviewSession.feedback || ""
+    : "";
+  const selectedOverviewSubmitted = selectedOverviewKey
+    ? ratingSubmitted[selectedOverviewKey] || Boolean(selectedOverviewSession.userRating)
+    : false;
 
   const handleSessionRatingChange = (roundCode, sessionId, rating) => {
     setSessionRatings((prev) => ({ ...prev, [`${roundCode}-${sessionId}`]: rating }));
@@ -458,97 +596,76 @@ const ParentDashboard = ({ parent, setParent }) => {
           {/* ===== TAB: OVERVIEW ===== */}
           {!loading && activeTab === "overview" && (
             <Motion.div key="overview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-              {/* Welcome */}
-              <div
-                className="rounded-2xl p-6 md:p-8 relative overflow-hidden"
-                style={{ background: "linear-gradient(135deg, #071228 0%, #102a5a 50%, #1a3a6b 100%)" }}
-              >
-                <div className="absolute top-4 right-6 w-20 h-20 rounded-full bg-[#FBBF24]/10" />
-                <div className="absolute bottom-2 left-1/3 w-12 h-12 rounded-full bg-[#2dd4bf]/10" />
-                <h1 className="text-2xl md:text-3xl font-extrabold text-white leading-tight mb-2 relative z-10">
-                  Welcome back{parent?.name ? <>, <span className="text-[#FBBF24]">{parent.name.split(" ")[0]}</span></> : ""}!
-                </h1>
-                <p className="text-slate-300 text-sm max-w-lg relative z-10">
-                  Track sessions, browse project photos, and share feedback — all in one place.
-                </p>
-              </div>
-
-              {/* Stats Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <StatCard icon={BookOpen} label="Linked Rounds" value={linkedRounds.length} accent="#102a5a" onClick={() => setActiveTab("rounds")} />
-                <StatCard icon={Users} label="Active Children" value={visibleRounds.length ? enrollments.filter((e) => linkedRounds.includes(e.roundCode)).length : 0} accent="#10b981" onClick={() => setActiveTab("rounds")} />
-                <StatCard icon={ImageIcon} label="Photos" value={allPhotos.length} accent="#FBBF24" onClick={() => setActiveTab("gallery")} />
-                <StatCard icon={Star} label="Sessions to Rate" value={completedSessions.filter((s) => !s.userRating).length} accent="#8b5cf6" onClick={() => setActiveTab("feedback")} />
-              </div>
-
-              {/* Enroll Card */}
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 md:p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-[#FBBF24]/10 flex items-center justify-center shrink-0">
-                    <KeyRound className="w-5 h-5 text-[#FBBF24]" />
+              {/* Link new round row */}
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+                <form onSubmit={handleLinkRound} className="flex flex-col gap-3 lg:flex-row lg:items-center">
+                  <div className="text-sm font-bold text-[#102a5a] min-w-[140px]">
+                    Link New Round
                   </div>
-                  <div>
-                    <h2 className="text-base font-bold text-[#102a5a]">Enroll a Child</h2>
-                    <p className="text-xs text-slate-500">Enter the round code provided by the lab</p>
-                  </div>
-                </div>
+                  <div className="flex-1 grid grid-cols-1 md:grid-cols-[minmax(180px,240px),1fr] gap-2">
+                    <div className="relative">
+                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <select
+                        value={selectedChildId}
+                        onChange={(e) => setSelectedChildId(e.target.value)}
+                        className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-10 py-2.5 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24]"
+                      >
+                        <option value="" disabled>Select child</option>
+                        {parent?.children?.map((child, i) => (
+                          <option key={child._id || child.id || i} value={child._id || child.id}>
+                            {child.name || child.childName}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    </div>
 
-                <form onSubmit={handleLinkRound} className="flex flex-col sm:flex-row gap-2">
-                  <div className="relative flex-1">
-                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <select
-                      value={selectedChildId}
-                      onChange={(e) => setSelectedChildId(e.target.value)}
-                      className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-10 py-2.5 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24]"
+                    <div className="relative">
+                      <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <input
+                        type="text"
+                        value={roundCodeInput}
+                        onChange={(e) => setRoundCodeInput(e.target.value)}
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] uppercase font-mono tracking-wide"
+                        placeholder="SPRV-101"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Motion.button
+                      type="submit"
+                      disabled={isEnrollingChild}
+                      className="flex items-center justify-center gap-2 rounded-xl bg-[#FBBF24] hover:bg-[#F59E0B] text-[#102a5a] font-bold px-6 py-2.5 shadow-sm hover:shadow-md transition-all disabled:opacity-60 text-sm whitespace-nowrap"
+                      whileTap={{ scale: 0.97 }}
                     >
-                      <option value="" disabled>Select child…</option>
-                      {parent?.children?.map((child, i) => (
-                        <option key={child._id || child.id || i} value={child._id || child.id}>
-                          {child.name || child.childName}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      {isEnrollingChild ? (
+                        <div className="w-5 h-5 border-2 border-[#102a5a]/30 border-t-[#102a5a] rounded-full animate-spin" />
+                      ) : (
+                        <>Link <ArrowRight className="w-4 h-4" /></>
+                      )}
+                    </Motion.button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("rounds")}
+                      className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-all whitespace-nowrap"
+                    >
+                      See all rounds linked
+                    </button>
+                    <a
+                      href="https://wa.me/201500077369"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-semibold text-white transition-all hover:brightness-110 shadow-sm whitespace-nowrap"
+                      style={{ background: "#25D366" }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="white" aria-hidden="true">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                      </svg>
+                      Don’t have a round code?
+                    </a>
                   </div>
-
-                  <div className="relative flex-1">
-                    <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input
-                      type="text"
-                      value={roundCodeInput}
-                      onChange={(e) => setRoundCodeInput(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] uppercase font-mono tracking-wide"
-                      placeholder="SPRV-101"
-                    />
-                  </div>
-
-                  <Motion.button
-                    type="submit"
-                    disabled={isEnrollingChild}
-                    className="flex items-center justify-center gap-2 rounded-xl bg-[#FBBF24] hover:bg-[#F59E0B] text-[#102a5a] font-bold px-6 py-2.5 shadow-sm hover:shadow-md transition-all disabled:opacity-60 text-sm whitespace-nowrap"
-                    whileTap={{ scale: 0.97 }}
-                  >
-                    {isEnrollingChild ? (
-                      <div className="w-5 h-5 border-2 border-[#102a5a]/30 border-t-[#102a5a] rounded-full animate-spin" />
-                    ) : (
-                      <>Enroll <ArrowRight className="w-4 h-4" /></>
-                    )}
-                  </Motion.button>
                 </form>
-
-                <div className="mt-3 flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-slate-500">
-                  <span>Don't have a code?</span>
-                  <a
-                    href="https://wa.me/201500077369"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-white transition-all hover:brightness-110 shadow-sm"
-                    style={{ background: "#25D366" }}
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                    WhatsApp
-                  </a>
-                </div>
 
                 {linkErrorMessage && (
                   <Motion.div
@@ -561,35 +678,155 @@ const ParentDashboard = ({ parent, setParent }) => {
                 )}
               </div>
 
-              {/* Quick nav to tabs */}
-              {visibleRounds.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {TABS.filter((t) => t.id !== "overview").map((tab) => {
-                    const TabIcon = tab.icon;
-                    const count = tab.id === "rounds" ? visibleRounds.length
-                      : tab.id === "gallery" ? allPhotos.length
-                      : tab.id === "feedback" ? completedSessions.length
-                      : 0;
-                    return (
-                      <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 hover:shadow-md hover:border-[#FBBF24]/30 transition-all text-left group"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-[#102a5a]/5 flex items-center justify-center group-hover:bg-[#FBBF24]/10 transition-colors">
-                            <TabIcon className="w-4 h-4 text-[#102a5a] group-hover:text-[#FBBF24] transition-colors" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold text-[#102a5a]">{tab.label}</p>
-                            <p className="text-xs text-slate-500">{count} items</p>
-                          </div>
+              {/* Stats Row */}
+          
+              {/* Sessions Overview */}
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <div className="grid grid-cols-1 xl:grid-cols-[320px,1fr]">
+                  <div className="border-b border-slate-100 xl:border-b-0 xl:border-r">
+                    <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+                      <h2 className="text-sm font-bold text-[#102a5a]">Sessions</h2>
+                      <span className="inline-flex items-center rounded-full bg-[#FBBF24]/10 px-2.5 py-0.5 text-xs font-semibold text-[#92400e]">
+                        {overviewSessions.length}
+                      </span>
+                    </div>
+
+                    {overviewSessions.length === 0 ? (
+                      <div className="px-4 py-10 text-center text-sm text-slate-500">
+                        No sessions yet. Linked sessions will appear here.
+                      </div>
+                    ) : (
+                      <div className="max-h-[620px] overflow-y-auto">
+                        {overviewSessions.map((session) => {
+                          const statusMeta = getParentStatusMeta(session.lifecycle);
+                          const isSelected = selectedOverviewSessionKey === session.key;
+                          return (
+                            <button
+                              key={session.key}
+                              type="button"
+                              onClick={() => setSelectedOverviewSessionKey(session.key)}
+                              className={`w-full border-b border-slate-100 px-4 py-3 text-left transition-colors ${
+                                isSelected ? "bg-[#FBBF24]/10" : "hover:bg-slate-50"
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <p className="text-sm font-semibold text-[#102a5a]">{session.title}</p>
+                                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusMeta.badgeClass}`}>
+                                  {statusMeta.label}
+                                </span>
+                              </div>
+                              <p className={`mt-1 text-xs font-medium ${statusMeta.hintClass}`}>
+                                {session.hintText} ({session.timeLabel})
+                              </p>
+                              <p className="mt-1 text-[11px] text-slate-400">
+                                {session.dateLabel}
+                                {session.roundName ? ` - ${session.roundName}` : ""}
+                              </p>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="min-w-0">
+                    <div className="p-4 lg:p-5">
+                      {!selectedOverviewSession ? (
+                        <div className="rounded-2xl border border-slate-100 bg-slate-50 px-5 py-8 text-center text-sm text-slate-500">
+                          Select any session from the list to add feedback.
                         </div>
-                      </button>
-                    );
-                  })}
+                      ) : (
+                        <div className="space-y-4">
+                          <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
+                            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                              <div>
+                                <p className="text-sm font-semibold text-[#102a5a]">{selectedOverviewSession.title}</p>
+                                <p className="mt-1 text-xs text-slate-500">
+                                  {selectedOverviewSession.dateLabel} at {selectedOverviewSession.timeLabel}
+                                  {selectedOverviewSession.roundName ? ` - ${selectedOverviewSession.roundName}` : ""}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${getParentStatusMeta(selectedOverviewSession.lifecycle).badgeClass}`}>
+                                  {getParentStatusMeta(selectedOverviewSession.lifecycle).label}
+                                </span>
+                                <span className={`text-xs font-semibold ${getParentStatusMeta(selectedOverviewSession.lifecycle).hintClass}`}>
+                                  {selectedOverviewSession.hintText}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {selectedOverviewSession.sessionType === "free" ? (
+                            <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="text-xs font-semibold text-[#102a5a]">
+                                  Free session details
+                                </p>
+                                <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                                  Free
+                                </span>
+                              </div>
+                              <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-600">
+                                <span><b className="text-slate-700">Parent:</b> {selectedOverviewSession.parentName || "-"}</span>
+                                <span><b className="text-slate-700">Phone:</b> {selectedOverviewSession.phone || "-"}</span>
+                                <span><b className="text-slate-700">Child:</b> {selectedOverviewSession.childName || "-"}</span>
+                                <span><b className="text-slate-700">Age:</b> {selectedOverviewSession.childAge || "-"}</span>
+                              </div>
+                            </div>
+                          ) : selectedOverviewSession.lifecycle === "completed" ? (
+                            <div className="rounded-2xl border border-slate-100 p-4">
+                              <div className="flex flex-col lg:flex-row gap-3">
+                                <div className="flex-1 space-y-2">
+                                  <div className="flex items-center gap-3">
+                                    <span className="text-xs font-bold text-slate-500 uppercase">Rating:</span>
+                                    <RatingStars
+                                      value={selectedOverviewRating}
+                                      disabled={selectedOverviewSubmitted}
+                                      onChange={(stars) => handleSessionRatingChange(selectedOverviewSession.roundCode, selectedOverviewSession.sessionId, stars)}
+                                    />
+                                  </div>
+                                  <textarea
+                                    value={selectedOverviewFeedback}
+                                    onChange={(e) => handleSessionFeedbackChange(selectedOverviewSession.roundCode, selectedOverviewSession.sessionId, e.target.value)}
+                                    placeholder="Leave feedback..."
+                                    disabled={selectedOverviewSubmitted}
+                                    className={`w-full min-h-[70px] rounded-xl border border-slate-200 bg-white p-2.5 text-sm text-slate-700 outline-none focus:border-[#FBBF24] focus:ring-2 focus:ring-[#FBBF24]/20 resize-none ${selectedOverviewSubmitted ? "bg-slate-100/70 text-slate-600" : ""}`}
+                                  />
+                                </div>
+                                <div className="flex flex-col justify-end items-end gap-2">
+                                  {selectedOverviewSubmitted ? (
+                                    <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100">
+                                      <CheckCircle2 className="w-4 h-4" /> Submitted ({selectedOverviewRating}/5)
+                                    </span>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      disabled={!selectedOverviewRating}
+                                      onClick={() => handleSubmitRating(selectedOverviewSession.roundCode, selectedOverviewSession)}
+                                      className="rounded-xl bg-[#102a5a] px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#1a3a6b] transition-all disabled:opacity-50"
+                                    >
+                                      Submit
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
+                              <CalendarClock className="w-4 h-4 text-slate-400" />
+                              Feedback opens after session completion.
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              )}
+              </div>
+
+              {/* Quick nav to tabs */}
+             
 
               {/* Empty state */}
               {visibleRounds.length === 0 && (

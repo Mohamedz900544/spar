@@ -889,9 +889,12 @@ export const useAdminDashboard = () => {
 
     const matchesSearch =
       !q ||
-      s.title.toLowerCase().includes(q) ||
-      s.campus.toLowerCase().includes(q) ||
-      s.level.toLowerCase().includes(q);
+      (s.title || "").toLowerCase().includes(q) ||
+      (s.campus || "").toLowerCase().includes(q) ||
+      (s.level || "").toLowerCase().includes(q) ||
+      (s.parentName || "").toLowerCase().includes(q) ||
+      (s.childName || "").toLowerCase().includes(q) ||
+      (s.phone || "").toLowerCase().includes(q);
 
     if (sessionStatusFilter === 'Today') {
       const today = new Date().toLocaleDateString('en-CA');
@@ -1030,6 +1033,7 @@ export const useAdminDashboard = () => {
 
     const session = sessions.find((s) => s.id === id);
     if (!session) return;
+    if (session.sessionType === "free") return;
 
     const nextStatus =
       explicitStatus ||

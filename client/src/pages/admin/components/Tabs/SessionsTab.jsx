@@ -106,16 +106,30 @@ export const SessionsTab = ({
                             className="border-b border-[#f1f5f9] last:border-b-0"
                         >
                             <td className="py-2 pr-3 font-medium text-slate-800">
-                                {s.title}
+                                <div className="flex flex-col gap-1">
+                                    <div className="flex flex-wrap items-center gap-1.5">
+                                        <span>{s.title}</span>
+                                        {s.sessionType === "free" && (
+                                            <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                                                Free
+                                            </span>
+                                        )}
+                                    </div>
+                                    {s.sessionType === "free" && (
+                                        <span className="text-[11px] font-normal text-slate-500">
+                                            {s.parentName || "-"} · {s.phone || "-"}
+                                        </span>
+                                    )}
+                                </div>
                             </td>
                             <td className="py-2 pr-3 text-slate-600">
                                 {s.level}
                             </td>
                             <td className="py-2 pr-3 text-slate-600">
-                                {s.date}
+                                {s.date || "TBA"}
                             </td>
                             <td className="py-2 pr-3 text-slate-600">
-                                {formatTime(s.time)}
+                                {s.time ? formatTime(s.time) : "TBA"}
                             </td>
                             <td className="py-2 pr-3 text-slate-600">
                                 {s.campus}
@@ -138,13 +152,16 @@ export const SessionsTab = ({
                                 </span>
                             </td>
                             <td className="py-2 pl-3 text-right">
-                                <div className="inline-flex items-center gap-1">
-                                    <button className="p-1 rounded-full hover:bg-[#f1f5f9] text-slate-500">
-                                        <Edit2 onClick={() => handleFormUpdate(s.id)} className="w-3.5 h-3.5" />
-                                    </button>
-                                    <button className="p-1 rounded-full hover:bg-[#fee2e2] text-[#b91c1c]">
-                                        <Trash2 onClick={() => deleteSessions(s.id)} className="w-3.5 h-3.5" />
-                                    </button>
+                                {s.sessionType === "free" ? (
+                                    <span className="text-[11px] text-slate-400">Lead</span>
+                                ) : (
+                                    <div className="inline-flex items-center gap-1">
+                                        <button className="p-1 rounded-full hover:bg-[#f1f5f9] text-slate-500">
+                                            <Edit2 onClick={() => handleFormUpdate(s.id)} className="w-3.5 h-3.5" />
+                                        </button>
+                                        <button className="p-1 rounded-full hover:bg-[#fee2e2] text-[#b91c1c]">
+                                            <Trash2 onClick={() => deleteSessions(s.id)} className="w-3.5 h-3.5" />
+                                        </button>
                                     {/* <button
                                         onClick={() =>
                                             handleSessionStatusToggle(s.id, "Completed")
@@ -163,7 +180,8 @@ export const SessionsTab = ({
                                             ? "Move to Draft"
                                             : "Set Active"}
                                     </button> */}
-                                </div>
+                                    </div>
+                                )}
                             </td>
                         </tr>
                     ))}
