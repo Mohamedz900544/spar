@@ -217,6 +217,8 @@
       "title": "Pricing Plans",
       "subtitle": "Choose the right plan for your child's learning journey",
       "popular": "Most Popular",
+      "discount": "{{percent}}% off",
+      "was_price": "Was",
       "cta_subscribe": "Subscribe Now",
       "cta_free": "Ask About Free Session",
       "wa_subscribe": "Hello! I'd like to subscribe to the {{plan}} plan for {{price}} EGP / {{period}}",

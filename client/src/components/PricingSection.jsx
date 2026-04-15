@@ -4,6 +4,7 @@ import { Check, ArrowRight } from "lucide-react";
 const plans = [
   {
     key: "starter",
+    originalPrice: "2000",
     price: "1500",
     sessions: 12,
     freezable: 2,
@@ -11,6 +12,7 @@ const plans = [
   },
   {
     key: "pro",
+    originalPrice: "8000",
     price: "6000",
     sessions: 48,
     freezable: 8,
@@ -18,6 +20,7 @@ const plans = [
   },
   {
     key: "advanced",
+    originalPrice: "4000",
     price: "3000",
     sessions: 24,
     freezable: 4,
@@ -79,6 +82,13 @@ export default function PricingSection() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch">
           {plans.map((plan, idx) => {
             const accent = accentColors[plan.key];
+            const discountPercent = plan.originalPrice
+              ? Math.round(
+                  ((Number(plan.originalPrice) - Number(plan.price)) /
+                    Number(plan.originalPrice)) *
+                    100
+                )
+              : null;
             const features = [
               t("landing.pricing.features.certificate"),
               t("landing.pricing.features.guidance"),
@@ -148,6 +158,33 @@ export default function PricingSection() {
                   <div
                     className="mb-6 text-center"
                   >
+                    {plan.originalPrice && (
+                      <div className="mb-3 flex flex-wrap items-center justify-center gap-2">
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-extrabold ${
+                            plan.popular
+                              ? "bg-white text-blue-700"
+                              : "bg-amber-100 text-amber-700"
+                          }`}
+                        >
+                          {t("landing.pricing.discount", {
+                            percent: discountPercent,
+                          })}
+                        </span>
+                        <span
+                          className={`text-sm font-bold ${
+                            plan.popular
+                              ? "text-blue-100"
+                              : "text-slate-400"
+                          }`}
+                        >
+                          {t("landing.pricing.was_price")}{" "}
+                          <span className="line-through">
+                            {plan.originalPrice}
+                          </span>
+                        </span>
+                      </div>
+                    )}
                     <span
                       className={`text-5xl font-black ${
                         plan.popular ? "text-white" : ""
