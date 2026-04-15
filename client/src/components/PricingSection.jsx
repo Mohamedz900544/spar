@@ -4,21 +4,21 @@ import { Check, ArrowRight } from "lucide-react";
 const plans = [
   {
     key: "starter",
-    price: "3500",
+    price: "1500",
     sessions: 12,
     freezable: 2,
     popular: false,
   },
   {
     key: "pro",
-    price: "12250",
+    price: "6000",
     sessions: 48,
     freezable: 8,
     popular: true,
   },
   {
     key: "advanced",
-    price: "6600",
+    price: "3000",
     sessions: 24,
     freezable: 4,
     popular: false,
