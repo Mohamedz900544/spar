@@ -197,15 +197,21 @@ const FAQItem = ({ item, isOpen, onToggle, index }) => (
    ============================== */
 const HERO_VIDEOS = [
   {
-    thumbnail: "https://i.ibb.co/xRtsf8T/Screenshot-2026-01-12-043823.webp",
-    ytSrc: "https://www.youtube.com/embed/52GDwQBAY?autoplay=1&playsinline=1&rel=0&modestbranding=1",
-    name: "Mostafa Fouda",
-    meta: "Grade 5 | Egypt",
+    thumbnail: "https://i.ibb.co/Tqqcc0Dd/image.png",
+    ytSrc: "https://www.youtube.com/embed/_4InPBLQ1z4?autoplay=1&playsinline=1&rel=0&modestbranding=1",
+    name: "Hamza Safwat",
+    meta: "Grade 8 | Egypt",
   },
   {
     thumbnail: "https://i.ibb.co/TBS3Rh2Q/image.png",
     ytSrc: "https://www.youtube.com/embed/Kt8t_SFfsv8?autoplay=1&playsinline=1&rel=0&modestbranding=1",
     name: "Berry Amr",
+    meta: "Grade 5 | Egypt",
+  },
+  {
+    thumbnail: "https://i.ibb.co/xRtsf8T/Screenshot-2026-01-12-043823.webp",
+    ytSrc: "https://www.youtube.com/embed/_4InPBLQ1z4?autoplay=1&playsinline=1&rel=0&modestbranding=1",
+    name: "Mostafa Fouda",
     meta: "Grade 5 | Egypt",
   },
 ];
@@ -413,7 +419,7 @@ const Landing = () => {
       {/* ============================
          HEAR FROM OUR HEROES
          ============================ */}
-      <section className="py-14 md:py-20 px-6 bg-white">
+      <section className="py-14 md:py-20 px-3 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8 md:mb-10">
             <h2
@@ -432,7 +438,7 @@ const Landing = () => {
             </h2>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-5 md:gap-8">
+          <div className="flex flex-nowrap justify-start gap-4 overflow-x-auto px-2 pb-4 snap-x snap-mandatory scroll-smooth hide-scrollbar sm:justify-center sm:px-0 md:flex-wrap md:gap-8 md:overflow-visible md:pb-0">
             {HERO_VIDEOS.map((video, index) => (
               <VideoCard
                 key={`${video.name}-${index}`}
