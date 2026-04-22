@@ -4,7 +4,9 @@ import { authRequired, agentOrAdmin } from "../middleware/auth.js";
 import User from "../models/User.js";
 import {
   notifyInstructorFreeSessionAssigned,
+  notifyParentFreeSessionAssigned,
   notifySalesFollowUpReminder,
+  sendWhatsAppAutomationTest,
 } from "../services/leadNotifications.service.js";
 import {
   normalizePhoneForWhatsApp,
@@ -134,6 +136,21 @@ const rangesOverlap = (firstRange, secondRange) => {
   );
 };
 
+const hasParentWelcomeBeenSent = async (phone) => {
+  const normalizedPhone = normalizePhoneForWhatsApp(phone || "");
+  if (!normalizedPhone) return false;
+
+  const welcomedLeads = await Lead.find({
+    "freeSession.parentWelcomeSentAt": { $ne: null },
+  })
+    .select("phone")
+    .lean();
+
+  return welcomedLeads.some(
+    (lead) => normalizePhoneForWhatsApp(lead.phone || "") === normalizedPhone
+  );
+};
+
 router.get("/dashboard", authRequired, agentOrAdmin, async (_req, res) => {
   try {
     const [leads, instructors] = await Promise.all([
@@ -213,6 +230,43 @@ router.post("/whatsapp/test", authRequired, agentOrAdmin, async (req, res) => {
     });
   } catch (err) {
     console.error("WhatsApp test error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.post("/whatsapp/automation-test", authRequired, agentOrAdmin, async (req, res) => {
+  try {
+    const requestedPhone = req.body?.phone || WHATSAPP_TEST_PHONE;
+    const type = req.body?.type || "";
+    const to = normalizePhoneForWhatsApp(requestedPhone);
+
+    if (!to) {
+      return res.status(400).json({ message: "Invalid test phone number" });
+    }
+
+    const result = await sendWhatsAppAutomationTest({ type, phone: to });
+    if (result?.reason === "invalid_automation_test_type") {
+      return res.status(400).json({
+        message: "Invalid WhatsApp automation test type",
+        details: result,
+      });
+    }
+
+    if (!result?.sent) {
+      return res.status(502).json({
+        message: "WhatsApp automation test failed",
+        details: result,
+      });
+    }
+
+    return res.json({
+      message: `${result.label || "WhatsApp automation"} test sent to ${to}`,
+      to,
+      type,
+      result,
+    });
+  } catch (err) {
+    console.error("WhatsApp automation test error:", err);
     return res.status(500).json({ message: "Server error" });
   }
 });
@@ -548,6 +602,9 @@ router.patch("/leads/:id/free-session", authRequired, agentOrAdmin, async (req, 
     if (!leadBefore) {
       return res.status(404).json({ message: "Lead not found" });
     }
+    const shouldSendParentWelcome = !(await hasParentWelcomeBeenSent(
+      leadBefore.phone
+    ));
 
     const targetRange = {
       startDate: scheduledDate,
@@ -610,6 +667,11 @@ router.patch("/leads/:id/free-session", authRequired, agentOrAdmin, async (req, 
             assignedBy: req.user._id,
             assignedByName: req.user.name || "",
             assignedAt: new Date(),
+            reminderSentAt: null,
+            parentWelcomeSentAt:
+              leadBefore?.freeSession?.parentWelcomeSentAt || null,
+            parentAssignmentNotifiedAt: null,
+            parentReminderSentAt: null,
           },
         },
       },
@@ -620,15 +682,48 @@ router.patch("/leads/:id/free-session", authRequired, agentOrAdmin, async (req, 
       return res.status(404).json({ message: "Lead not found" });
     }
 
-    const notificationResult = await notifyInstructorFreeSessionAssigned({
-      lead: updated.toObject(),
-      instructor,
-    });
+    const [notificationResult, parentNotificationResult] = await Promise.all([
+      notifyInstructorFreeSessionAssigned({
+        lead: updated.toObject(),
+        instructor,
+      }),
+      notifyParentFreeSessionAssigned({
+        lead: updated.toObject(),
+        shouldSendWelcome: shouldSendParentWelcome,
+      }),
+    ]);
+    const notificationUpdates = {};
+    const notificationTimestamp = new Date();
+    if (parentNotificationResult?.welcomeSent) {
+      notificationUpdates["freeSession.parentWelcomeSentAt"] =
+        notificationTimestamp;
+    }
+    if (parentNotificationResult?.assignmentSent) {
+      notificationUpdates["freeSession.parentAssignmentNotifiedAt"] =
+        notificationTimestamp;
+    }
+    if (Object.keys(notificationUpdates).length) {
+      await Lead.updateOne({ _id: updated._id }, { $set: notificationUpdates });
+      Object.assign(updated.freeSession, {
+        ...(notificationUpdates["freeSession.parentWelcomeSentAt"]
+          ? { parentWelcomeSentAt: notificationTimestamp }
+          : {}),
+        ...(notificationUpdates["freeSession.parentAssignmentNotifiedAt"]
+          ? { parentAssignmentNotifiedAt: notificationTimestamp }
+          : {}),
+      });
+    }
     const whatsappNotificationTarget = {
       instructorId: instructor._id?.toString?.() || instructorId,
       instructorName: instructor.name || "",
+      instructorEmail: instructor.email || "",
       instructorPhoneRaw: instructor.phone || "",
       instructorPhoneNormalized: normalizePhoneForWhatsApp(instructor.phone || ""),
+    };
+    const parentNotificationTarget = {
+      parentName: updated.parentName || "",
+      parentPhoneRaw: updated.phone || "",
+      parentPhoneNormalized: normalizePhoneForWhatsApp(updated.phone || ""),
     };
 
     if (!notificationResult?.whatsappSent) {
@@ -643,9 +738,12 @@ router.patch("/leads/:id/free-session", authRequired, agentOrAdmin, async (req, 
     return res.json({
       ...updated.toJSON(),
       notificationResult,
+      parentNotificationResult,
       whatsappNotification: notificationResult?.whatsapp || null,
+      parentWhatsAppNotification: parentNotificationResult || null,
       emailNotification: notificationResult?.email || null,
       whatsappNotificationTarget,
+      parentNotificationTarget,
     });
   } catch (err) {
     console.error("Assign free session error:", err);

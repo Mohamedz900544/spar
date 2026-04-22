@@ -2,12 +2,15 @@ import cron from "node-cron";
 import Lead from "./models/Lead.js";
 import User from "./models/User.js";
 import { connectDB } from "./config/db.js";
-import { notifyInstructorSessionReminder } from "./services/leadNotifications.service.js";
+import {
+  notifyInstructorSessionReminder,
+  notifyParentSessionReminder,
+} from "./services/leadNotifications.service.js";
 
 /**
  * Cron job that runs every minute.
  * Finds free sessions starting within the next 55-65 minute window
- * and sends reminders (WhatsApp + email) to the assigned instructor.
+ * and sends reminders to the assigned instructor and parent.
  *
  * Uses `freeSession.reminderSentAt` flag to avoid duplicate reminders.
  */
@@ -34,7 +37,10 @@ export async function automateSessionReminder() {
             $gte: windowStart,
             $lte: windowEnd,
           },
-          "freeSession.reminderSentAt": { $in: [null, undefined] },
+          $or: [
+            { "freeSession.reminderSentAt": { $in: [null, undefined] } },
+            { "freeSession.parentReminderSentAt": { $in: [null, undefined] } },
+          ],
           status: { $in: ["Demo Booked", "Follow-up"] },
         }).lean();
 
@@ -45,36 +51,50 @@ export async function automateSessionReminder() {
         );
 
         for (const lead of candidates) {
+          const instructorNeedsReminder = !lead.freeSession?.reminderSentAt;
+          const parentNeedsReminder = !lead.freeSession?.parentReminderSentAt;
           const instructorId = lead.freeSession?.instructor;
-          if (!instructorId) {
+          let instructor = null;
+
+          if (instructorNeedsReminder && !instructorId) {
             console.warn("[cron][reminder] no instructor on lead:", lead._id);
-            continue;
           }
 
-          const instructor = await User.findById(instructorId)
-            .select("name phone email role")
-            .lean();
+          if (instructorNeedsReminder && instructorId) {
+            instructor = await User.findById(instructorId)
+              .select("name phone email role")
+              .lean();
 
-          if (!instructor) {
-            console.warn("[cron][reminder] instructor not found:", instructorId);
-            continue;
+            if (!instructor) {
+              console.warn("[cron][reminder] instructor not found:", instructorId);
+            }
           }
 
-          const result = await notifyInstructorSessionReminder({
-            lead,
-            instructor,
-          });
+          const updatePayload = {};
+          let instructorResult = null;
+          if (instructorNeedsReminder && instructor) {
+            instructorResult = await notifyInstructorSessionReminder({
+              lead,
+              instructor,
+            });
+            updatePayload["freeSession.reminderSentAt"] = now;
+          }
 
-          // Mark reminder as sent to avoid duplicates
-          await Lead.updateOne(
-            { _id: lead._id },
-            { $set: { "freeSession.reminderSentAt": now } }
-          );
+          let parentResult = null;
+          if (parentNeedsReminder) {
+            parentResult = await notifyParentSessionReminder({ lead });
+            updatePayload["freeSession.parentReminderSentAt"] = now;
+          }
+
+          if (Object.keys(updatePayload).length) {
+            await Lead.updateOne({ _id: lead._id }, { $set: updatePayload });
+          }
 
           console.log("[cron][reminder] processed lead:", {
             leadId: lead._id.toString(),
-            instructorName: instructor.name,
-            sent: result?.sent || false,
+            instructorName: instructor?.name || "",
+            instructorSent: instructorResult?.sent || false,
+            parentSent: parentResult?.sent || false,
           });
         }
       } catch (error) {

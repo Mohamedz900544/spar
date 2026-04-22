@@ -41,7 +41,7 @@ export async function automateLeadFollowUpStatus() {
           "freeSession.isAssigned": true,
           "freeSession.scheduledAt": { $ne: null },
         })
-          .select("freeSession")
+          .select("parentName phone childName childAge status notes createdBy freeSession")
           .lean();
 
         if (!candidates.length) return;

@@ -123,15 +123,29 @@ export const sendWhatsAppTemplate = async ({
   }
 
   const endpoint = `https://graph.facebook.com/${config.graphVersion}/${config.phoneNumberId}/messages`;
+  const toTextParameter = (value) => {
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+      const parameterName =
+        value.parameter_name || value.parameterName || value.name || "";
+      const textValue = value.text ?? value.value ?? "";
+      return {
+        type: "text",
+        ...(parameterName ? { parameter_name: `${parameterName}` } : {}),
+        text: `${textValue ?? ""}`.slice(0, 1024),
+      };
+    }
+
+    return {
+      type: "text",
+      text: `${value ?? ""}`.slice(0, 1024),
+    };
+  };
   const components =
     Array.isArray(bodyParams) && bodyParams.length
       ? [
           {
             type: "body",
-            parameters: bodyParams.map((value) => ({
-              type: "text",
-              text: `${value ?? ""}`.slice(0, 1024),
-            })),
+            parameters: bodyParams.map(toTextParameter),
           },
         ]
       : undefined;

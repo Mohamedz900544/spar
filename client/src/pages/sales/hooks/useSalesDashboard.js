@@ -5,6 +5,31 @@ import { LEAD_STATUSES } from "../salesHelpers";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+const summarizeNotificationChannels = (notificationResult = {}) => {
+  const channels = [];
+  if (notificationResult.whatsappSent || notificationResult.whatsapp?.sent) {
+    channels.push("WhatsApp");
+  }
+  if (notificationResult.emailSent || notificationResult.email?.sent) {
+    channels.push("email");
+  }
+  return channels.join(" + ") || "notification";
+};
+
+const getNotificationFailure = (notificationResult = {}) =>
+  notificationResult.whatsapp?.error ||
+  notificationResult.whatsapp?.reason ||
+  notificationResult.assignment?.error ||
+  notificationResult.assignment?.reason ||
+  notificationResult.welcome?.error ||
+  notificationResult.welcome?.reason ||
+  notificationResult.reminder?.error ||
+  notificationResult.reminder?.reason ||
+  notificationResult.email?.error ||
+  notificationResult.email?.reason ||
+  notificationResult.error ||
+  "Notification was not delivered";
+
 export const useSalesDashboard = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
@@ -17,6 +42,8 @@ export const useSalesDashboard = () => {
   const [paymentDrafts, setPaymentDrafts] = useState({});
   const [isCreatingLead, setIsCreatingLead] = useState(false);
   const [isSendingWhatsAppTest, setIsSendingWhatsAppTest] = useState(false);
+  const [sendingWhatsAppAutomationTests, setSendingWhatsAppAutomationTests] =
+    useState({});
   const [isSendingEmailTest, setIsSendingEmailTest] = useState(false);
 
   const checkAuth = useCallback(() => {
@@ -168,15 +195,13 @@ export const useSalesDashboard = () => {
 
       upsertLead(data);
 
-      if (status === "Follow-up" && data?.whatsappNotification) {
-        if (data.whatsappNotification.sent) {
-          toast.success("Lead moved to Follow-up + sales notified on WhatsApp");
+      if (status === "Follow-up" && data?.notificationResult) {
+        if (data.notificationResult.sent) {
+          const channels = summarizeNotificationChannels(data.notificationResult);
+          toast.success(`Lead moved to Follow-up + sales notified via ${channels}`);
         } else {
-          const details =
-            data.whatsappNotification.error ||
-            data.whatsappNotification.reason ||
-            "WhatsApp notification was not delivered";
-          toast.error(`Status updated, but WhatsApp notification failed: ${details}`);
+          const details = getNotificationFailure(data.notificationResult);
+          toast.error(`Status updated, but notification failed: ${details}`);
         }
       } else {
         toast.success("Lead status updated");
@@ -274,20 +299,38 @@ export const useSalesDashboard = () => {
 
       upsertLead(data);
       const target = data?.whatsappNotificationTarget;
+      const targetContact =
+        target?.instructorPhoneRaw ||
+        target?.instructorPhoneNormalized ||
+        target?.instructorEmail ||
+        "";
       const targetLabel =
-        target?.instructorName || target?.instructorPhoneRaw
-          ? ` (${target?.instructorName || "Instructor"} - ${
-              target?.instructorPhoneRaw || target?.instructorPhoneNormalized || ""
-            })`
+        target?.instructorName || targetContact
+          ? ` (${target?.instructorName || "Instructor"}${targetContact ? ` - ${targetContact}` : ""})`
           : "";
-      if (data?.whatsappNotification?.sent) {
-        toast.success(`Free session assigned + instructor notified on WhatsApp${targetLabel}`);
+      if (data?.notificationResult?.sent) {
+        const channels = summarizeNotificationChannels(data.notificationResult);
+        toast.success(`Free session assigned + instructor notified via ${channels}${targetLabel}`);
       } else {
-        const details =
-          data?.whatsappNotification?.error ||
-          data?.whatsappNotification?.reason ||
-          "WhatsApp notification was not delivered";
-        toast.error(`Assigned${targetLabel}, but WhatsApp failed: ${details}`);
+        const details = getNotificationFailure(data?.notificationResult);
+        toast.error(`Assigned${targetLabel}, but notification failed: ${details}`);
+      }
+      if (data?.parentNotificationResult) {
+        const parentTarget = data?.parentNotificationTarget;
+        const parentContact =
+          parentTarget?.parentPhoneRaw ||
+          parentTarget?.parentPhoneNormalized ||
+          "";
+        const parentLabel =
+          parentTarget?.parentName || parentContact
+            ? ` (${parentTarget?.parentName || "Parent"}${parentContact ? ` - ${parentContact}` : ""})`
+            : "";
+        if (data.parentNotificationResult.sent) {
+          toast.success(`Parent notified on WhatsApp${parentLabel}`);
+        } else {
+          const details = getNotificationFailure(data.parentNotificationResult);
+          toast.error(`Assigned, but parent WhatsApp failed: ${details}`);
+        }
       }
       fetchDashboard();
       return data;
@@ -336,6 +379,59 @@ export const useSalesDashboard = () => {
       return false;
     } finally {
       setIsSendingWhatsAppTest(false);
+    }
+  };
+
+  const sendWhatsAppAutomationTest = async (type, label = "WhatsApp automation") => {
+    const token = checkAuth();
+    if (!token || !type) return false;
+
+    try {
+      setSendingWhatsAppAutomationTests((prev) => ({
+        ...prev,
+        [type]: true,
+      }));
+      const res = await fetch(`${API_BASE_URL}/api/sales/whatsapp/automation-test`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          type,
+          phone: "01007775705",
+        }),
+      });
+
+      const raw = await res.text();
+      let data = {};
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch {
+        throw new Error(
+          "API returned invalid response. Check VITE_API_BASE_URL and backend server."
+        );
+      }
+      if (!res.ok) {
+        const details =
+          data?.details?.error ||
+          data?.details?.reason ||
+          data?.message ||
+          "Failed to send WhatsApp automation test";
+        throw new Error(details);
+      }
+
+      toast.success(data.message || `${label} test sent`);
+      return true;
+    } catch (err) {
+      console.error("Send WhatsApp automation test error:", err);
+      toast.error(err.message || `Failed to send ${label} test`);
+      return false;
+    } finally {
+      setSendingWhatsAppAutomationTests((prev) => ({
+        ...prev,
+        [type]: false,
+      }));
     }
   };
 
@@ -407,6 +503,7 @@ export const useSalesDashboard = () => {
     isRefreshing,
     isCreatingLead,
     isSendingWhatsAppTest,
+    sendingWhatsAppAutomationTests,
     isSendingEmailTest,
     error,
     leads,
@@ -424,6 +521,7 @@ export const useSalesDashboard = () => {
     savePaymentLink,
     assignFreeSession,
     sendWhatsAppTest,
+    sendWhatsAppAutomationTest,
     sendEmailTest,
     copyPaymentLink,
     logout,

@@ -1,6 +1,15 @@
 import { Link, useOutletContext } from "react-router-dom";
-import { ArrowRight, CalendarClock, Mail, Send } from "lucide-react";
+import { ArrowRight, CalendarClock, Mail, MessageCircle, Send } from "lucide-react";
 import { LEAD_STATUSES, statusPill, formatDateTime } from "./salesHelpers";
+
+const WHATSAPP_AUTOMATION_TESTS = [
+  { type: "sales_follow_up", label: "Sales follow-up" },
+  { type: "instructor_assignment", label: "Instructor assignment" },
+  { type: "instructor_reminder", label: "Instructor reminder" },
+  { type: "parent_welcome", label: "Parent welcome" },
+  { type: "parent_assignment", label: "Parent booking" },
+  { type: "parent_reminder", label: "Parent reminder" },
+];
 
 const SalesOverviewPage = () => {
   const sales = useOutletContext();
@@ -50,6 +59,36 @@ const SalesOverviewPage = () => {
           </Link>
         </div>
       </div>
+
+      <section className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div>
+            <p className="text-xs uppercase tracking-wide text-slate-500 font-semibold">
+              WhatsApp Automation Tests
+            </p>
+            <p className="text-sm text-slate-500 mt-1">Test number: 01007775705</p>
+          </div>
+          <MessageCircle className="w-5 h-5 text-emerald-600" />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+          {WHATSAPP_AUTOMATION_TESTS.map((test) => {
+            const isSending = Boolean(sales.sendingWhatsAppAutomationTests?.[test.type]);
+            return (
+              <button
+                key={test.type}
+                type="button"
+                onClick={() => sales.sendWhatsAppAutomationTest(test.type, test.label)}
+                disabled={isSending}
+                className="inline-flex items-center justify-between gap-3 rounded-xl border border-emerald-100 bg-emerald-50/70 px-4 py-3 text-left text-sm font-semibold text-emerald-800 hover:border-emerald-300 hover:bg-emerald-100 disabled:opacity-60 transition-all"
+              >
+                <span>{isSending ? "Sending..." : test.label}</span>
+                <Send className="w-4 h-4 shrink-0" />
+              </button>
+            );
+          })}
+        </div>
+      </section>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {LEAD_STATUSES.map((status) => (

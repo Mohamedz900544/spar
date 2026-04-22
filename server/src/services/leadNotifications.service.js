@@ -10,8 +10,19 @@ const getNotificationConfig = () => ({
   followUpTemplateName: process.env.WHATSAPP_TEMPLATE_FOLLOW_UP || "",
   instructorAssignTemplateName:
     process.env.WHATSAPP_TEMPLATE_INSTRUCTOR_ASSIGN || "",
+  instructorSessionReminderTemplateName:
+    process.env.WHATSAPP_TEMPLATE_INSTRUCTOR_SESSION_REMINDER || "",
+  parentWelcomeTemplateName:
+    process.env.WHATSAPP_TEMPLATE_PARENT_WELCOME || "",
+  parentFreeSessionAssignedTemplateName:
+    process.env.WHATSAPP_TEMPLATE_PARENT_FREE_SESSION_ASSIGNED || "",
+  parentSessionReminderTemplateName:
+    process.env.WHATSAPP_TEMPLATE_PARENT_SESSION_REMINDER || "",
   defaultTemplateLanguage: process.env.WHATSAPP_TEMPLATE_LANGUAGE || "en_US",
-  defaultTemplateFallback: process.env.WHATSAPP_TEMPLATE_DEFAULT || "hello_world",
+  // Keep WHATSAPP_TEMPLATE_DEFAULT for the manual test endpoint only.
+  // Automation should not fall back to hello_world because it sends Meta's test copy.
+  automationTemplateFallback:
+    process.env.WHATSAPP_TEMPLATE_AUTOMATION_FALLBACK || "",
   defaultSalesPhone: process.env.WHATSAPP_DEFAULT_SALES_PHONE || "",
   defaultSalesEmail: process.env.BREVO_DEFAULT_SALES_EMAIL || "",
 });
@@ -84,6 +95,46 @@ const formatCairoDateTime = (value) => {
   }
 };
 
+const formatCairoDate = (value) => {
+  if (!value) return "-";
+  try {
+    return new Date(value).toLocaleDateString("en-US", {
+      timeZone: "Africa/Cairo",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  } catch {
+    return value;
+  }
+};
+
+const formatCairoTime = (value) => {
+  if (!value) return "-";
+  try {
+    return new Date(value).toLocaleTimeString("en-US", {
+      timeZone: "Africa/Cairo",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  } catch {
+    return value;
+  }
+};
+
+const formatCairoWeekday = (value) => {
+  if (!value) return "-";
+  try {
+    return new Date(value).toLocaleDateString("ar-EG", {
+      timeZone: "Africa/Cairo",
+      weekday: "long",
+    });
+  } catch {
+    return value;
+  }
+};
+
 const extractLatestNotes = (lead) => {
   const notes = Array.isArray(lead?.notes) ? [...lead.notes] : [];
   if (!notes.length) return "لا يوجد ملاحظات";
@@ -94,6 +145,122 @@ const extractLatestNotes = (lead) => {
     .map((note, index) => `${index + 1}) ${note.text || ""}`)
     .join("\n");
 };
+
+const namedTemplateParam = (name, value) => ({ name, value });
+const valueOrDash = (value) => {
+  const text = `${value ?? ""}`.trim();
+  return text || "-";
+};
+
+const buildSalesFollowUpBody = (lead, followUpAt = new Date()) =>
+  [
+    "تذكير متابعة عميل",
+    "",
+    "اسم ولي الأمر:",
+    `${lead.parentName || "-"}`,
+    "",
+    "رقم ولي الأمر:",
+    `${lead.phone || "-"}`,
+    "",
+    "اسم الطفل:",
+    `${lead.childName || "-"}`,
+    "",
+    "سن الطفل:",
+    `${lead.childAge || "-"}`,
+    "",
+    "الحالة الحالية:",
+    `${lead.status || "Follow-up"}`,
+    "",
+    "موعد المتابعة:",
+    `${formatCairoDateTime(followUpAt)}`,
+  ].join("\n");
+
+const buildSalesFollowUpParams = (lead, followUpAt = new Date()) => [
+  namedTemplateParam("parent_name", valueOrDash(lead.parentName)),
+  namedTemplateParam("parent_phone", valueOrDash(lead.phone)),
+  namedTemplateParam("child_name", valueOrDash(lead.childName)),
+  namedTemplateParam("child_age", valueOrDash(lead.childAge)),
+  namedTemplateParam("lead_status", valueOrDash(lead.status || "Follow-up")),
+  namedTemplateParam("follow_up_time", formatCairoDateTime(followUpAt)),
+];
+
+const buildInstructorFreeSessionAssignedBody = (lead, instructor) =>
+  [
+    "تم تعيين حصة مجانية جديدة",
+    "",
+    "اسم ولي الأمر:",
+    `${lead.parentName || "-"}`,
+    "",
+    "رقم ولي الأمر:",
+    `${lead.phone || "-"}`,
+    "",
+    "اسم الطفل:",
+    `${lead.childName || "-"}`,
+    "",
+    "سن الطفل:",
+    `${lead.childAge || "-"}`,
+    "",
+    "موعد الحصة:",
+    `${formatCairoDateTime(lead?.freeSession?.scheduledAt)}`,
+    "",
+    "اسم المدرب:",
+    `${instructor.name || "-"}`,
+    "",
+    "ملاحظات العميل:",
+    extractLatestNotes(lead),
+  ].join("\n");
+
+const buildInstructorFreeSessionAssignedParams = (lead, instructor) => [
+  namedTemplateParam("parent_name", valueOrDash(lead.parentName)),
+  namedTemplateParam("parent_phone", valueOrDash(lead.phone)),
+  namedTemplateParam("child_name", valueOrDash(lead.childName)),
+  namedTemplateParam("child_age", valueOrDash(lead.childAge)),
+  namedTemplateParam(
+    "session_time",
+    formatCairoDateTime(lead?.freeSession?.scheduledAt)
+  ),
+  namedTemplateParam("instructor_name", valueOrDash(instructor.name)),
+  namedTemplateParam("lead_notes", valueOrDash(extractLatestNotes(lead))),
+];
+
+const buildInstructorSessionReminderBody = (lead, instructor) =>
+  [
+    "⏰ تذكير: لديك حصة مجانية بعد ساعة",
+    "",
+    "اسم ولي الأمر:",
+    `${lead.parentName || "-"}`,
+    "",
+    "رقم ولي الأمر:",
+    `${lead.phone || "-"}`,
+    "",
+    "اسم الطفل:",
+    `${lead.childName || "-"}`,
+    "",
+    "سن الطفل:",
+    `${lead.childAge || "-"}`,
+    "",
+    "موعد الحصة:",
+    `${formatCairoDateTime(lead?.freeSession?.scheduledAt)}`,
+    "",
+    "اسم المدرب:",
+    `${instructor.name || "-"}`,
+    "",
+    "ملاحظات العميل:",
+    extractLatestNotes(lead),
+  ].join("\n");
+
+const buildInstructorSessionReminderParams = (lead, instructor) => [
+  namedTemplateParam("parent_name", valueOrDash(lead.parentName)),
+  namedTemplateParam("parent_phone", valueOrDash(lead.phone)),
+  namedTemplateParam("child_name", valueOrDash(lead.childName)),
+  namedTemplateParam("child_age", valueOrDash(lead.childAge)),
+  namedTemplateParam(
+    "session_time",
+    formatCairoDateTime(lead?.freeSession?.scheduledAt)
+  ),
+  namedTemplateParam("instructor_name", valueOrDash(instructor.name)),
+  namedTemplateParam("lead_notes", valueOrDash(extractLatestNotes(lead))),
+];
 
 const resolveSalesRecipient = async (
   lead,
@@ -158,8 +325,11 @@ const resolveSalesRecipient = async (
 /**
  * Sends a WhatsApp notification trying the most reliable method first:
  *   1. Custom template (if configured)
- *   2. Default template fallback (hello_world – known to work)
+ *   2. Optional automation fallback template
  *   3. Free-form text (only works inside the 24-hour window)
+ *
+ * Template bodies should use named variables that match templateBodyParams.
+ * Keep text before and after variables to satisfy Meta template validation.
  */
 const sendNotification = async ({
   phone,
@@ -169,6 +339,7 @@ const sendNotification = async ({
   textBody,
   config,
   logPrefix,
+  sendTextAfterTemplate = true,
 }) => {
   // ── 1. Custom template ──
   if (customTemplateName) {
@@ -182,7 +353,7 @@ const sendNotification = async ({
       console.log(`[whatsapp][${logPrefix}] custom template sent to ${normalizePhoneForWhatsApp(phone)}`);
 
       // Send formatted details as a follow-up text so the message shape stays readable.
-      if (textBody) {
+      if (sendTextAfterTemplate && textBody) {
         const textResult = await sendWhatsAppText({ to: phone, body: textBody });
         if (textResult?.sent) {
           console.log(`[whatsapp][${logPrefix}] follow-up text also sent`);
@@ -196,18 +367,19 @@ const sendNotification = async ({
     console.warn(`[whatsapp][${logPrefix}] custom template failed:`, templateResult);
   }
 
-  // ── 2. Default template fallback (hello_world) ──
-  if (config.defaultTemplateFallback) {
+  // ── 2. Optional automation fallback template ──
+  if (config.automationTemplateFallback) {
     const fallbackResult = await sendWhatsAppTemplate({
       to: phone,
-      templateName: config.defaultTemplateFallback,
+      templateName: config.automationTemplateFallback,
       languageCode: templateLanguage,
+      bodyParams: templateBodyParams,
     });
     if (fallbackResult?.sent) {
-      console.log(`[whatsapp][${logPrefix}] default template (${config.defaultTemplateFallback}) sent to ${normalizePhoneForWhatsApp(phone)}`);
+      console.log(`[whatsapp][${logPrefix}] automation fallback template (${config.automationTemplateFallback}) sent to ${normalizePhoneForWhatsApp(phone)}`);
 
       // Also try to send the detailed text for extra context (best-effort, within 24h window)
-      if (textBody) {
+      if (sendTextAfterTemplate && textBody) {
         const textResult = await sendWhatsAppText({ to: phone, body: textBody });
         if (textResult?.sent) {
           console.log(`[whatsapp][${logPrefix}] follow-up text also sent`);
@@ -216,7 +388,7 @@ const sendNotification = async ({
 
       return fallbackResult;
     }
-    console.warn(`[whatsapp][${logPrefix}] default template fallback failed:`, fallbackResult);
+    console.warn(`[whatsapp][${logPrefix}] automation fallback template failed:`, fallbackResult);
   }
 
   // ── 3. Free-form text (last resort – only works inside 24h window) ──
@@ -250,43 +422,18 @@ export const notifySalesFollowUpReminder = async ({
     leadId: lead?._id || lead?.id,
   });
 
-  const textBody = [
-    "تذكير متابعة عميل",
-    "",
-    "اسم ولي الأمر:",
-    `${lead.parentName || "-"}`,
-    "",
-    "رقم ولي الأمر:",
-    `${lead.phone || "-"}`,
-    "",
-    "اسم الطفل:",
-    `${lead.childName || "-"}`,
-    "",
-    "سن الطفل:",
-    `${lead.childAge || "-"}`,
-    "",
-    "الحالة الحالية:",
-    `${lead.status || "Follow-up"}`,
-    "",
-    "موعد المتابعة:",
-    `${formatCairoDateTime(new Date())}`,
-  ].join("\n");
+  const followUpAt = new Date();
+  const textBody = buildSalesFollowUpBody(lead, followUpAt);
 
   const result = await sendNotification({
     phone: recipient.phone,
     customTemplateName: config.followUpTemplateName,
     templateLanguage: config.defaultTemplateLanguage,
-    templateBodyParams: [
-      lead.parentName || "-",
-      lead.phone || "-",
-      lead.childName || "-",
-      `${lead.childAge || "-"}`,
-      "Follow-up",
-      formatCairoDateTime(new Date()),
-    ],
+    templateBodyParams: buildSalesFollowUpParams(lead, followUpAt),
     textBody,
     config,
     logPrefix: "follow-up",
+    sendTextAfterTemplate: false,
   });
 
   if (!result?.sent) {
@@ -307,6 +454,275 @@ export const notifySalesFollowUpReminder = async ({
   return combineChannelResults(result, emailResult);
 };
 
+const buildParentWelcomeBody = () =>
+  [
+    "أهلا بيك أنا كيدفتي من عائلة Sparvi وهكون المساعد الشخصي لحضرتك 😊",
+    "دوري هنا أذكر حضرتك بالمواعيد وابعتلك آخر تطورات المهندس الصغير🥰",
+  ].join("\n");
+
+const buildParentFreeSessionAssignedBody = (lead) =>
+  [
+    `تم تسجيل حصة تجريبية للمهندس الصغير يوم ${formatCairoWeekday(
+      lead?.freeSession?.scheduledAt
+    )} الساعة ${formatCairoTime(
+      lead?.freeSession?.scheduledAt
+    )} بتاريخ ${formatCairoDate(lead?.freeSession?.scheduledAt)}.`,
+    "نتمنى يستمتع بيها ويتعلم مهارة جديدة💪",
+  ].join("\n");
+
+const buildParentFreeSessionAssignedParams = (lead) => [
+  namedTemplateParam(
+    "session_day",
+    formatCairoWeekday(lead?.freeSession?.scheduledAt)
+  ),
+  namedTemplateParam(
+    "session_time",
+    formatCairoTime(lead?.freeSession?.scheduledAt)
+  ),
+  namedTemplateParam(
+    "session_date",
+    formatCairoDate(lead?.freeSession?.scheduledAt)
+  ),
+];
+
+const buildParentSessionReminderBody = () =>
+  [
+    "أهلا بحضرتك أتمنى تكون بكل خير🥰",
+    "بفكرك إن فيه سشن بعد ساعة. نتمنى الطفل يستمتع بيها ويتعلم مهارة جديدة النهارده💪",
+    "المدرب هيتواصل مع حضرتك وهيبعت رابط دخول السشن خلال الساعة القادمة📩",
+  ].join("\n");
+
+const sendParentWhatsApp = async ({
+  phone,
+  templateName,
+  templateBodyParams = [],
+  textBody,
+  config,
+  logPrefix,
+}) =>
+  sendNotification({
+    phone,
+    customTemplateName: templateName,
+    templateLanguage: config.defaultTemplateLanguage,
+    templateBodyParams,
+    textBody,
+    config,
+    logPrefix,
+    sendTextAfterTemplate: false,
+  });
+
+const createWhatsAppTestLead = (phone) => {
+  const scheduledAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  return {
+    parentName: "ولي الأمر التجريبي",
+    phone,
+    childName: "المهندس الصغير",
+    childAge: 8,
+    status: "Follow-up",
+    notes: [
+      {
+        text: "مهتم بتجربة الحصة ومعرفة مستوى الطفل.",
+        createdAt: new Date(),
+      },
+    ],
+    freeSession: {
+      scheduledAt,
+    },
+  };
+};
+
+const createWhatsAppTestInstructor = (phone) => ({
+  name: "مدرب Kidvity",
+  phone,
+  email: "instructor@example.com",
+});
+
+const WHATSAPP_AUTOMATION_TEST_LABELS = {
+  sales_follow_up: "Sales follow-up",
+  instructor_assignment: "Instructor assignment",
+  instructor_reminder: "Instructor 1-hour reminder",
+  parent_welcome: "Parent welcome",
+  parent_assignment: "Parent free-session booking",
+  parent_reminder: "Parent 1-hour reminder",
+};
+
+export const sendWhatsAppAutomationTest = async ({ type, phone }) => {
+  const config = getNotificationConfig();
+  const label = WHATSAPP_AUTOMATION_TEST_LABELS[type] || "";
+  if (!label) {
+    return { sent: false, skipped: true, reason: "invalid_automation_test_type" };
+  }
+
+  const lead = createWhatsAppTestLead(phone);
+  const instructor = createWhatsAppTestInstructor(phone);
+  let result = null;
+
+  if (type === "sales_follow_up") {
+    const followUpAt = new Date();
+    const textBody = buildSalesFollowUpBody(lead, followUpAt);
+    result = await sendNotification({
+      phone,
+      customTemplateName: config.followUpTemplateName,
+      templateLanguage: config.defaultTemplateLanguage,
+      templateBodyParams: buildSalesFollowUpParams(lead, followUpAt),
+      textBody,
+      config,
+      logPrefix: "test-follow-up",
+      sendTextAfterTemplate: false,
+    });
+  }
+
+  if (type === "instructor_assignment") {
+    const textBody = buildInstructorFreeSessionAssignedBody(lead, instructor);
+    result = await sendNotification({
+      phone,
+      customTemplateName: config.instructorAssignTemplateName,
+      templateLanguage: config.defaultTemplateLanguage,
+      templateBodyParams: buildInstructorFreeSessionAssignedParams(
+        lead,
+        instructor
+      ),
+      textBody,
+      config,
+      logPrefix: "test-instructor-assign",
+      sendTextAfterTemplate: false,
+    });
+  }
+
+  if (type === "instructor_reminder") {
+    const textBody = buildInstructorSessionReminderBody(lead, instructor);
+    result = await sendNotification({
+      phone,
+      customTemplateName: config.instructorSessionReminderTemplateName,
+      templateLanguage: config.defaultTemplateLanguage,
+      templateBodyParams: buildInstructorSessionReminderParams(
+        lead,
+        instructor
+      ),
+      textBody,
+      config,
+      logPrefix: "test-instructor-reminder",
+      sendTextAfterTemplate: false,
+    });
+  }
+
+  if (type === "parent_welcome") {
+    const textBody = buildParentWelcomeBody();
+    result = await sendParentWhatsApp({
+      phone,
+      templateName: config.parentWelcomeTemplateName,
+      templateBodyParams: [],
+      textBody,
+      config,
+      logPrefix: "test-parent-welcome",
+    });
+  }
+
+  if (type === "parent_assignment") {
+    const textBody = buildParentFreeSessionAssignedBody(lead);
+    result = await sendParentWhatsApp({
+      phone,
+      templateName: config.parentFreeSessionAssignedTemplateName,
+      templateBodyParams: buildParentFreeSessionAssignedParams(lead),
+      textBody,
+      config,
+      logPrefix: "test-parent-assign",
+    });
+  }
+
+  if (type === "parent_reminder") {
+    const textBody = buildParentSessionReminderBody();
+    result = await sendParentWhatsApp({
+      phone,
+      templateName: config.parentSessionReminderTemplateName,
+      templateBodyParams: [],
+      textBody,
+      config,
+      logPrefix: "test-parent-reminder",
+    });
+  }
+
+  return {
+    ...result,
+    label,
+    type,
+  };
+};
+
+export const notifyParentFreeSessionAssigned = async ({
+  lead,
+  shouldSendWelcome = false,
+}) => {
+  const config = getNotificationConfig();
+  if (!lead?.phone) {
+    return { sent: false, skipped: true, reason: "missing_parent_phone" };
+  }
+
+  let welcomeResult = null;
+  if (shouldSendWelcome) {
+    const welcomeBody = buildParentWelcomeBody();
+    welcomeResult = await sendParentWhatsApp({
+      phone: lead.phone,
+      templateName: config.parentWelcomeTemplateName,
+      templateBodyParams: [],
+      textBody: welcomeBody,
+      config,
+      logPrefix: "parent-welcome",
+    });
+    if (!welcomeResult?.sent) {
+      console.warn("[whatsapp][parent-welcome] NOT sent:", welcomeResult);
+    }
+  }
+
+  const assignmentBody = buildParentFreeSessionAssignedBody(lead);
+  const assignmentResult = await sendParentWhatsApp({
+    phone: lead.phone,
+    templateName: config.parentFreeSessionAssignedTemplateName,
+    templateBodyParams: buildParentFreeSessionAssignedParams(lead),
+    textBody: assignmentBody,
+    config,
+    logPrefix: "parent-assign",
+  });
+  if (!assignmentResult?.sent) {
+    console.warn("[whatsapp][parent-assign] NOT sent:", assignmentResult);
+  }
+
+  return {
+    sent: Boolean(welcomeResult?.sent || assignmentResult?.sent),
+    welcomeSent: Boolean(welcomeResult?.sent),
+    assignmentSent: Boolean(assignmentResult?.sent),
+    welcomeSkipped: !shouldSendWelcome,
+    welcome: welcomeResult,
+    assignment: assignmentResult,
+  };
+};
+
+export const notifyParentSessionReminder = async ({ lead }) => {
+  const config = getNotificationConfig();
+  if (!lead?.phone) {
+    return { sent: false, skipped: true, reason: "missing_parent_phone" };
+  }
+
+  const reminderBody = buildParentSessionReminderBody();
+  const reminderResult = await sendParentWhatsApp({
+    phone: lead.phone,
+    templateName: config.parentSessionReminderTemplateName,
+    templateBodyParams: [],
+    textBody: reminderBody,
+    config,
+    logPrefix: "parent-reminder",
+  });
+  if (!reminderResult?.sent) {
+    console.warn("[whatsapp][parent-reminder] NOT sent:", reminderResult);
+  }
+
+  return {
+    sent: Boolean(reminderResult?.sent),
+    reminderSent: Boolean(reminderResult?.sent),
+    reminder: reminderResult,
+  };
+};
+
 export const notifyInstructorFreeSessionAssigned = async ({
   lead,
   instructor,
@@ -323,47 +739,20 @@ export const notifyInstructorFreeSessionAssigned = async ({
     leadId: lead?._id || lead?.id,
   });
 
-  const textBody = [
-    "تم تعيين حصة مجانية جديدة",
-    "",
-    "اسم ولي الأمر:",
-    `${lead.parentName || "-"}`,
-    "",
-    "رقم ولي الأمر:",
-    `${lead.phone || "-"}`,
-    "",
-    "اسم الطفل:",
-    `${lead.childName || "-"}`,
-    "",
-    "سن الطفل:",
-    `${lead.childAge || "-"}`,
-    "",
-    "موعد الحصة:",
-    `${formatCairoDateTime(lead?.freeSession?.scheduledAt)}`,
-    "",
-    "اسم المدرب:",
-    `${instructor.name || "-"}`,
-    "",
-    "ملاحظات العميل:",
-    extractLatestNotes(lead),
-  ].join("\n");
+  const textBody = buildInstructorFreeSessionAssignedBody(lead, instructor);
 
   const result = await sendNotification({
     phone: instructor.phone,
     customTemplateName: config.instructorAssignTemplateName,
     templateLanguage: config.defaultTemplateLanguage,
-    templateBodyParams: [
-      lead.parentName || "-",
-      lead.phone || "-",
-      lead.childName || "-",
-      `${lead.childAge || "-"}`,
-      formatCairoDateTime(lead?.freeSession?.scheduledAt),
-      instructor.name || "-",
-      extractLatestNotes(lead),
-    ],
+    templateBodyParams: buildInstructorFreeSessionAssignedParams(
+      lead,
+      instructor
+    ),
     textBody,
     config,
     logPrefix: "assign",
+    sendTextAfterTemplate: false,
   });
 
   if (!result?.sent) {
@@ -401,39 +790,17 @@ export const notifyInstructorSessionReminder = async ({
     scheduledAt: lead?.freeSession?.scheduledAt,
   });
 
-  const textBody = [
-    "⏰ تذكير: لديك حصة مجانية بعد ساعة",
-    "",
-    "اسم ولي الأمر:",
-    `${lead.parentName || "-"}`,
-    "",
-    "رقم ولي الأمر:",
-    `${lead.phone || "-"}`,
-    "",
-    "اسم الطفل:",
-    `${lead.childName || "-"}`,
-    "",
-    "سن الطفل:",
-    `${lead.childAge || "-"}`,
-    "",
-    "موعد الحصة:",
-    `${formatCairoDateTime(lead?.freeSession?.scheduledAt)}`,
-    "",
-    "اسم المدرب:",
-    `${instructor.name || "-"}`,
-    "",
-    "ملاحظات العميل:",
-    extractLatestNotes(lead),
-  ].join("\n");
+  const textBody = buildInstructorSessionReminderBody(lead, instructor);
 
   const result = await sendNotification({
     phone: instructor.phone,
-    customTemplateName: "",
+    customTemplateName: config.instructorSessionReminderTemplateName,
     templateLanguage: config.defaultTemplateLanguage,
-    templateBodyParams: [],
+    templateBodyParams: buildInstructorSessionReminderParams(lead, instructor),
     textBody,
     config,
     logPrefix: "reminder",
+    sendTextAfterTemplate: false,
   });
 
   if (!result?.sent) {
