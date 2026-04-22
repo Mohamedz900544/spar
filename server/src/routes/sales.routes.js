@@ -40,12 +40,114 @@ const WEEK_DAYS = [
   "saturday",
 ];
 const TIME_RANGE_REGEX = /^(?:([01]\d|2[0-3]):([0-5]\d)|24:00)$/;
+const FREE_SESSION_TIMEZONE = "Africa/Cairo";
+const LOCAL_DATE_TIME_REGEX =
+  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d{1,3})?)?$/;
+const WEEKDAY_NAME_TO_KEY = {
+  sunday: "sunday",
+  monday: "monday",
+  tuesday: "tuesday",
+  wednesday: "wednesday",
+  thursday: "thursday",
+  friday: "friday",
+  saturday: "saturday",
+};
 
 const assertValidStatus = (status) => LEAD_STATUSES.includes(status);
 
 const toMinutes = (timeValue) => {
   const [hours, minutes] = timeValue.split(":").map(Number);
   return hours * 60 + minutes;
+};
+
+const getTimeZoneOffsetMs = (date, timeZone = FREE_SESSION_TIMEZONE) => {
+  const fields = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  })
+    .formatToParts(date)
+    .reduce((acc, part) => {
+      if (part.type !== "literal") acc[part.type] = part.value;
+      return acc;
+    }, {});
+
+  const asUtc = Date.UTC(
+    Number(fields.year),
+    Number(fields.month) - 1,
+    Number(fields.day),
+    Number(fields.hour),
+    Number(fields.minute),
+    Number(fields.second)
+  );
+
+  return asUtc - date.getTime();
+};
+
+const parseDateTimeInTimeZone = (value, timeZone = FREE_SESSION_TIMEZONE) => {
+  if (value instanceof Date) return value;
+
+  const raw = `${value || ""}`.trim();
+  if (!raw) return new Date(raw);
+
+  if (/(?:Z|[+-]\d{2}:?\d{2})$/i.test(raw)) {
+    return new Date(raw);
+  }
+
+  const match = raw.match(LOCAL_DATE_TIME_REGEX);
+  if (!match) return new Date(raw);
+
+  const [, year, month, day, hour, minute, second = "0"] = match;
+  const localUtcMs = Date.UTC(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute),
+    Number(second)
+  );
+
+  let utcMs = localUtcMs;
+  for (let index = 0; index < 3; index += 1) {
+    const offsetMs = getTimeZoneOffsetMs(new Date(utcMs), timeZone);
+    const nextUtcMs = localUtcMs - offsetMs;
+    if (Math.abs(nextUtcMs - utcMs) < 1) break;
+    utcMs = nextUtcMs;
+  }
+
+  return new Date(utcMs);
+};
+
+const getDateTimePartsInTimeZone = (
+  value,
+  timeZone = FREE_SESSION_TIMEZONE
+) => {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+
+  const fields = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    weekday: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+    .formatToParts(date)
+    .reduce((acc, part) => {
+      if (part.type !== "literal") acc[part.type] = part.value;
+      return acc;
+    }, {});
+
+  return {
+    dayKey: WEEKDAY_NAME_TO_KEY[(fields.weekday || "").toLowerCase()] || "",
+    hours: Number(fields.hour),
+    minutes: Number(fields.minute),
+  };
 };
 
 const normalizeInstructorWorkingHours = (workingHours) => {
@@ -89,11 +191,17 @@ const normalizeInstructorWorkingHours = (workingHours) => {
 };
 
 const isInsideWorkingHours = (scheduledDate, durationMinutes, workingHours) => {
-  const dayKey = WEEK_DAYS[scheduledDate.getDay()];
+  const scheduledParts = getDateTimePartsInTimeZone(
+    scheduledDate,
+    workingHours?.timezone || FREE_SESSION_TIMEZONE
+  );
+  if (!scheduledParts) return false;
+
+  const dayKey = scheduledParts.dayKey;
   const slots = workingHours?.days?.[dayKey] || [];
   if (!slots.length) return false;
 
-  const startMinutes = scheduledDate.getHours() * 60 + scheduledDate.getMinutes();
+  const startMinutes = scheduledParts.hours * 60 + scheduledParts.minutes;
   const endMinutes = startMinutes + durationMinutes;
 
   return slots.some((slot) => {
@@ -558,7 +666,10 @@ router.patch("/leads/:id/free-session", authRequired, agentOrAdmin, async (req, 
         .json({ message: "scheduledAt and instructorId are required" });
     }
 
-    const scheduledDate = new Date(scheduledAt);
+    const scheduledDate = parseDateTimeInTimeZone(
+      scheduledAt,
+      FREE_SESSION_TIMEZONE
+    );
     if (Number.isNaN(scheduledDate.getTime())) {
       return res.status(400).json({ message: "Invalid scheduledAt date" });
     }

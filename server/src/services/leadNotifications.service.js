@@ -82,7 +82,7 @@ const formatCairoDateTime = (value) => {
   if (!value) return "-";
   try {
     return new Date(value).toLocaleString("en-US", {
-      timeZone: "UTC",
+      timeZone: "Africa/Cairo",
       year: "numeric",
       month: "numeric",
       day: "numeric",
