@@ -27,6 +27,7 @@ import { RoundsTab } from "./components/Tabs/RoundsTab";
 import { SessionsTab } from "./components/Tabs/SessionsTab";
 import { EnrollmentsTab } from "./components/Tabs/EnrollmentsTab";
 import { UsersTab } from "./components/Tabs/UsersTab";
+import SparviInstructorAccessCard from "./components/SparviInstructorAccessCard";
 import EgyptPhoneInput from "../../components/EgyptPhoneInput";
 
 function generateRoundCode() {
@@ -233,6 +234,8 @@ const AdminDashboard = () => {
 
             {activeTab === "instructors" && (
               <div className="space-y-6">
+                <SparviInstructorAccessCard />
+
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                   <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm lg:col-span-1">
                     <h2 className="text-base font-bold text-[#102a5a] mb-4 flex items-center gap-2">

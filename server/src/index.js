@@ -15,6 +15,7 @@ import galleryRoutes from "./routes/gallery.routes.js";
 import instructorRoutes from "./routes/instructor.routes.js";
 import salesRoutes from "./routes/sales.routes.js";
 import whatsappWebhookRoutes from "./routes/whatsappWebhook.routes.js";
+import sparviRoutes from "./routes/sparvi.routes.js";
 // import "./config/cloudinary.js";
 import "./automatingUpdatingStatusOfSession.js"
 import "./automatingLeadFollowUpStatus.js";
@@ -77,6 +78,7 @@ app.use('/api/admin/enrollments', enrollmentRoutes)
 app.use('/api/admin/gallery', galleryRoutes)
 app.use("/api/instructor", instructorRoutes);
 app.use("/api/sales", salesRoutes);
+app.use("/api/sparvi", sparviRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/blocks", publicBlocksRoutes); // <-- share is public
 app.use("/api/blocks", blocksRoutes);
