@@ -57,7 +57,6 @@ export const sendWhatsAppText = async ({ to, body }) => {
   if (config.overrideRecipient) {
     const overrideTo = normalizePhoneForWhatsApp(config.overrideRecipient);
     if (overrideTo) {
-      console.log(`[whatsapp] override recipient: ${normalizedTo} → ${overrideTo}`);
       normalizedTo = overrideTo;
     }
   }
@@ -91,7 +90,6 @@ export const sendWhatsAppText = async ({ to, body }) => {
   } catch (error) {
     const providerMessage =
       error?.response?.data?.error?.message || error?.message || "Unknown error";
-    console.error("[whatsapp] send failed:", providerMessage);
     return { sent: false, error: providerMessage };
   }
 };
@@ -113,7 +111,6 @@ export const sendWhatsAppTemplate = async ({
   if (config.overrideRecipient) {
     const overrideTo = normalizePhoneForWhatsApp(config.overrideRecipient);
     if (overrideTo) {
-      console.log(`[whatsapp] override recipient: ${normalizedTo} → ${overrideTo}`);
       normalizedTo = overrideTo;
     }
   }
@@ -177,7 +174,6 @@ export const sendWhatsAppTemplate = async ({
   } catch (error) {
     const providerMessage =
       error?.response?.data?.error?.message || error?.message || "Unknown error";
-    console.error("[whatsapp] template send failed:", providerMessage);
     return { sent: false, error: providerMessage };
   }
 };

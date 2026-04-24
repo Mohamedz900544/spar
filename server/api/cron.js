@@ -69,7 +69,6 @@ const processFreeSessionReminders = async () => {
 };
 
 export default async function handler(req, res) {
-    console.log("⏰ Running session status check...");
     await connectDB();
 
     try {
@@ -92,7 +91,7 @@ export default async function handler(req, res) {
             const sessionStart = new Date(sessionTimeStr);
 
             if (isNaN(sessionStart.getTime())) {
-                console.error(`❌ Invalid Date: ${sessionTimeStr}`);
+                console.error("[cron] invalid session date");
                 continue;
             }
 
@@ -118,7 +117,6 @@ export default async function handler(req, res) {
 
         if (bulkOps.length > 0) {
             await Session.bulkWrite(bulkOps);
-            console.log(`✅ Updated ${bulkOps.length} sessions.`);
         }
 
         const freeSessionReminders = await processFreeSessionReminders();

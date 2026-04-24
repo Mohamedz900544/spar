@@ -46,59 +46,38 @@ export async function automateSessionReminder() {
 
         if (!candidates.length) return;
 
-        console.log(
-          `[cron][reminder] found ${candidates.length} session(s) starting in ~1 hour`
-        );
-
         for (const lead of candidates) {
           const instructorNeedsReminder = !lead.freeSession?.reminderSentAt;
           const parentNeedsReminder = !lead.freeSession?.parentReminderSentAt;
           const instructorId = lead.freeSession?.instructor;
           let instructor = null;
 
-          if (instructorNeedsReminder && !instructorId) {
-            console.warn("[cron][reminder] no instructor on lead:", lead._id);
-          }
-
           if (instructorNeedsReminder && instructorId) {
             instructor = await User.findById(instructorId)
               .select("name phone email role")
               .lean();
-
-            if (!instructor) {
-              console.warn("[cron][reminder] instructor not found:", instructorId);
-            }
           }
 
           const updatePayload = {};
-          let instructorResult = null;
           if (instructorNeedsReminder && instructor) {
-            instructorResult = await notifyInstructorSessionReminder({
+            await notifyInstructorSessionReminder({
               lead,
               instructor,
             });
             updatePayload["freeSession.reminderSentAt"] = now;
           }
 
-          let parentResult = null;
           if (parentNeedsReminder) {
-            parentResult = await notifyParentSessionReminder({ lead });
+            await notifyParentSessionReminder({ lead });
             updatePayload["freeSession.parentReminderSentAt"] = now;
           }
 
           if (Object.keys(updatePayload).length) {
             await Lead.updateOne({ _id: lead._id }, { $set: updatePayload });
           }
-
-          console.log("[cron][reminder] processed lead:", {
-            leadId: lead._id.toString(),
-            instructorName: instructor?.name || "",
-            instructorSent: instructorResult?.sent || false,
-            parentSent: parentResult?.sent || false,
-          });
         }
-      } catch (error) {
-        console.error("[cron][reminder] session reminder failed:", error);
+      } catch {
+        console.error("[cron][reminder] session reminder failed");
       } finally {
         isRunning = false;
       }

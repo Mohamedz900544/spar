@@ -838,12 +838,7 @@ router.patch("/leads/:id/free-session", authRequired, agentOrAdmin, async (req, 
     };
 
     if (!notificationResult?.whatsappSent) {
-      console.warn("[sales][free-session] instructor whatsapp notification failed:", {
-        leadId: updated._id?.toString?.() || updated.id,
-        instructorId: whatsappNotificationTarget.instructorId,
-        instructorPhone: whatsappNotificationTarget.instructorPhoneRaw,
-        result: notificationResult?.whatsapp || notificationResult,
-      });
+      console.warn("[sales][free-session] instructor whatsapp notification failed");
     }
 
     return res.json({

@@ -36,7 +36,7 @@ export async function updateStatusOfSession() {
                 const sessionStart = new Date(sessionTimeStr);
 
                 if (isNaN(sessionStart.getTime())) {
-                    console.error(`❌ Invalid Date: ${sessionTimeStr}`);
+                    console.error("[node-cron] invalid session date");
                     continue;
                 }
 

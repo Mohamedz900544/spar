@@ -1,6 +1,5 @@
 import User from "../models/User.js";
 import {
-  normalizePhoneForWhatsApp,
   sendWhatsAppTemplate,
   sendWhatsAppText,
 } from "./whatsapp.service.js";
@@ -338,7 +337,6 @@ const sendNotification = async ({
   templateBodyParams,
   textBody,
   config,
-  logPrefix,
   sendTextAfterTemplate = true,
 }) => {
   // ── 1. Custom template ──
@@ -350,21 +348,13 @@ const sendNotification = async ({
       bodyParams: templateBodyParams,
     });
     if (templateResult?.sent) {
-      console.log(`[whatsapp][${logPrefix}] custom template sent to ${normalizePhoneForWhatsApp(phone)}`);
-
       // Send formatted details as a follow-up text so the message shape stays readable.
       if (sendTextAfterTemplate && textBody) {
-        const textResult = await sendWhatsAppText({ to: phone, body: textBody });
-        if (textResult?.sent) {
-          console.log(`[whatsapp][${logPrefix}] follow-up text also sent`);
-        } else {
-          console.warn(`[whatsapp][${logPrefix}] follow-up text failed after custom template:`, textResult);
-        }
+        await sendWhatsAppText({ to: phone, body: textBody });
       }
 
       return templateResult;
     }
-    console.warn(`[whatsapp][${logPrefix}] custom template failed:`, templateResult);
   }
 
   // ── 2. Optional automation fallback template ──
@@ -376,29 +366,21 @@ const sendNotification = async ({
       bodyParams: templateBodyParams,
     });
     if (fallbackResult?.sent) {
-      console.log(`[whatsapp][${logPrefix}] automation fallback template (${config.automationTemplateFallback}) sent to ${normalizePhoneForWhatsApp(phone)}`);
-
       // Also try to send the detailed text for extra context (best-effort, within 24h window)
       if (sendTextAfterTemplate && textBody) {
-        const textResult = await sendWhatsAppText({ to: phone, body: textBody });
-        if (textResult?.sent) {
-          console.log(`[whatsapp][${logPrefix}] follow-up text also sent`);
-        }
+        await sendWhatsAppText({ to: phone, body: textBody });
       }
 
       return fallbackResult;
     }
-    console.warn(`[whatsapp][${logPrefix}] automation fallback template failed:`, fallbackResult);
   }
 
   // ── 3. Free-form text (last resort – only works inside 24h window) ──
   if (textBody) {
     const textResult = await sendWhatsAppText({ to: phone, body: textBody });
     if (textResult?.sent) {
-      console.log(`[whatsapp][${logPrefix}] text message sent to ${normalizePhoneForWhatsApp(phone)}`);
       return textResult;
     }
-    console.warn(`[whatsapp][${logPrefix}] text message also failed:`, textResult);
     return textResult;
   }
 
@@ -412,15 +394,8 @@ export const notifySalesFollowUpReminder = async ({
   const config = getNotificationConfig();
   const recipient = await resolveSalesRecipient(lead, fallbackSalesUser, config);
   if (!recipient) {
-    console.warn("[whatsapp][follow-up] skipped – no sales recipient found for lead:", lead?._id || lead?.id);
     return { sent: false, skipped: true, reason: "missing_sales_recipient" };
   }
-
-  console.log("[whatsapp][follow-up] sending to:", {
-    recipientName: recipient.name,
-    recipientPhone: recipient.phone,
-    leadId: lead?._id || lead?.id,
-  });
 
   const followUpAt = new Date();
   const textBody = buildSalesFollowUpBody(lead, followUpAt);
@@ -432,13 +407,8 @@ export const notifySalesFollowUpReminder = async ({
     templateBodyParams: buildSalesFollowUpParams(lead, followUpAt),
     textBody,
     config,
-    logPrefix: "follow-up",
     sendTextAfterTemplate: false,
   });
-
-  if (!result?.sent) {
-    console.warn("[whatsapp][follow-up] NOT sent:", result);
-  }
 
   const emailResult = await sendNotificationEmail({
     toEmail: recipient.email,
@@ -448,7 +418,7 @@ export const notifySalesFollowUpReminder = async ({
     title: "Sales Follow-up Reminder",
   });
   if (!emailResult?.sent && !emailResult?.skipped) {
-    console.warn("[brevo][follow-up] NOT sent:", emailResult);
+    console.warn("[brevo][follow-up] notification not sent");
   }
 
   return combineChannelResults(result, emailResult);
@@ -498,7 +468,6 @@ const sendParentWhatsApp = async ({
   templateBodyParams = [],
   textBody,
   config,
-  logPrefix,
 }) =>
   sendNotification({
     phone,
@@ -507,7 +476,6 @@ const sendParentWhatsApp = async ({
     templateBodyParams,
     textBody,
     config,
-    logPrefix,
     sendTextAfterTemplate: false,
   });
 
@@ -567,7 +535,6 @@ export const sendWhatsAppAutomationTest = async ({ type, phone }) => {
       templateBodyParams: buildSalesFollowUpParams(lead, followUpAt),
       textBody,
       config,
-      logPrefix: "test-follow-up",
       sendTextAfterTemplate: false,
     });
   }
@@ -584,7 +551,6 @@ export const sendWhatsAppAutomationTest = async ({ type, phone }) => {
       ),
       textBody,
       config,
-      logPrefix: "test-instructor-assign",
       sendTextAfterTemplate: false,
     });
   }
@@ -601,7 +567,6 @@ export const sendWhatsAppAutomationTest = async ({ type, phone }) => {
       ),
       textBody,
       config,
-      logPrefix: "test-instructor-reminder",
       sendTextAfterTemplate: false,
     });
   }
@@ -614,7 +579,6 @@ export const sendWhatsAppAutomationTest = async ({ type, phone }) => {
       templateBodyParams: [],
       textBody,
       config,
-      logPrefix: "test-parent-welcome",
     });
   }
 
@@ -626,7 +590,6 @@ export const sendWhatsAppAutomationTest = async ({ type, phone }) => {
       templateBodyParams: buildParentFreeSessionAssignedParams(lead),
       textBody,
       config,
-      logPrefix: "test-parent-assign",
     });
   }
 
@@ -638,7 +601,6 @@ export const sendWhatsAppAutomationTest = async ({ type, phone }) => {
       templateBodyParams: [],
       textBody,
       config,
-      logPrefix: "test-parent-reminder",
     });
   }
 
@@ -667,11 +629,7 @@ export const notifyParentFreeSessionAssigned = async ({
       templateBodyParams: [],
       textBody: welcomeBody,
       config,
-      logPrefix: "parent-welcome",
     });
-    if (!welcomeResult?.sent) {
-      console.warn("[whatsapp][parent-welcome] NOT sent:", welcomeResult);
-    }
   }
 
   const assignmentBody = buildParentFreeSessionAssignedBody(lead);
@@ -681,11 +639,7 @@ export const notifyParentFreeSessionAssigned = async ({
     templateBodyParams: buildParentFreeSessionAssignedParams(lead),
     textBody: assignmentBody,
     config,
-    logPrefix: "parent-assign",
   });
-  if (!assignmentResult?.sent) {
-    console.warn("[whatsapp][parent-assign] NOT sent:", assignmentResult);
-  }
 
   return {
     sent: Boolean(welcomeResult?.sent || assignmentResult?.sent),
@@ -710,11 +664,7 @@ export const notifyParentSessionReminder = async ({ lead }) => {
     templateBodyParams: [],
     textBody: reminderBody,
     config,
-    logPrefix: "parent-reminder",
   });
-  if (!reminderResult?.sent) {
-    console.warn("[whatsapp][parent-reminder] NOT sent:", reminderResult);
-  }
 
   return {
     sent: Boolean(reminderResult?.sent),
@@ -729,15 +679,8 @@ export const notifyInstructorFreeSessionAssigned = async ({
 }) => {
   const config = getNotificationConfig();
   if (!instructor?.phone && !instructor?.email) {
-    console.warn("[whatsapp][assign] skipped – instructor has no phone:", instructor?.name || instructor?._id);
     return { sent: false, skipped: true, reason: "missing_instructor_phone_and_email" };
   }
-
-  console.log("[whatsapp][assign] sending to instructor:", {
-    instructorName: instructor.name,
-    instructorPhone: instructor.phone,
-    leadId: lead?._id || lead?.id,
-  });
 
   const textBody = buildInstructorFreeSessionAssignedBody(lead, instructor);
 
@@ -751,13 +694,8 @@ export const notifyInstructorFreeSessionAssigned = async ({
     ),
     textBody,
     config,
-    logPrefix: "assign",
     sendTextAfterTemplate: false,
   });
-
-  if (!result?.sent) {
-    console.warn("[whatsapp][assign] NOT sent:", result);
-  }
 
   const emailResult = await sendNotificationEmail({
     toEmail: instructor.email || "",
@@ -767,7 +705,7 @@ export const notifyInstructorFreeSessionAssigned = async ({
     title: "Free Session Assigned",
   });
   if (!emailResult?.sent && !emailResult?.skipped) {
-    console.warn("[brevo][assign] NOT sent:", emailResult);
+    console.warn("[brevo][assign] notification not sent");
   }
 
   return combineChannelResults(result, emailResult);
@@ -779,16 +717,8 @@ export const notifyInstructorSessionReminder = async ({
 }) => {
   const config = getNotificationConfig();
   if (!instructor?.phone && !instructor?.email) {
-    console.warn("[whatsapp][reminder] skipped – instructor has no phone:", instructor?.name || instructor?._id);
     return { sent: false, skipped: true, reason: "missing_instructor_phone_and_email" };
   }
-
-  console.log("[whatsapp][reminder] sending 1-hour reminder to instructor:", {
-    instructorName: instructor.name,
-    instructorPhone: instructor.phone,
-    leadId: lead?._id || lead?.id,
-    scheduledAt: lead?.freeSession?.scheduledAt,
-  });
 
   const textBody = buildInstructorSessionReminderBody(lead, instructor);
 
@@ -799,13 +729,8 @@ export const notifyInstructorSessionReminder = async ({
     templateBodyParams: buildInstructorSessionReminderParams(lead, instructor),
     textBody,
     config,
-    logPrefix: "reminder",
     sendTextAfterTemplate: false,
   });
-
-  if (!result?.sent) {
-    console.warn("[whatsapp][reminder] NOT sent:", result);
-  }
 
   const emailResult = await sendNotificationEmail({
     toEmail: instructor.email || "",
@@ -815,7 +740,7 @@ export const notifyInstructorSessionReminder = async ({
     title: "Upcoming Session Reminder",
   });
   if (!emailResult?.sent && !emailResult?.skipped) {
-    console.warn("[brevo][reminder] NOT sent:", emailResult);
+    console.warn("[brevo][reminder] notification not sent");
   }
 
   return combineChannelResults(result, emailResult);

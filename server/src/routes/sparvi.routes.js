@@ -79,7 +79,7 @@ router.post(
   requireSparviSharedSecretIfConfigured,
   async (req, res) => {
     try {
-      const { password, roomId, clientId, role, source, timestamp } = req.body || {};
+      const { password, role } = req.body || {};
 
       if (!password) {
         return res.status(400).json({
@@ -97,13 +97,7 @@ router.post(
 
       const isValid = await verifySparviInstructorPassword(password);
       if (!isValid) {
-        console.warn("[sparvi] Invalid instructor password attempt", {
-          roomId: roomId || "",
-          clientId: clientId || "",
-          role: role || "",
-          source: source || "",
-          timestamp: timestamp || null,
-        });
+        console.warn("[sparvi] Invalid instructor password attempt");
 
         return res.status(401).json({
           ok: false,
