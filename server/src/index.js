@@ -1,4 +1,4 @@
-import "dotenv/config";
+import "./config/env.js";
 import express from "express";
 import cors from "cors";
 import { connectDB } from "./config/db.js";
@@ -94,9 +94,7 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 8300;
 
 connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`✅ Server running on port ${PORT}`);
-  });
+  app.listen(PORT);
 });
 
 export default app
