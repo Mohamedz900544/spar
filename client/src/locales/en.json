@@ -216,31 +216,29 @@
     "pricing": {
       "title": "Pricing Plans",
       "subtitle": "Choose the right plan for your child's learning journey",
-      "popular": "Most Popular",
+      "currency": "EGP",
       "cta_subscribe": "Subscribe Now",
       "cta_free": "Ask About Free Session",
       "wa_subscribe": "Hello! I'd like to subscribe to the {{plan}} plan for {{price}} EGP / {{period}}",
       "wa_free": "Hello! I'd like to know more details about the free session",
       "plans": {
-        "starter": {
-          "name": "Starter",
-          "period": "3 Months"
+        "oneToOne": {
+          "name": "Private Subscription",
+          "period": "3 Months",
+          "sessionType": "Private 1:1 sessions"
         },
-        "pro": {
-          "name": "Professional",
-          "period": "12 Months"
-        },
-        "advanced": {
-          "name": "Advanced",
-          "period": "6 Months"
+        "threeToOne": {
+          "name": "Group Subscription",
+          "period": "3 Months",
+          "sessionType": "Small group sessions - 3:1"
         }
       },
       "features": {
-        "certificate": "Level completion certificate",
-        "guidance": "Technical guidance",
-        "sessions": "Interactive 1-on-1 online sessions",
-        "duration": "{{count}} sessions - {{period}}",
-        "freeze": "Freeze up to {{count}} sessions"
+        "subscription": "3-month subscription",
+        "totalSessions": "15 total sessions",
+        "sessionLength": "Each session is 2 hours",
+        "courseSessions": "12 sessions for course content",
+        "skillsSessions": "3 varied skills sessions: time management, negotiation skills, and logical thinking"
       }
     }
   },

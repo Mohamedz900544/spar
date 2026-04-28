@@ -3,46 +3,33 @@ import { Check, ArrowRight } from "lucide-react";
 
 const plans = [
   {
-    key: "starter",
+    key: "oneToOne",
     price: "3500",
-    sessions: 12,
-    freezable: 2,
-    popular: false,
+    originalPrice: "5500",
   },
   {
-    key: "pro",
-    price: "12250",
-    sessions: 48,
-    freezable: 8,
-    popular: true,
-  },
-  {
-    key: "advanced",
-    price: "6600",
-    sessions: 24,
-    freezable: 4,
-    popular: false,
+    key: "threeToOne",
+    price: "1500",
+    originalPrice: "3500",
   },
 ];
 
 const accentColors = {
-  starter: {
-    gradient: "linear-gradient(135deg, #0ea5e9, #06b6d4)",
-    light: "#ecfeff",
-    border: "#06b6d4",
-    text: "#0891b2",
+  oneToOne: {
+    gradient: "linear-gradient(135deg, #ca8a04, #fde047)",
+    softGradient: "linear-gradient(180deg, #fefce8 0%, #ffffff 58%)",
+    light: "#fef08a",
+    border: "#eab308",
+    text: "#854d0e",
+    price: "#ca8a04",
   },
-  pro: {
-    gradient: "linear-gradient(135deg, #1e3a8a, #2563eb)",
-    light: "#eff6ff",
+  threeToOne: {
+    gradient: "linear-gradient(135deg, #1d4ed8, #38bdf8)",
+    softGradient: "linear-gradient(180deg, #eff6ff 0%, #ffffff 58%)",
+    light: "#dbeafe",
     border: "#2563eb",
     text: "#1d4ed8",
-  },
-  advanced: {
-    gradient: "linear-gradient(135deg, #0ea5e9, #06b6d4)",
-    light: "#ecfeff",
-    border: "#06b6d4",
-    text: "#0891b2",
+    price: "#1d4ed8",
   },
 };
 
@@ -76,70 +63,40 @@ export default function PricingSection() {
         </div>
 
         {/* Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch">
-          {plans.map((plan, idx) => {
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 items-stretch max-w-4xl mx-auto">
+          {plans.map((plan) => {
             const accent = accentColors[plan.key];
             const features = [
-              t("landing.pricing.features.certificate"),
-              t("landing.pricing.features.guidance"),
-              t("landing.pricing.features.sessions"),
-              t("landing.pricing.features.duration", {
-                count: plan.sessions,
-                period: t(`landing.pricing.plans.${plan.key}.period`),
-              }),
-              t("landing.pricing.features.freeze", {
-                count: plan.freezable,
-              }),
+              t(`landing.pricing.plans.${plan.key}.sessionType`),
+              t("landing.pricing.features.subscription"),
+              t("landing.pricing.features.totalSessions"),
+              t("landing.pricing.features.sessionLength"),
+              t("landing.pricing.features.courseSessions"),
+              t("landing.pricing.features.skillsSessions"),
             ];
 
             return (
               <div
                 key={plan.key}
-                className={`relative rounded-3xl transition-all duration-500 hover:-translate-y-2 overflow-hidden flex flex-col ${
-                  plan.popular ? "md:-mt-4 md:mb-0" : ""
-                }`}
+                className="group relative rounded-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col h-full"
                 style={{
-                  background: plan.popular
-                    ? accent.gradient
-                    : "#ffffff",
-                  border: plan.popular
-                    ? "none"
-                    : "1.5px solid rgba(226,232,240,0.8)",
-                  boxShadow: plan.popular
-                    ? "0 25px 60px rgba(37,99,235,0.25)"
-                    : "0 4px 20px rgba(0,0,0,0.04)",
+                  background: accent.softGradient,
+                  border: `1.5px solid ${accent.border}55`,
+                  boxShadow: "0 10px 24px rgba(15, 23, 42, 0.08)",
                 }}
               >
-                {/* Popular Badge */}
-                {plan.popular && (
-                  <div className="flex justify-center pt-6 pb-2">
-                    <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-amber-400 text-slate-900 font-extrabold text-xs tracking-wider uppercase shadow-md">
-                       {t("landing.pricing.popular")}
-                    </span>
-                  </div>
-                )}
+                <div
+                  className="absolute inset-x-0 top-0 h-2"
+                  style={{ background: accent.gradient }}
+                />
 
                 {/* Card Content */}
                 <div
-                  className={`flex-1 flex flex-col p-8 ${
-                    plan.popular ? "pt-4" : "pt-8"
-                  }`}
+                  className="flex-1 flex flex-col p-8 pt-10"
                 >
                   {/* Plan Name */}
                   <h3
-                    className={`text-2xl font-extrabold mb-5 text-center ${
-                      plan.popular ? "text-white" : ""
-                    }`}
-                    style={
-                      !plan.popular
-                        ? {
-                            background: accent.gradient,
-                            WebkitBackgroundClip: "text",
-                            WebkitTextFillColor: "transparent",
-                            backgroundClip: "text",
-                          }
-                        : undefined
-                    }
+                    className="text-2xl font-extrabold mb-5 text-center text-slate-950"
                   >
                     {t(`landing.pricing.plans.${plan.key}.name`)}
                   </h3>
@@ -148,27 +105,20 @@ export default function PricingSection() {
                   <div
                     className="mb-6 text-center"
                   >
+                    <div
+                      className="mb-2 text-sm font-bold text-slate-400 line-through"
+                    >
+                      {plan.originalPrice} {t("landing.pricing.currency")}
+                    </div>
                     <span
-                      className={`text-5xl font-black ${
-                        plan.popular ? "text-white" : ""
-                      }`}
-                      style={
-                        !plan.popular
-                          ? {
-                              color: "#f97316",
-                            }
-                          : undefined
-                      }
+                      className="text-5xl font-black"
+                      style={{ color: accent.price }}
                     >
                       {plan.price}
                     </span>
                     <span
-                      className={`text-sm font-bold ${
+                      className={`text-sm font-bold text-slate-500 ${
                         isRTL ? "mr-2" : "ml-2"
-                      } ${
-                        plan.popular
-                          ? "text-blue-100"
-                          : "text-slate-400"
                       }`}
                     >
                       / {t(`landing.pricing.plans.${plan.key}.period`)}
@@ -180,18 +130,13 @@ export default function PricingSection() {
                     {features.map((feature, i) => (
                       <li
                         key={i}
-                        className={`flex items-center gap-3 text-sm font-medium ${
-                          plan.popular
-                            ? "text-blue-50"
-                            : "text-slate-600"
-                        }`}
+                        dir={isRTL ? "rtl" : "ltr"}
+                        className="flex items-center gap-3 text-sm font-semibold text-slate-700"
                       >
                         <div
-                          className="shrink-0 w-5.5 h-5.5 rounded-full flex items-center justify-center"
+                          className="shrink-0 w-5.5 h-5.5 rounded-md flex items-center justify-center"
                           style={{
-                            background: plan.popular
-                              ? "rgba(255,255,255,0.2)"
-                              : accent.light,
+                            background: accent.light,
                             width: 22,
                             height: 22,
                           }}
@@ -199,19 +144,15 @@ export default function PricingSection() {
                           <Check
                             size={13}
                             strokeWidth={3}
-                            className={
-                              plan.popular
-                                ? "text-white"
-                                : ""
-                            }
-                            style={
-                              !plan.popular
-                                ? { color: accent.text }
-                                : undefined
-                            }
+                            style={{ color: accent.text }}
                           />
                         </div>
-                        {feature}
+                        <span
+                          dir={isRTL ? "rtl" : "ltr"}
+                          className={isRTL ? "text-right" : "text-left"}
+                        >
+                          {feature}
+                        </span>
                       </li>
                     ))}
                   </ul>
@@ -231,20 +172,11 @@ export default function PricingSection() {
                       className="block"
                     >
                       <button
-                        className={`w-full flex items-center justify-center gap-2 rounded-2xl py-3.5 font-bold text-sm transition-all duration-300 hover:-translate-y-0.5 ${
-                          plan.popular
-                            ? "bg-white text-blue-700 hover:bg-blue-50 shadow-lg"
-                            : ""
-                        }`}
-                        style={
-                          !plan.popular
-                            ? {
-                                background: accent.gradient,
-                                color: "#ffffff",
-                                boxShadow: `0 8px 20px ${accent.border}30`,
-                              }
-                            : undefined
-                        }
+                        className="w-full flex items-center justify-center gap-2 rounded-lg py-3.5 font-bold text-sm text-white transition-all duration-300 hover:-translate-y-0.5"
+                        style={{
+                          background: accent.gradient,
+                          boxShadow: `0 8px 20px ${accent.border}35`,
+                        }}
                       >
                         {t("landing.pricing.cta_subscribe")}
                         <ArrowRight
@@ -262,11 +194,11 @@ export default function PricingSection() {
                       className="block"
                     >
                       <button
-                        className={`w-full rounded-2xl py-3 font-bold text-sm transition-all duration-300 ${
-                          plan.popular
-                            ? "border-2 border-white/30 text-white hover:bg-white/10"
-                            : "border-2 border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700"
-                        }`}
+                        className="w-full rounded-lg border-2 py-3 font-bold text-sm transition-all duration-300 hover:bg-white"
+                        style={{
+                          borderColor: `${accent.border}55`,
+                          color: accent.text,
+                        }}
                       >
                         {t("landing.pricing.cta_free")}
                       </button>
