@@ -88,9 +88,17 @@ export const sendWhatsAppText = async ({ to, body }) => {
 
     return { sent: true, data };
   } catch (error) {
+    const providerError = error?.response?.data?.error || null;
     const providerMessage =
-      error?.response?.data?.error?.message || error?.message || "Unknown error";
-    return { sent: false, error: providerMessage };
+      providerError?.message || error?.message || "Unknown error";
+    return {
+      sent: false,
+      error: providerMessage,
+      errorCode: providerError?.code,
+      errorSubcode: providerError?.error_subcode,
+      errorType: providerError?.type,
+      fbtraceId: providerError?.fbtrace_id,
+    };
   }
 };
 
@@ -172,8 +180,16 @@ export const sendWhatsAppTemplate = async ({
 
     return { sent: true, data };
   } catch (error) {
+    const providerError = error?.response?.data?.error || null;
     const providerMessage =
-      error?.response?.data?.error?.message || error?.message || "Unknown error";
-    return { sent: false, error: providerMessage };
+      providerError?.message || error?.message || "Unknown error";
+    return {
+      sent: false,
+      error: providerMessage,
+      errorCode: providerError?.code,
+      errorSubcode: providerError?.error_subcode,
+      errorType: providerError?.type,
+      fbtraceId: providerError?.fbtrace_id,
+    };
   }
 };

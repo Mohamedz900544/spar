@@ -242,7 +242,6 @@ const buildSalesBusyCallReminderParams = (lead, callAt = new Date()) => [
   namedTemplateParam("child_name", valueOrDash(lead.childName)),
   namedTemplateParam("child_age", valueOrDash(lead.childAge)),
   namedTemplateParam("lead_status", valueOrDash(lead.status || "Busy Call Later")),
-  namedTemplateParam("follow_up_time", formatCairoDateTime(callAt)),
   namedTemplateParam("call_time", formatCairoDateTime(callAt)),
 ];
 
@@ -646,7 +645,7 @@ const createWhatsAppTestLead = (phone) => {
     phone,
     childName: "المهندس الصغير",
     childAge: 8,
-    status: "Follow-up",
+    status: "Busy Call Later",
     notes: [
       {
         text: "مهتم بتجربة الحصة ومعرفة مستوى الطفل.",
