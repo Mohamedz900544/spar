@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import {
+  normalizePhoneForWhatsApp,
   sendWhatsAppTemplate,
   sendWhatsAppText,
 } from "./whatsapp.service.js";
@@ -155,6 +156,29 @@ const namedTemplateParam = (name, value) => ({ name, value });
 const valueOrDash = (value) => {
   const text = `${value ?? ""}`.trim();
   return text || "-";
+};
+
+const DEFAULT_WHATSAPP_COUNTRY_CODE = (
+  process.env.WHATSAPP_DEFAULT_COUNTRY_CODE || "20"
+).replace(/\D/g, "");
+
+const getValidWhatsAppPhone = (...phones) => {
+  for (const phone of phones) {
+    const normalized = normalizePhoneForWhatsApp(phone);
+    if (!normalized) continue;
+
+    const hasReasonableE164Length =
+      normalized.length >= 10 && normalized.length <= 15;
+    const isDefaultCountryPhone =
+      DEFAULT_WHATSAPP_COUNTRY_CODE &&
+      normalized.startsWith(DEFAULT_WHATSAPP_COUNTRY_CODE);
+
+    if (hasReasonableE164Length && isDefaultCountryPhone) {
+      return normalized;
+    }
+  }
+
+  return "";
 };
 
 const buildSalesFollowUpBody = (lead, followUpAt = new Date()) =>
@@ -492,9 +516,20 @@ export const notifySalesBusyCallReminder = async ({
 
   const callAt = lead?.callLater?.scheduledAt || new Date();
   const textBody = buildSalesBusyCallReminderBody(lead, callAt);
-  const recipientPhone = recipient.phone || config.defaultSalesPhone;
+  const recipientPhone = getValidWhatsAppPhone(
+    recipient.phone,
+    config.defaultSalesPhone
+  );
   if (!recipientPhone) {
-    return { sent: false, skipped: true, reason: "missing_sales_phone" };
+    return { sent: false, skipped: true, reason: "missing_valid_sales_phone" };
+  }
+
+  if (!config.busyCallReminderTemplateName) {
+    return {
+      sent: false,
+      skipped: true,
+      reason: "missing_busy_call_template_env",
+    };
   }
 
   const result = await sendNotification({
@@ -669,10 +704,27 @@ export const sendWhatsAppAutomationTest = async ({ type, phone }) => {
   }
 
   if (type === "busy_call_reminder") {
+    const testPhone = getValidWhatsAppPhone(phone);
+    if (!testPhone) {
+      return {
+        sent: false,
+        skipped: true,
+        reason: "invalid_test_phone_number",
+      };
+    }
+
+    if (!config.busyCallReminderTemplateName) {
+      return {
+        sent: false,
+        skipped: true,
+        reason: "missing_busy_call_template_env",
+      };
+    }
+
     const callAt = lead.callLater.scheduledAt;
     const textBody = buildSalesBusyCallReminderBody(lead, callAt);
     result = await sendNotification({
-      phone,
+      phone: testPhone,
       customTemplateName: config.busyCallReminderTemplateName,
       templateLanguage: config.busyCallReminderTemplateLanguage,
       templateBodyParams: buildSalesBusyCallReminderParams(lead, callAt),

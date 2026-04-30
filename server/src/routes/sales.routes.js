@@ -371,6 +371,21 @@ router.post("/whatsapp/automation-test", authRequired, agentOrAdmin, async (req,
       });
     }
 
+    if (result?.reason === "invalid_test_phone_number") {
+      return res.status(400).json({
+        message: "Invalid WhatsApp test phone number",
+        details: result,
+      });
+    }
+
+    if (result?.reason === "missing_busy_call_template_env") {
+      return res.status(400).json({
+        message:
+          "Missing WHATSAPP_TEMPLATE_BUSY_CALL_REMINDER env for busy call reminder",
+        details: result,
+      });
+    }
+
     if (!result?.sent) {
       return res.status(502).json({
         message: "WhatsApp automation test failed",
