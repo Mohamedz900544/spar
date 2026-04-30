@@ -23,6 +23,11 @@ const WEEK_DAYS = [
   "saturday",
 ];
 const TIME_RANGE_REGEX = /^(?:([01]\d|2[0-3]):([0-5]\d)|24:00)$/;
+const FREE_SESSION_FILTERS = [
+  { id: "pending", label: "Pending", icon: Clock },
+  { id: "assigned", label: "Assigned", icon: CheckCircle2 },
+  { id: "finished", label: "Finished", icon: CalendarDays },
+];
 
 const toMinutes = (timeValue) => {
   const [hours, minutes] = timeValue.split(":").map(Number);
@@ -124,6 +129,19 @@ const resolveLeadSessionRange = (lead, fallbackDurationMinutes = 60) => {
   };
 };
 
+const getFreeSessionStatus = (lead, now = new Date()) => {
+  if (!lead?.freeSession?.isAssigned) {
+    return "pending";
+  }
+
+  const sessionRange = resolveLeadSessionRange(lead);
+  if (sessionRange?.endDate?.getTime() <= now.getTime()) {
+    return "finished";
+  }
+
+  return "assigned";
+};
+
 const buildBusyRangesByInstructor = (leads) => {
   const rangesByInstructor = {};
 
@@ -202,6 +220,7 @@ const buildInstructorSlots = (instructor, busyRanges = [], daysAhead = 21) => {
 const SalesFreeSessionPage = () => {
   const sales = useOutletContext();
   const [draftOverrides, setDraftOverrides] = useState({});
+  const [freeSessionFilter, setFreeSessionFilter] = useState("pending");
   const [slotPicker, setSlotPicker] = useState({
     open: false,
     leadId: "",
@@ -285,6 +304,28 @@ const SalesFreeSessionPage = () => {
     return merged;
   }, [draftOverrides, initialDraftsByLead, requestedLeads]);
 
+  const freeSessionBuckets = useMemo(() => {
+    const buckets = {
+      pending: [],
+      assigned: [],
+      finished: [],
+    };
+    const now = new Date();
+
+    for (const lead of requestedLeads) {
+      buckets[getFreeSessionStatus(lead, now)].push(lead);
+    }
+
+    return buckets;
+  }, [requestedLeads]);
+
+  const filteredRequestedLeads = freeSessionBuckets[freeSessionFilter] || [];
+  const filterCounts = {
+    pending: freeSessionBuckets.pending.length,
+    assigned: freeSessionBuckets.assigned.length,
+    finished: freeSessionBuckets.finished.length,
+  };
+
   const updateDraft = (leadId, field, value) => {
     setDraftOverrides((prev) => ({
       ...prev,
@@ -352,8 +393,9 @@ const SalesFreeSessionPage = () => {
     });
   };
 
-  const assignedCount = requestedLeads.filter((lead) => lead.freeSession?.isAssigned).length;
-  const pendingCount = requestedLeads.length - assignedCount;
+  const assignedCount = filterCounts.assigned;
+  const pendingCount = filterCounts.pending;
+  const finishedCount = filterCounts.finished;
   const selectedSlotValue = drafts[slotPicker.leadId]?.scheduledAt || "";
 
   return (
@@ -383,6 +425,10 @@ const SalesFreeSessionPage = () => {
               <p className="text-lg font-bold text-emerald-400">{assignedCount}</p>
               <p className="text-[10px] text-white/60 font-semibold uppercase tracking-wider">Assigned</p>
             </div>
+            <div className="text-center bg-white/10 rounded-xl px-4 py-2 border border-white/10">
+              <p className="text-lg font-bold text-sky-300">{finishedCount}</p>
+              <p className="text-[10px] text-white/60 font-semibold uppercase tracking-wider">Finished</p>
+            </div>
           </div>
         </div>
       </div>
@@ -397,23 +443,71 @@ const SalesFreeSessionPage = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          {requestedLeads.map((lead) => {
+          <div className="rounded-2xl border border-slate-100 bg-white p-2 shadow-sm">
+            <div className="grid grid-cols-3 gap-2">
+              {FREE_SESSION_FILTERS.map((filter) => {
+                const Icon = filter.icon;
+                const isActive = freeSessionFilter === filter.id;
+                return (
+                  <button
+                    key={filter.id}
+                    type="button"
+                    onClick={() => setFreeSessionFilter(filter.id)}
+                    className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold transition-all ${
+                      isActive
+                        ? "bg-[#102a5a] text-white shadow-sm"
+                        : "bg-slate-50 text-slate-600 hover:bg-slate-100"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span>{filter.label}</span>
+                    <span
+                      className={`min-w-6 rounded-full px-2 py-0.5 text-[11px] ${
+                        isActive ? "bg-white/15 text-white" : "bg-white text-slate-500"
+                      }`}
+                    >
+                      {filterCounts[filter.id]}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {filteredRequestedLeads.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-10 text-center">
+              <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                <CalendarClock className="w-5 h-5 text-slate-400" />
+              </div>
+              <h3 className="text-base font-bold text-[#102a5a] mb-1">
+                No {freeSessionFilter} free sessions
+              </h3>
+              <p className="text-sm text-slate-500">Try another status filter.</p>
+            </div>
+          ) : (
+            filteredRequestedLeads.map((lead) => {
             const leadId = lead.id || lead._id;
             const draft = drafts[leadId] || { instructorId: "", scheduledAt: "" };
-            const isAssigned = Boolean(lead.freeSession?.isAssigned);
+            const sessionStatus = getFreeSessionStatus(lead);
+            const isAssigned = sessionStatus !== "pending";
+            const isFinished = sessionStatus === "finished";
 
             return (
               <article
                 key={leadId}
                 className={`bg-white rounded-2xl border-2 shadow-sm overflow-hidden transition-all ${
-                  isAssigned
+                  isFinished
+                    ? "border-sky-200"
+                    : isAssigned
                     ? "border-emerald-200"
                     : "border-slate-100 hover:border-[#FBBF24]/30 hover:shadow-md"
                 }`}
               >
                 <div
                   className={`px-5 py-4 border-b ${
-                    isAssigned
+                    isFinished
+                      ? "border-sky-100 bg-sky-50/40"
+                      : isAssigned
                       ? "border-emerald-100 bg-emerald-50/30"
                       : "border-slate-100 bg-slate-50/50"
                   }`}
@@ -422,7 +516,9 @@ const SalesFreeSessionPage = () => {
                     <div className="flex items-center gap-3">
                       <div
                         className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                          isAssigned
+                          isFinished
+                            ? "bg-sky-100 text-sky-600"
+                            : isAssigned
                             ? "bg-emerald-100 text-emerald-600"
                             : "bg-gradient-to-br from-[#102a5a] to-[#1a3a6b] text-white"
                         }`}
@@ -459,9 +555,19 @@ const SalesFreeSessionPage = () => {
                         {lead.source || "Manual"}
                       </span>
                       {isAssigned && (
-                        <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700">
-                          <CheckCircle2 className="w-3 h-3" />
-                          Assigned
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-bold ${
+                            isFinished
+                              ? "border-sky-200 bg-sky-50 text-sky-700"
+                              : "border-emerald-200 bg-emerald-50 text-emerald-700"
+                          }`}
+                        >
+                          {isFinished ? (
+                            <CalendarDays className="w-3 h-3" />
+                          ) : (
+                            <CheckCircle2 className="w-3 h-3" />
+                          )}
+                          {isFinished ? "Finished" : "Assigned"}
                         </span>
                       )}
                     </div>
@@ -560,7 +666,8 @@ const SalesFreeSessionPage = () => {
                 </div>
               </article>
             );
-          })}
+          })
+          )}
         </div>
       )}
 

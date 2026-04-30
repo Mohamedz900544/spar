@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { createRound, deleteRound, getOneRound, getRounds, getRoundStudentsWithSessionAndRatings, updateRound, updateRoundStatus } from "../controllers/round.controller.js";
+import { addRoundSession, createRound, deleteRound, getOneRound, getRounds, getRoundStudentsWithSessionAndRatings, updateRound, updateRoundStatus } from "../controllers/round.controller.js";
 import { adminOnly, authRequired } from '../middleware/auth.js';
 import Enrollment from '../models/Enrollment.js';
 import { upload2 } from '../config/multer.js';
@@ -15,6 +15,8 @@ router.get('/:roundId/students', authRequired, adminOnly, getRoundStudentsWithSe
 router.post('/', authRequired, adminOnly, createRound);
 
 router.patch("/:id/status", authRequired, adminOnly, updateRoundStatus);
+
+router.post("/:id/sessions", authRequired, adminOnly, addRoundSession);
 
 router.get("/:id", authRequired, adminOnly, getOneRound);
 

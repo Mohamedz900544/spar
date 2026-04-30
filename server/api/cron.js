@@ -2,6 +2,8 @@ import Session from "../src/models/Session.js";
 import Lead from "../src/models/Lead.js";
 import User from "../src/models/User.js";
 import { connectDB } from "../src/config/db.js";
+import { processRoundSessionReminders } from "../src/services/roundSessionReminders.service.js";
+import { completeFinishedRounds } from "../src/services/roundStatus.service.js";
 import {
     notifyInstructorSessionReminder,
     notifyParentSessionReminder,
@@ -95,7 +97,8 @@ export default async function handler(req, res) {
                 continue;
             }
 
-            const sessionEnd = new Date(sessionStart.getTime() + 60 * 60 * 1000);
+            const durationMinutes = Number(session.durationMinutes) || 120;
+            const sessionEnd = new Date(sessionStart.getTime() + durationMinutes * 60 * 1000);
 
             let newStatus = null;
 
@@ -120,11 +123,15 @@ export default async function handler(req, res) {
         }
 
         const freeSessionReminders = await processFreeSessionReminders();
+        const roundSessionReminders = await processRoundSessionReminders();
+        const roundStatusUpdates = await completeFinishedRounds();
 
         return res.status(200).json({
             success: true,
             sessionStatusUpdates: bulkOps.length,
+            roundStatusUpdates,
             freeSessionReminders,
+            roundSessionReminders,
         });
 
     } catch (error) {

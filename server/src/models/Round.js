@@ -14,6 +14,26 @@ const roundSchema = new mongoose.Schema(
     campus: { type: String, required: true, trim: true },
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
+    weeklySessionDay: {
+      type: String,
+      enum: [
+        "sunday",
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+      ],
+      required: true,
+    },
+    weeklySessionTime: {
+      type: String,
+      required: true,
+      trim: true,
+      match: /^([01]\d|2[0-3]):[0-5]\d$/,
+    },
+    sessionDurationMinutes: { type: Number, default: 120 },
     sessionsCount: { type: Number, default: 6 },
     sessions: [
       {

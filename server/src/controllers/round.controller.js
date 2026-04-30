@@ -121,6 +121,81 @@ const generateRoundCode = () => {
     return `SPRV-${random}`
 }
 
+const WEEKDAY_INDEX = {
+    sunday: 0,
+    monday: 1,
+    tuesday: 2,
+    wednesday: 3,
+    thursday: 4,
+    friday: 5,
+    saturday: 6,
+};
+
+const toDateOnly = (value) => {
+    if (!value) return "";
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toISOString().slice(0, 10);
+};
+
+const createWeeklySessions = (roundDetails) => {
+    const {
+        startDate,
+        endDate,
+        weeklySessionDay,
+        weeklySessionTime,
+        level,
+        campus,
+        sessionDurationMinutes = 120,
+    } = roundDetails;
+
+    const weekdayIndex = WEEKDAY_INDEX[weeklySessionDay];
+    if (weekdayIndex === undefined) {
+        throw new Error("Valid weekly session day is required");
+    }
+
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(weeklySessionTime || "")) {
+        throw new Error("Valid weekly session time is required");
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+        throw new Error("Valid start date and end date are required");
+    }
+
+    start.setUTCHours(0, 0, 0, 0);
+    end.setUTCHours(0, 0, 0, 0);
+
+    if (start > end) {
+        throw new Error("End date must be after start date");
+    }
+
+    const firstSessionDate = new Date(start);
+    const daysUntilSession = (weekdayIndex - firstSessionDate.getUTCDay() + 7) % 7;
+    firstSessionDate.setUTCDate(firstSessionDate.getUTCDate() + daysUntilSession);
+
+    const sessions = [];
+    for (
+        const current = new Date(firstSessionDate);
+        current <= end;
+        current.setUTCDate(current.getUTCDate() + 7)
+    ) {
+        sessions.push({
+            title: `Session ${sessions.length + 1}`,
+            date: toDateOnly(current),
+            time: weeklySessionTime,
+            durationMinutes: sessionDurationMinutes,
+            level,
+            campus,
+            status: "Draft",
+        });
+    }
+
+    return sessions;
+};
+
 export const createRound = async (req, res) => {
     let code;
     let isUnique = false;
@@ -135,11 +210,34 @@ export const createRound = async (req, res) => {
 
     try {
         const { sessions, ...roundDetails } = req.body;
+        const sessionDurationMinutes = 120;
+        const normalizedRoundDetails = {
+            ...roundDetails,
+            sessionDurationMinutes,
+        };
 
-        const round = await Round.create({ ...roundDetails, code });
+        const sessionsToCreate =
+            sessions && sessions.length > 0
+                ? sessions.map((session) => ({
+                    ...session,
+                    durationMinutes: sessionDurationMinutes,
+                }))
+                : createWeeklySessions(normalizedRoundDetails);
 
-        if (sessions && sessions.length > 0) {
-            const createdSessions = await Session.insertMany(sessions.map(session => ({
+        if (!sessionsToCreate.length) {
+            return res.status(400).json({
+                message: "No sessions fall between the selected start and end dates for this weekday",
+            });
+        }
+
+        const round = await Round.create({
+            ...normalizedRoundDetails,
+            sessionsCount: sessionsToCreate.length,
+            code,
+        });
+
+        if (sessionsToCreate.length > 0) {
+            const createdSessions = await Session.insertMany(sessionsToCreate.map(session => ({
                 level: session?.level || round.level,
                 campus: session?.campus || round.campus,
                 ...session,
@@ -153,9 +251,12 @@ export const createRound = async (req, res) => {
     } catch (err) {
         console.error("Create round error:", err);
         if (err.code === 11000) {
-            res.status(400).json({ message: "code already exists" })
+            return res.status(400).json({ message: "code already exists" })
         }
-        res.status(500).json({ message: "Server error" });
+        if (err.message?.includes("required") || err.message?.includes("Valid") || err.message?.includes("End date")) {
+            return res.status(400).json({ message: err.message });
+        }
+        return res.status(500).json({ message: "Server error" });
     }
 }
 
@@ -187,6 +288,60 @@ export const updateRound = async (req, res) => {
     } catch (err) {
         console.error("Update round error:", err);
         res.status(500).json({ message: "Server error" });
+    }
+}
+
+export const addRoundSession = async (req, res) => {
+    try {
+        const round = await Round.findById(req.params.id);
+        if (!round) {
+            return res.status(404).json({ message: "Round not found" });
+        }
+
+        const {
+            title,
+            date,
+            time,
+            campus,
+            capacity,
+            description,
+            status,
+        } = req.body;
+
+        if (!title || !date || !time) {
+            return res.status(400).json({ message: "Title, date, and time are required" });
+        }
+
+        if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) {
+            return res.status(400).json({ message: "Valid session time is required" });
+        }
+
+        const sessionDate = new Date(date);
+        if (Number.isNaN(sessionDate.getTime())) {
+            return res.status(400).json({ message: "Valid session date is required" });
+        }
+
+        const session = await Session.create({
+            round: round._id,
+            level: round.level,
+            title: title.trim(),
+            date: toDateOnly(sessionDate),
+            time,
+            durationMinutes: round.sessionDurationMinutes || 120,
+            campus: campus?.trim() || round.campus,
+            capacity: Number(capacity) || 12,
+            status: status || "Draft",
+            description: description?.trim() || "",
+        });
+
+        round.sessions.push(session._id);
+        round.sessionsCount = round.sessions.length;
+        await round.save();
+
+        return res.status(201).json({ session, round });
+    } catch (err) {
+        console.error("Add round session error:", err);
+        return res.status(500).json({ message: "Server error" });
     }
 }
 

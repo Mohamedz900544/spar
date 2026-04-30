@@ -30,16 +30,10 @@ import { UsersTab } from "./components/Tabs/UsersTab";
 import SparviInstructorAccessCard from "./components/SparviInstructorAccessCard";
 import EgyptPhoneInput from "../../components/EgyptPhoneInput";
 
-function generateRoundCode() {
-  return `SPRV-${Math.floor(Math.random() * 1000)}-${Date.now()}`
-}
-
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const navigate = useNavigate();
   const [isCreatingRound, setIsCreatingRound] = useState(false)
-  const [evenSessionDateAndTime, setEvenSessionDateAndTime] = useState(null)
-  const [oddSessionDateAndTime, setOddSessionDateAndTime] = useState(null)
   const MotionContainer = motion.div
   const [messageNoteDrafts, setMessageNoteDrafts] = useState({})
   const {
@@ -97,8 +91,6 @@ const AdminDashboard = () => {
     handleRoundStatusChange,
     getRoundStudents,
     getRoundRating,
-    regenerateSessions,
-    handleRoundSessionChange,
     handleDeleteRound,
     studentPhotos,
     handleAddStudentPhotos,
@@ -176,8 +168,6 @@ const AdminDashboard = () => {
                 setIsCreatingRound={setIsCreatingRound}
                 newRound={newRound}
                 handleNewRoundChange={handleNewRoundChange}
-                generateRoundCode={generateRoundCode}
-                handleRoundSessionChange={handleRoundSessionChange}
                 isCreatingRound={isCreatingRound}
                 rounds={rounds}
                 getRoundStudents={getRoundStudents}
@@ -186,12 +176,7 @@ const AdminDashboard = () => {
                 expandedRoundId={expandedRoundId}
                 handleAddStudentPhotos={handleAddStudentPhotos}
                 getRoundRating={getRoundRating}
-                regenerateSessions={regenerateSessions}
                 handleCreateRound={handleCreateRound}
-                evenSessionDateAndTime={evenSessionDateAndTime}
-                setEvenSessionDateAndTime={setEvenSessionDateAndTime}
-                oddSessionDateAndTime={oddSessionDateAndTime}
-                setOddSessionDateAndTime={setOddSessionDateAndTime}
                 studentPhotos={studentPhotos}
                 handleDeleteRound={handleDeleteRound}
               />

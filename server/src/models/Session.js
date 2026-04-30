@@ -8,6 +8,7 @@ const sessionSchema = new mongoose.Schema(
     title: { type: String, required: true },
     date: { type: String, required: true },  // "2025-01-10"
     time: { type: String, required: true },  // "16:00"
+    durationMinutes: { type: Number, default: 120 },
     campus: { type: String, required: true },
     capacity: { type: Number, default: 12 },
     enrolled: { type: Number, default: 0 },
@@ -25,7 +26,14 @@ const sessionSchema = new mongoose.Schema(
     description: {
       type: String,
 
-    }
+    },
+    parentReminderSentTo: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    parentReminderSentAt: { type: Date },
   },
   { timestamps: true }
 );

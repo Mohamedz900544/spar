@@ -1,6 +1,7 @@
 import cron from 'node-cron'
 import Session from './models/Session.js';
 import { connectDB } from './config/db.js';
+import { completeFinishedRounds } from './services/roundStatus.service.js';
 
 export async function updateStatusOfSession() {
     let isRunning = false;
@@ -19,7 +20,7 @@ export async function updateStatusOfSession() {
 
             const activeSessions = await Session.find({
                 status: { $ne: "Completed" }
-            }).select("date time status").lean();
+            }).select("date time durationMinutes status").lean();
 
             const bulkOps = [];
 
@@ -40,7 +41,8 @@ export async function updateStatusOfSession() {
                     continue;
                 }
 
-                const sessionEnd = new Date(sessionStart.getTime() + 60 * 60 * 1000);
+                const durationMinutes = Number(session.durationMinutes) || 120;
+                const sessionEnd = new Date(sessionStart.getTime() + durationMinutes * 60 * 1000);
 
                 let newStatus = null;
 
@@ -63,6 +65,8 @@ export async function updateStatusOfSession() {
             if (bulkOps.length > 0) {
                 await Session.bulkWrite(bulkOps);
             }
+
+            await completeFinishedRounds();
         } catch (error) {
             console.error("[node-cron] update status failed:", error);
         } finally {

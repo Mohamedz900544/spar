@@ -107,11 +107,6 @@ const parseResponseOrThrow = async (res, fallbackMessage = "Request failed") => 
 //   },
 // ];
 
-const generateRoundCode = () => {
-  const random = Math.floor(100 + Math.random() * 900); // 3 digits
-  return `SPRV-${random}`;
-};
-
 // const initialRounds = [
 //   {
 //     id: 1,
@@ -271,10 +266,9 @@ export const useAdminDashboard = () => {
     campus: "",
     startDate: "",
     endDate: "",
-    sessionsCount: 6,
-    weeksPerSession: 1,
-    code: generateRoundCode(),
-    sessions: [],
+    weeklySessionDay: "saturday",
+    weeklySessionTime: "",
+    sessionDurationMinutes: 120,
     status: "Active",
   });
 
@@ -289,73 +283,6 @@ export const useAdminDashboard = () => {
   const [isSendingGalleryImage, setIsSendingGalleryImage] = useState(false)
 
   // ====================== HELPERS ======================
-
-
-
-  const regenerateRoundCode = () => {
-    setNewRound((prev) => ({
-      ...prev,
-      code: generateRoundCode(),
-    }));
-  };
-
-  const regenerateSessions = (evenSessionsTime, oddSessionsTime) => {
-    if (!newRound.startDate) {
-      alert("Please select a Start Date first.");
-      return;
-    }
-
-    const count = newRound.sessionsCount || 6;
-
-    const startEvenObj = new Date(evenSessionsTime);
-    const startOddObj = new Date(oddSessionsTime);
-
-    const evenTimeStr = startEvenObj.toTimeString().slice(0, 5);
-    const oddTimeStr = startOddObj.toTimeString().slice(0, 5);
-
-    const newSessions = [];
-    let additionE = 0;
-    let additionO = 0;
-
-    for (let i = 0; i < count; i++) {
-      const isEven = i % 2 === 0;
-
-      const currentDate = new Date(isEven ? startEvenObj : startOddObj);
-
-      const weeksToAdd = isEven ? additionE : additionO;
-      currentDate.setDate(currentDate.getDate() + (weeksToAdd * 7));
-
-      const year = currentDate.getFullYear();
-      const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-      const day = String(currentDate.getDate()).padStart(2, '0');
-      const dateStr = `${year}-${month}-${day}`;
-
-      const timeStr = isEven ? evenTimeStr : oddTimeStr;
-
-      if (isEven) additionE++;
-      else additionO++;
-
-      newSessions.push({
-        title: `Session ${i + 1}`,
-        date: dateStr,
-        time: timeStr,
-      });
-    }
-
-    setNewRound(prev => ({ ...prev, sessions: newSessions }));
-  };
-
-  const handleRoundSessionChange = (index, field, value) => {
-    console.log(field, value)
-    setNewRound(prev => {
-      const updatedSessions = [...prev.sessions];
-      updatedSessions[index] = {
-        ...updatedSessions[index],
-        [field]: value
-      };
-      return { ...prev, sessions: updatedSessions };
-    });
-  };
 
   const handleNewInstructorChange = (field, value) => {
     setNewInstructor((prev) => ({
@@ -926,17 +853,25 @@ export const useAdminDashboard = () => {
 
   const handleCreateRound = async (e, setIsCreatingRound) => {
     e.preventDefault();
-    setIsCreatingRound(true)
+    setIsCreatingRound?.(true)
     if (
       !newRound.name ||
       !newRound.campus ||
       !newRound.startDate ||
-      !newRound.endDate
-    )
+      !newRound.endDate ||
+      !newRound.weeklySessionDay ||
+      !newRound.weeklySessionTime
+    ) {
+      toast.error("Please fill start date, end date, weekly day, and session time.");
+      setIsCreatingRound?.(false);
       return;
+    }
 
     const token = getTokenOrRedirect();
-    if (!token) return;
+    if (!token) {
+      setIsCreatingRound?.(false);
+      return;
+    }
 
     const payload = { ...newRound };
 
@@ -953,34 +888,43 @@ export const useAdminDashboard = () => {
       if (!res.ok) {
         const text = await res.text();
         console.error("Create round error:", res.status, text);
-        if (res.status == 400) {
-          toast.error(res.message)
-          return
+        let message = "Could not create round on server.";
+        try {
+          message = JSON.parse(text)?.message || message;
+        } catch {
+          message = text || message;
         }
-        toast.error("Could not create round on server.");
+        toast.error(message);
         return;
       }
 
       const data = await res.json();
       const savedRound = data.round || data;
 
-      setRounds((prev) => [savedRound, ...prev]);
+      setRounds((prev) => [
+        {
+          ...savedRound,
+          id: savedRound._id?.toString?.() || savedRound.id,
+        },
+        ...prev,
+      ]);
       setNewRound({
         name: "",
         level: "Level 1",
         campus: "",
         startDate: "",
         endDate: "",
-        sessionsCount: 6,
-        weeksPerSession: 1,
-        // code: generateRoundCode(),
+        weeklySessionDay: "saturday",
+        weeklySessionTime: "",
+        sessionDurationMinutes: 120,
         status: "Active",
       });
+      toast.success("Round created successfully");
     } catch (err) {
       console.error("Create round error:", err);
       toast.error("Error while creating round." + err.message);
     } finally {
-      setIsCreatingRound(false)
+      setIsCreatingRound?.(false)
     }
   };
 
@@ -994,7 +938,7 @@ export const useAdminDashboard = () => {
 
     // optimistic update
     setRounds((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status } : r))
+      prev.map((r) => (r.id === id || r._id === id ? { ...r, status } : r))
     );
 
     try {
@@ -1488,9 +1432,6 @@ export const useAdminDashboard = () => {
     handleRoundStatusChange,
     getRoundStudents,
     getRoundRating,
-    regenerateRoundCode,
-    regenerateSessions,
-    handleRoundSessionChange,
     handleDeleteRound,
 
     // photos

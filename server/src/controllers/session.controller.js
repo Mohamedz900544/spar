@@ -1,4 +1,5 @@
 import Session from "../models/Session.js";
+import Round from "../models/Round.js";
 
 export async function getAllSessions(req, res) {
     try {
@@ -61,7 +62,19 @@ export const deleteSession = async (req, res) => {
         if (!session) {
             return res.status(404).json({ message: "Session not found" });
         }
+        const roundId = session.round;
         await session.deleteOne();
+        if (roundId) {
+            const round = await Round.findByIdAndUpdate(
+                roundId,
+                { $pull: { sessions: session._id } },
+                { new: true }
+            );
+            if (round) {
+                round.sessionsCount = round.sessions.length;
+                await round.save();
+            }
+        }
 
         const sessions = await Session.find();
 

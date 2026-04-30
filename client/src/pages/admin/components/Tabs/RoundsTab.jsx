@@ -1,7 +1,48 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { FaSpinner } from "react-icons/fa6";
 import { Button } from "../Button";
+
+const WEEKDAY_OPTIONS = [
+    { value: "saturday", label: "Saturday" },
+    { value: "sunday", label: "Sunday" },
+    { value: "monday", label: "Monday" },
+    { value: "tuesday", label: "Tuesday" },
+    { value: "wednesday", label: "Wednesday" },
+    { value: "thursday", label: "Thursday" },
+    { value: "friday", label: "Friday" },
+];
+
+const WEEKDAY_LABELS = WEEKDAY_OPTIONS.reduce((labels, day) => {
+    labels[day.value] = day.label;
+    return labels;
+}, {});
+
+const formatDate = (value) => {
+    if (!value) return "TBA";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+
+    return date.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+    });
+};
+
+const formatTime = (value) => {
+    if (!value) return "TBA";
+    const [hour, minute] = value.split(":");
+    if (hour === undefined || minute === undefined) return value;
+
+    const date = new Date();
+    date.setHours(Number(hour), Number(minute), 0, 0);
+
+    return date.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+    });
+};
 
 //some styles for scrollbar
 const scrollbarStyles = `
@@ -30,7 +71,6 @@ export const RoundsTab = ({
     setIsCreatingRound,
     newRound,
     handleNewRoundChange,
-    handleRoundSessionChange,
     isCreatingRound,
     rounds,
     getRoundStudents,
@@ -38,12 +78,7 @@ export const RoundsTab = ({
     expandedRoundId,
     handleAddStudentPhotos,
     getRoundRating,
-    regenerateSessions,
     handleCreateRound,
-    evenSessionDateAndTime,
-    setEvenSessionDateAndTime,
-    oddSessionDateAndTime,
-    setOddSessionDateAndTime,
     studentPhotos,
     handleDeleteRound
 }) => {
@@ -147,174 +182,42 @@ export const RoundsTab = ({
                 <div className="grid grid-cols-2 gap-3">
                     <div>
                         <label className="block text-xs font-medium text-slate-700 mb-1">
-                            Even Session Dates and Times
+                            Weekly session day
                         </label>
-                        <input
-                            type="datetime-local"
+                        <select
                             className="w-full rounded-xl border border-[#e2e8f0] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
-                            value={evenSessionDateAndTime}
-                            onChange={(e) => setEvenSessionDateAndTime(e.target.value)}
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-xs font-medium text-slate-700 mb-1">
-                            Odd Session Dates and Times
-                        </label>
-                        <input
-                            type="datetime-local"
-                            className="w-full rounded-xl border border-[#e2e8f0] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
-                            value={oddSessionDateAndTime}
+                            value={newRound.weeklySessionDay}
                             onChange={(e) =>
-                                setOddSessionDateAndTime(e.target.value)
+                                handleNewRoundChange("weeklySessionDay", e.target.value)
                             }
-                        />
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                    <div>
-                        <label className="block text-xs font-medium text-slate-700 mb-1">
-                            Sessions
-                        </label>
-                        <input
-                            type="number"
-                            min={1}
-                            className="w-full rounded-xl border border-[#e2e8f0] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
-                            value={newRound.sessionsCount}
-                            onChange={(e) =>
-                                handleNewRoundChange(
-                                    "sessionsCount",
-                                    Number(e.target.value)
-                                )
-                            }
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-xs font-medium text-slate-700 mb-1">
-                            sessions Per week
-                        </label>
-                        <input
-                            type="number"
-                            min={1}
-                            className="w-full rounded-xl border border-[#e2e8f0] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
-                            value={newRound.weeksPerSession}
-                            onChange={(e) =>
-                                handleNewRoundChange(
-                                    "weeksPerSession",
-                                    Number(e.target.value)
-                                )
-                            }
-                        />
-                    </div>
-                </div>
-
-                {/* Code */}
-                {/* <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">
-                        Round code (send to parents)
-                    </label>
-                    <div className="flex gap-2">
-                        <input
-                            type="text"
-                            className="flex-1 rounded-xl border border-[#e2e8f0] px-3 py-2 bg-white text-slate-800 outline-none font-mono text-xs focus:ring-2 focus:ring-[#FBBF24]"
-                            value={newRound.code}
-                            onChange={(e) =>
-                                handleNewRoundChange("code", e.target.value)
-                            }
-                        />
-                        <button
-                            type="button"
-                            onClick={() =>
-                                handleNewRoundChange("code", generateRoundCode())
-                            }
-                            className="px-3 py-2 rounded-xl border border-[#102a5a] text-[#102a5a] text-xs font-semibold hover:bg-[#f1f5f9]"
                         >
-                            New
-                        </button>
+                            {WEEKDAY_OPTIONS.map((day) => (
+                                <option key={day.value} value={day.value}>
+                                    {day.label}
+                                </option>
+                            ))}
+                        </select>
                     </div>
-                    <p className="text-[11px] text-slate-500 mt-1">
-                        Parents will enter this code in their account to join
-                        the round.
-                    </p>
-                </div> */}
-
-                {/* Sessions Editor */}
-                <div className="border-t border-dashed border-[#e5e7eb] pt-3">
-                    <div className="flex items-center justify-between mb-2">
-                        <label className="block text-xs font-medium text-slate-700">
-                            Sessions Details
+                    <div>
+                        <label className="block text-xs font-medium text-slate-700 mb-1">
+                            Weekly session time
                         </label>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                regenerateSessions(evenSessionDateAndTime, oddSessionDateAndTime)
-                            }}
-                            className="text-[10px] text-[#102a5a] hover:underline font-medium"
-                        >
-                            Auto-fill dates
-                        </button>
-                    </div>
-
-                    <div className={`space-y-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar `}>
-                        {newRound.sessions?.length === 0 && (
-                            <p className="text-[11px] text-slate-400 italic">
-                                Click "Auto-fill dates" to generate sessions based on start date.
-                            </p>
-                        )}
-                        {newRound.sessions?.map((session, idx) => (
-                            <div key={idx} className="border border-[#e5e7eb] rounded-lg p-2 bg-slate-50">
-                                <div className="flex justify-between items-center mb-1">
-                                    <span className="text-[10px] font-bold text-slate-500 uppercase">Session {idx + 1}</span>
-                                </div>
-                                <div className="grid grid-cols-12 gap-2 items-center">
-                                    {/* Title */}
-                                    <div className="col-span-12 md:col-span-4">
-                                        <input
-                                            type="text"
-                                            value={session.title}
-                                            onChange={(e) =>
-                                                handleRoundSessionChange(idx, "title", e.target.value)
-                                            }
-                                            className="w-full rounded-md border border-[#e2e8f0] px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-[#FBBF24]"
-                                            placeholder="Title"
-                                        />
-                                    </div>
-                                    {/* date of session and time*/}
-                                    <div className="col-span-6 md:col-span-4 flex gap-1">
-                                        <input
-                                            type="date"
-                                            value={session.date}
-                                            onChange={(e) =>
-                                                handleRoundSessionChange(idx, "date", e.target.value)
-                                            }
-                                            className="w-full rounded-md border border-[#e2e8f0] px-2 py-1 text-[10px] outline-none focus:ring-1 focus:ring-[#FBBF24]"
-                                            title="session date"
-                                        />
-                                        <input
-                                            type="time"
-                                            value={session.time || "18:00"}
-                                            onChange={(e) =>
-                                                handleRoundSessionChange(idx, "time", e.target.value)
-                                            }
-                                            className="w-full rounded-md border border-[#e2e8f0] px-1 py-1 text-[10px] outline-none focus:ring-1 focus:ring-[#FBBF24]"
-                                            title="session time"
-                                        />
-                                    </div>
-
-                                </div>
-                                <div className="mt-3">
-                                    <textarea
-                                        type="text"
-                                        onChange={(e) =>
-                                            handleRoundSessionChange(idx, "description", e.target.value)
-                                        }
-                                        value={session.description}
-                                        className="w-full rounded-md border border-[#e2e8f0] px-1 py-1 text-[10px] outline-none focus:ring-1 focus:ring-[#FBBF24]" placeholder="description" />
-                                </div>
-                            </div>
-                        ))}
+                        <input
+                            type="time"
+                            className="w-full rounded-xl border border-[#e2e8f0] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
+                            value={newRound.weeklySessionTime}
+                            onChange={(e) =>
+                                handleNewRoundChange("weeklySessionTime", e.target.value)
+                            }
+                        />
                     </div>
                 </div>
+
+                <div className="rounded-xl border border-[#e2e8f0] bg-slate-50 px-3 py-2 text-[11px] text-slate-600">
+                    The system will create one weekly session on the selected day
+                    between the start and end dates. Every session is fixed at 2 hours.
+                </div>
+
                 <Button type="submit" text={'Create round'} isLoading={isCreatingRound} />
 
             </form>
@@ -327,26 +230,27 @@ export const RoundsTab = ({
             </h2>
             <div className="space-y-3 max-h-[500px] overflow-y-scroll custom-scrollbar">
                 {rounds.map((r) => {
+                    const roundId = r.id || r._id;
                     const students = getRoundStudents(r.code);
                     const rating = getRoundRating(r.code);
                     return (
                         <div
-                            key={r.id}
+                            key={roundId}
                             className="border cursor-pointer border-[#e5e7eb] rounded-xl px-3 py-2.5 text-xs md:text-sm"
                         >
                             <div className="flex items-center justify-between gap-3">
                                 <div >
-                                    <div className="round-details cursor-pointer" onClick={() => navigate(`/admin/round/${r.id ?? r._id}`)}>
+                                    <div className="round-details cursor-pointer" onClick={() => navigate(`/admin/round/${roundId}`)}>
                                         <p className="name font-semibold text-slate-800">
                                             {r.name}
                                         </p>
                                         <p className="text-[11px] text-slate-500">
-                                            {r.level} · {r.campus}
+                                            {r.level} - {r.campus}
                                         </p>
                                         <p className="text-[11px] text-slate-500">
-                                            {r.startDate} → {r.endDate} ·{" "}
-                                            {r.sessionsCount} sessions ·{" "}
-                                            {r.weeksPerSession} sessions / week
+                                            {formatDate(r.startDate)} to {formatDate(r.endDate)} -{" "}
+                                            {r.sessionsCount || 0} sessions -{" "}
+                                            {WEEKDAY_LABELS[r.weeklySessionDay] || "TBA"} at {formatTime(r.weeklySessionTime)} - 2 hours
                                         </p>
                                     </div>
                                     <p className="text-[11px] text-slate-500 mt-1">
@@ -379,7 +283,7 @@ export const RoundsTab = ({
                                     <div className="flex flex-wrap gap-1 justify-end">
                                         <button
                                             onClick={() =>
-                                                handleRoundStatusChange(r.id, "Active")
+                                                handleRoundStatusChange(roundId, "Active")
                                             }
                                             className="px-2 py-1 rounded_full border text-[10px] font-medium border-[#bbf7d0] text-[#166534] hover:bg-[#dcfce7]"
                                         >
@@ -387,7 +291,7 @@ export const RoundsTab = ({
                                         </button>
                                         <button
                                             onClick={() =>
-                                                handleRoundStatusChange(r.id, "Planned")
+                                                handleRoundStatusChange(roundId, "Planned")
                                             }
                                             className="px-2 py-1 rounded-full border text-[10px] font-medium border-[#e0f2fe] text-[#075985] hover:bg-[#e0f2fe]"
                                         >
@@ -396,7 +300,7 @@ export const RoundsTab = ({
                                         <button
                                             onClick={() =>
                                                 handleRoundStatusChange(
-                                                    r.id,
+                                                    roundId,
                                                     "Completed"
                                                 )
                                             }
@@ -405,7 +309,7 @@ export const RoundsTab = ({
                                             Completed
                                         </button>
                                         <button
-                                            onClick={() => handleDeleteRound(r.id)}
+                                            onClick={() => handleDeleteRound(roundId)}
                                             className="px-2 py-1 rounded-full border text-[10px] font-medium border-[#fee2e2] text-[#b91c1c] hover:bg-[#fee2e2]"
                                         >
                                             Delete
@@ -413,17 +317,17 @@ export const RoundsTab = ({
                                     </div>
                                     <button
                                         // onClick={() => toggleRoundExpand(r.id)}
-                                        onClick={() => navigate(`/admin/round/${r.id}/students`)}
+                                        onClick={() => navigate(`/admin/round/${roundId}/students`)}
                                         className="px-3 py-1 rounded-full border border-[#e2e8f0] text-[11px] text-[#102a5a] hover:bg-[#f1f5f9]"
                                     >
-                                        {expandedRoundId === r.id
+                                        {expandedRoundId === roundId
                                             ? "Hide students"
                                             : `Show students (${students.length})`}
                                     </button>
                                 </div>
                             </div>
 
-                            {expandedRoundId === r.id && (
+                            {expandedRoundId === roundId && (
                                 <div className="mt-3 border-t border-dashed border-[#e5e7eb] pt-3">
                                     <p className="text-[11px] font-semibold text-slate-700 mb-2">
                                         Students in this round ({students.length})

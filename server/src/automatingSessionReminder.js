@@ -6,6 +6,7 @@ import {
   notifyInstructorSessionReminder,
   notifyParentSessionReminder,
 } from "./services/leadNotifications.service.js";
+import { processRoundSessionReminders } from "./services/roundSessionReminders.service.js";
 
 /**
  * Cron job that runs every minute.
@@ -44,8 +45,6 @@ export async function automateSessionReminder() {
           status: { $in: ["Demo Booked", "Follow-up"] },
         }).lean();
 
-        if (!candidates.length) return;
-
         for (const lead of candidates) {
           const instructorNeedsReminder = !lead.freeSession?.reminderSentAt;
           const parentNeedsReminder = !lead.freeSession?.parentReminderSentAt;
@@ -76,6 +75,8 @@ export async function automateSessionReminder() {
             await Lead.updateOne({ _id: lead._id }, { $set: updatePayload });
           }
         }
+
+        await processRoundSessionReminders();
       } catch {
         console.error("[cron][reminder] session reminder failed");
       } finally {

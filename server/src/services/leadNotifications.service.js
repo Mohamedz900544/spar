@@ -462,6 +462,41 @@ const buildParentSessionReminderBody = () =>
     "المدرب هيتواصل مع حضرتك وهيبعت رابط دخول السشن خلال الساعة القادمة📩",
   ].join("\n");
 
+const buildParentRoundSessionReminderBody = ({ session, round, enrollment }) => {
+  const durationMinutes = Number(session.durationMinutes) || 120;
+  const [startHour = 0, startMinute = 0] = `${session.time || "00:00"}`
+    .split(":")
+    .map((part) => Number(part));
+  const startTotalMinutes = startHour * 60 + startMinute;
+  const endTotalMinutes = startTotalMinutes + durationMinutes;
+  const endHour = String(Math.floor((endTotalMinutes / 60) % 24)).padStart(2, "0");
+  const endMinute = String(endTotalMinutes % 60).padStart(2, "0");
+  const sessionDate = new Date(`${session.date}T00:00:00`);
+  const sessionDay = Number.isNaN(sessionDate.getTime())
+    ? "-"
+    : sessionDate.toLocaleDateString("en-US", { weekday: "long" });
+  const sessionDateLabel = Number.isNaN(sessionDate.getTime())
+    ? session.date || "-"
+    : sessionDate.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+
+  return [
+    `Reminder: ${enrollment?.childName || "your child"} has an upcoming Sparvi Lab session in about 1 hour.`,
+    "",
+    `Round: ${round?.name || "-"}`,
+    `Session: ${session?.title || "-"}`,
+    `Day: ${sessionDay}`,
+    `Date: ${sessionDateLabel}`,
+    `Time: ${session.time || "-"} - ${endHour}:${endMinute}`,
+    `Duration: ${durationMinutes / 60} hours`,
+    "",
+    "Please be ready before the session starts.",
+  ].join("\n");
+};
+
 const sendParentWhatsApp = async ({
   phone,
   templateName,
@@ -664,6 +699,41 @@ export const notifyParentSessionReminder = async ({ lead }) => {
     templateBodyParams: [],
     textBody: reminderBody,
     config,
+  });
+
+  return {
+    sent: Boolean(reminderResult?.sent),
+    reminderSent: Boolean(reminderResult?.sent),
+    reminder: reminderResult,
+  };
+};
+
+export const notifyParentRoundSessionReminder = async ({
+  parent,
+  enrollment,
+  session,
+  round,
+}) => {
+  const config = getNotificationConfig();
+  const phone = parent?.phone || enrollment?.phone;
+  if (!phone) {
+    return { sent: false, skipped: true, reason: "missing_parent_phone" };
+  }
+
+  const reminderBody = buildParentRoundSessionReminderBody({
+    session,
+    round,
+    enrollment,
+  });
+
+  const reminderResult = await sendNotification({
+    phone,
+    customTemplateName: config.parentSessionReminderTemplateName,
+    templateLanguage: config.defaultTemplateLanguage,
+    templateBodyParams: [],
+    textBody: reminderBody,
+    config,
+    sendTextAfterTemplate: true,
   });
 
   return {
