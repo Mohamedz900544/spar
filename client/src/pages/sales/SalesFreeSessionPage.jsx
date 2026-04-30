@@ -30,6 +30,32 @@ const FREE_SESSION_FILTERS = [
   { id: "assigned", label: "Assigned", hint: "Upcoming trials", icon: CheckCircle2 },
   { id: "finished", label: "Finished", hint: "Trial time passed", icon: CalendarDays },
 ];
+const FREE_SESSION_FILTER_STYLES = {
+  pending: {
+    active: "border-indigo-600 bg-indigo-600 text-white shadow-sm shadow-indigo-200",
+    inactive: "border-indigo-200 bg-indigo-50 text-indigo-800 hover:border-indigo-300 hover:bg-indigo-100",
+    chipActive: "bg-white/20 text-white",
+    chipInactive: "bg-white text-indigo-700",
+    hintActive: "text-white/75",
+    hintInactive: "text-indigo-600/70",
+  },
+  assigned: {
+    active: "border-emerald-600 bg-emerald-600 text-white shadow-sm shadow-emerald-200",
+    inactive: "border-emerald-200 bg-emerald-50 text-emerald-800 hover:border-emerald-300 hover:bg-emerald-100",
+    chipActive: "bg-white/20 text-white",
+    chipInactive: "bg-white text-emerald-700",
+    hintActive: "text-white/75",
+    hintInactive: "text-emerald-600/70",
+  },
+  finished: {
+    active: "border-sky-600 bg-sky-600 text-white shadow-sm shadow-sky-200",
+    inactive: "border-sky-200 bg-sky-50 text-sky-800 hover:border-sky-300 hover:bg-sky-100",
+    chipActive: "bg-white/20 text-white",
+    chipInactive: "bg-white text-sky-700",
+    hintActive: "text-white/75",
+    hintInactive: "text-sky-600/70",
+  },
+};
 const STATUS_BADGE_STYLES = {
   pending: "border-amber-200 bg-amber-50 text-amber-700",
   assigned: "border-emerald-200 bg-emerald-50 text-emerald-700",
@@ -456,9 +482,6 @@ const SalesFreeSessionPage = () => {
     });
   };
 
-  const assignedCount = filterCounts.assigned;
-  const pendingCount = filterCounts.pending;
-  const finishedCount = filterCounts.finished;
   const selectedSlotValue = drafts[slotPicker.leadId]?.scheduledAt || "";
 
   return (
@@ -481,30 +504,33 @@ const SalesFreeSessionPage = () => {
                 {FREE_SESSION_FILTERS.map((filter) => {
                   const Icon = filter.icon;
                   const isActive = freeSessionFilter === filter.id;
+                  const filterStyle = FREE_SESSION_FILTER_STYLES[filter.id];
                   return (
                     <button
                       key={filter.id}
                       type="button"
                       aria-pressed={isActive}
                       onClick={() => setFreeSessionFilter(filter.id)}
-                      className={`min-h-[64px] rounded-xl border px-3 py-2 text-left transition-all ${
-                        isActive
-                          ? "border-[#102a5a] bg-[#102a5a] text-white shadow-sm"
-                          : "border-slate-100 bg-slate-50 text-slate-600 hover:border-slate-200 hover:bg-slate-100"
+                      className={`min-h-[68px] rounded-xl border px-3 py-2 text-left transition-all ${
+                        isActive ? filterStyle.active : filterStyle.inactive
                       }`}
                     >
                       <span className="flex items-center justify-between gap-2">
                         <Icon className="h-4 w-4 shrink-0" />
                         <span
                           className={`rounded-full px-2 py-0.5 text-xs font-bold ${
-                            isActive ? "bg-white/15 text-white" : "bg-white text-slate-600"
+                            isActive ? filterStyle.chipActive : filterStyle.chipInactive
                           }`}
                         >
                           {filterCounts[filter.id]}
                         </span>
                       </span>
                       <span className="mt-1 block text-xs font-bold">{filter.label}</span>
-                      <span className={`mt-0.5 hidden text-[10px] sm:block ${isActive ? "text-white/65" : "text-slate-400"}`}>
+                      <span
+                        className={`mt-0.5 hidden text-[10px] font-semibold sm:block ${
+                          isActive ? filterStyle.hintActive : filterStyle.hintInactive
+                        }`}
+                      >
                         {filter.hint}
                       </span>
                     </button>
