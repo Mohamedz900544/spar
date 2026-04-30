@@ -7,11 +7,6 @@ const plans = [
     price: "3500",
     originalPrice: "5500",
   },
-  {
-    key: "threeToOne",
-    price: "1500",
-    originalPrice: "3500",
-  },
 ];
 
 const accentColors = {
@@ -22,14 +17,6 @@ const accentColors = {
     border: "#eab308",
     text: "#854d0e",
     price: "#ca8a04",
-  },
-  threeToOne: {
-    gradient: "linear-gradient(135deg, #1d4ed8, #38bdf8)",
-    softGradient: "linear-gradient(180deg, #eff6ff 0%, #ffffff 58%)",
-    light: "#dbeafe",
-    border: "#2563eb",
-    text: "#1d4ed8",
-    price: "#1d4ed8",
   },
 };
 
@@ -63,7 +50,7 @@ export default function PricingSection() {
         </div>
 
         {/* Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 items-stretch max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 gap-6 lg:gap-8 items-stretch max-w-md mx-auto">
           {plans.map((plan) => {
             const accent = accentColors[plan.key];
             const features = [

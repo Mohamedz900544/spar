@@ -226,11 +226,6 @@
           "name": "Private Subscription",
           "period": "3 Months",
           "sessionType": "Private 1:1 sessions"
-        },
-        "threeToOne": {
-          "name": "Group Subscription",
-          "period": "3 Months",
-          "sessionType": "Small group sessions - 3:1"
         }
       },
       "features": {
