@@ -6,6 +6,19 @@ const plans = [
     key: "oneToOne",
     price: "3500",
     originalPrice: "5500",
+    features: [
+      "subscription",
+      "totalSessions",
+      "sessionLength",
+      "courseSessions",
+      "skillsSessions",
+    ],
+  },
+  {
+    key: "oneMonthPrivate",
+    price: "1500",
+    originalPrice: "2200",
+    features: ["subscriptionOneMonth", "sessionLength"],
   },
 ];
 
@@ -17,6 +30,14 @@ const accentColors = {
     border: "#eab308",
     text: "#854d0e",
     price: "#ca8a04",
+  },
+  oneMonthPrivate: {
+    gradient: "linear-gradient(135deg, #1d4ed8, #38bdf8)",
+    softGradient: "linear-gradient(180deg, #eff6ff 0%, #ffffff 58%)",
+    light: "#dbeafe",
+    border: "#2563eb",
+    text: "#1d4ed8",
+    price: "#1d4ed8",
   },
 };
 
@@ -50,16 +71,14 @@ export default function PricingSection() {
         </div>
 
         {/* Cards Grid */}
-        <div className="grid grid-cols-1 gap-6 lg:gap-8 items-stretch max-w-md mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 items-stretch max-w-4xl mx-auto">
           {plans.map((plan) => {
             const accent = accentColors[plan.key];
             const features = [
               t(`landing.pricing.plans.${plan.key}.sessionType`),
-              t("landing.pricing.features.subscription"),
-              t("landing.pricing.features.totalSessions"),
-              t("landing.pricing.features.sessionLength"),
-              t("landing.pricing.features.courseSessions"),
-              t("landing.pricing.features.skillsSessions"),
+              ...plan.features.map((feature) =>
+                t(`landing.pricing.features.${feature}`)
+              ),
             ];
 
             return (

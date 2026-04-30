@@ -226,10 +226,16 @@
           "name": "Private Subscription",
           "period": "3 Months",
           "sessionType": "Private 1:1 sessions"
+        },
+        "oneMonthPrivate": {
+          "name": "Monthly Private Subscription",
+          "period": "1 Month",
+          "sessionType": "Private 1:1 sessions"
         }
       },
       "features": {
         "subscription": "3-month subscription",
+        "subscriptionOneMonth": "1-month subscription",
         "totalSessions": "15 total sessions",
         "sessionLength": "Each session is 2 hours",
         "courseSessions": "12 sessions for course content",

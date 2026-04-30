@@ -226,10 +226,16 @@
           "name": "اشتراك خاص",
           "period": "3 شهور",
           "sessionType": "جلسات فردية 1:1"
+        },
+        "oneMonthPrivate": {
+          "name": "اشتراك خاص شهري",
+          "period": "شهر",
+          "sessionType": "جلسات فردية 1:1"
         }
       },
       "features": {
         "subscription": "الاشتراك لمدة 3 شهور",
+        "subscriptionOneMonth": "الاشتراك لمدة شهر",
         "totalSessions": "مجموع الحصص 15 حصة",
         "sessionLength": "مدة الحصة الواحدة ساعتين",
         "courseSessions": "12 حصة لمحتوى الدورة",
