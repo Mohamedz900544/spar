@@ -8,12 +8,14 @@ export const processBusyCallReminders = async (now = new Date()) => {
     $or: [
       { "callLater.reminderSentAt": { $in: [null, undefined] } },
       { "callLater.reminderSentAt": { $exists: false } },
+      { "callLater.reminderLastAttemptAt": { $exists: false } },
     ],
   })
     .select("parentName phone childName childAge status notes createdBy callLater")
     .lean();
 
   let sentCount = 0;
+  let failedCount = 0;
 
   for (const lead of candidates) {
     let result = null;
@@ -25,11 +27,28 @@ export const processBusyCallReminders = async (now = new Date()) => {
       result = { sent: false, error: error.message || "notification_error" };
     }
 
+    const failureReason =
+      result?.whatsapp?.error ||
+      result?.whatsapp?.reason ||
+      result?.error ||
+      result?.reason ||
+      "";
+
+    if (!result?.sent) {
+      failedCount += 1;
+      console.warn("[busy-call-reminder] reminder not sent", {
+        leadId: lead._id?.toString?.(),
+        reason: failureReason || "unknown_error",
+      });
+    }
+
     await Lead.updateOne(
       { _id: lead._id },
       {
         $set: {
-          "callLater.reminderSentAt": now,
+          "callLater.reminderLastAttemptAt": now,
+          "callLater.reminderLastError": result?.sent ? "" : failureReason || "unknown_error",
+          ...(result?.sent ? { "callLater.reminderSentAt": now } : {}),
         },
       }
     );
@@ -38,5 +57,6 @@ export const processBusyCallReminders = async (now = new Date()) => {
   return {
     candidates: candidates.length,
     sentCount,
+    failedCount,
   };
 };

@@ -8,9 +8,11 @@ import { sendBrevoEmail } from "./brevoEmail.service.js";
 const getNotificationConfig = () => ({
   followUpTemplateName: process.env.WHATSAPP_TEMPLATE_FOLLOW_UP || "",
   busyCallReminderTemplateName:
-    process.env.WHATSAPP_TEMPLATE_BUSY_CALL_REMINDER ||
-    process.env.WHATSAPP_TEMPLATE_FOLLOW_UP ||
-    "",
+    process.env.WHATSAPP_TEMPLATE_BUSY_CALL_REMINDER || "",
+  busyCallReminderTemplateLanguage:
+    process.env.WHATSAPP_TEMPLATE_BUSY_CALL_REMINDER_LANGUAGE ||
+    process.env.WHATSAPP_TEMPLATE_LANGUAGE ||
+    "en_US",
   instructorAssignTemplateName:
     process.env.WHATSAPP_TEMPLATE_INSTRUCTOR_ASSIGN || "",
   instructorSessionReminderTemplateName:
@@ -189,24 +191,24 @@ const buildSalesFollowUpParams = (lead, followUpAt = new Date()) => [
 
 const buildSalesBusyCallReminderBody = (lead, callAt = new Date()) =>
   [
-    "Call-later reminder",
+    "تذكير بموعد اتصال",
     "",
-    "Parent name:",
+    "اسم ولي الأمر:",
     `${lead.parentName || "-"}`,
     "",
-    "Parent phone:",
+    "رقم ولي الأمر:",
     `${lead.phone || "-"}`,
     "",
-    "Child name:",
+    "اسم الطفل:",
     `${lead.childName || "-"}`,
     "",
-    "Child age:",
+    "سن الطفل:",
     `${lead.childAge || "-"}`,
     "",
-    "Call time:",
+    "موعد الاتصال:",
     `${formatCairoDateTime(callAt)}`,
     "",
-    "Latest notes:",
+    "آخر ملاحظات:",
     extractLatestNotes(lead),
   ].join("\n");
 
@@ -498,7 +500,7 @@ export const notifySalesBusyCallReminder = async ({
   const result = await sendNotification({
     phone: recipientPhone,
     customTemplateName: config.busyCallReminderTemplateName,
-    templateLanguage: config.defaultTemplateLanguage,
+    templateLanguage: config.busyCallReminderTemplateLanguage,
     templateBodyParams: buildSalesBusyCallReminderParams(lead, callAt),
     textBody,
     config,
@@ -672,7 +674,7 @@ export const sendWhatsAppAutomationTest = async ({ type, phone }) => {
     result = await sendNotification({
       phone,
       customTemplateName: config.busyCallReminderTemplateName,
-      templateLanguage: config.defaultTemplateLanguage,
+      templateLanguage: config.busyCallReminderTemplateLanguage,
       templateBodyParams: buildSalesBusyCallReminderParams(lead, callAt),
       textBody,
       config,

@@ -578,9 +578,13 @@ router.patch("/leads/:id/status", authRequired, agentOrAdmin, async (req, res) =
       updatePayload["callLater.scheduledByName"] = req.user.name || "";
       updatePayload["callLater.scheduledAtSet"] = new Date();
       updatePayload["callLater.reminderSentAt"] = null;
+      updatePayload["callLater.reminderLastAttemptAt"] = null;
+      updatePayload["callLater.reminderLastError"] = "";
     } else {
       updatePayload["callLater.scheduledAt"] = null;
       updatePayload["callLater.reminderSentAt"] = null;
+      updatePayload["callLater.reminderLastAttemptAt"] = null;
+      updatePayload["callLater.reminderLastError"] = "";
     }
 
     // If telesales marks a lead as Demo Booked manually, treat it as a free-session request.
@@ -651,6 +655,8 @@ router.patch("/leads/:id/call-later", authRequired, agentOrAdmin, async (req, re
       "callLater.scheduledByName": req.user.name || "",
       "callLater.scheduledAtSet": new Date(),
       "callLater.reminderSentAt": null,
+      "callLater.reminderLastAttemptAt": null,
+      "callLater.reminderLastError": "",
     };
 
     if (!leadBefore.createdBy && ["agent", "admin"].includes(req.user.role)) {

@@ -46,6 +46,8 @@ const leadSchema = new mongoose.Schema(
       scheduledByName: { type: String, trim: true, default: "" },
       scheduledAtSet: { type: Date, default: null },
       reminderSentAt: { type: Date, default: null },
+      reminderLastAttemptAt: { type: Date, default: null },
+      reminderLastError: { type: String, trim: true, default: "" },
     },
     freeSession: {
       requested: { type: Boolean, default: false },
