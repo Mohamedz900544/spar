@@ -7,6 +7,7 @@ import {
   formatDateTime,
   statusPill,
 } from "./salesHelpers";
+import LeadNotesList from "./components/LeadNotesList";
 
 const SalesPipelinePage = () => {
   const sales = useOutletContext();
@@ -121,6 +122,7 @@ const SalesPipelinePage = () => {
                       <Save className="w-3.5 h-3.5" />
                       Save note
                     </button>
+                    <LeadNotesList notes={lead.notes || []} />
                   </div>
 
                   <div className="xl:col-span-2">

@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useOutletContext } from "react-router-dom";
 import { MessageCircle, Save } from "lucide-react";
 import { LEAD_STATUSES, formatDateTime, toWhatsAppLink } from "./salesHelpers";
+import LeadNotesList from "./components/LeadNotesList";
 
 const focusStatuses = ["Demo Booked", "Follow-up", "Contacted"];
 
@@ -108,6 +109,7 @@ const SalesFollowUpsPage = () => {
                       <Save className="w-3.5 h-3.5" />
                       Save note
                     </button>
+                    <LeadNotesList notes={lead.notes || []} emptyText="No follow-up notes yet." />
                   </div>
                 </div>
               </article>
