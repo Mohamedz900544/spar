@@ -8,7 +8,7 @@ const FREE_SESSION_DEFAULT_DURATION_MINUTES = Number(
   process.env.FREE_SESSION_DURATION_MINUTES || 60
 );
 const FOLLOW_UP_DELAY_AFTER_END_MINUTES = Number(
-  process.env.FREE_SESSION_FOLLOW_UP_DELAY_MINUTES || 180
+  process.env.FREE_SESSION_FOLLOW_UP_DELAY_MINUTES || 60
 );
 
 const normalizeDuration = (value) => {
@@ -22,7 +22,7 @@ const normalizeDuration = (value) => {
 const normalizeFollowUpDelay = () => {
   const parsed = Number(FOLLOW_UP_DELAY_AFTER_END_MINUTES);
   if (Number.isFinite(parsed) && parsed >= 0) return parsed;
-  return 180;
+  return 60;
 };
 
 export async function automateLeadFollowUpStatus() {

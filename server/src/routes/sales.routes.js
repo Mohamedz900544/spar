@@ -21,7 +21,7 @@ const FREE_SESSION_DEFAULT_DURATION_MINUTES = Number(
   process.env.FREE_SESSION_DURATION_MINUTES || 60
 );
 const FOLLOW_UP_DELAY_AFTER_END_MINUTES = Number(
-  process.env.FREE_SESSION_FOLLOW_UP_DELAY_MINUTES || 180
+  process.env.FREE_SESSION_FOLLOW_UP_DELAY_MINUTES || 60
 );
 const WHATSAPP_TEST_PHONE = process.env.WHATSAPP_TEST_PHONE || "01007775705";
 const WHATSAPP_TEST_TEMPLATE = process.env.WHATSAPP_TEMPLATE_DEFAULT || "hello_world";
@@ -751,7 +751,7 @@ router.patch("/leads/:id/free-session", authRequired, agentOrAdmin, async (req, 
       Number.isFinite(FOLLOW_UP_DELAY_AFTER_END_MINUTES) &&
       FOLLOW_UP_DELAY_AFTER_END_MINUTES >= 0
         ? FOLLOW_UP_DELAY_AFTER_END_MINUTES
-        : 180;
+        : 60;
     const endsAt = new Date(
       scheduledDate.getTime() + durationMinutes * 60 * 1000
     );
