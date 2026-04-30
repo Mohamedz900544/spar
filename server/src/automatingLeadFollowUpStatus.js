@@ -2,7 +2,6 @@ import cron from "node-cron";
 import Lead from "./models/Lead.js";
 import { connectDB } from "./config/db.js";
 import { notifySalesFollowUpReminder } from "./services/leadNotifications.service.js";
-import { processBusyCallReminders } from "./services/busyCallReminder.service.js";
 
 const FREE_SESSION_DEFAULT_DURATION_MINUTES = Number(
   process.env.FREE_SESSION_DURATION_MINUTES || 60
@@ -124,7 +123,6 @@ export async function automateLeadFollowUpStatus() {
           );
         }
 
-        await processBusyCallReminders(now);
       } catch (error) {
         console.error("[node-cron] lead follow-up automation failed:", error);
       } finally {
