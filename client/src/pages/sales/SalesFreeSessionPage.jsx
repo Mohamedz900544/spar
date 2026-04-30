@@ -6,12 +6,14 @@ import {
   Clock,
   ChevronDown,
   GraduationCap,
+  MessageCircle,
   Phone,
   Baby,
   CalendarDays,
+  Search,
   X,
 } from "lucide-react";
-import { formatDateTime } from "./salesHelpers";
+import { formatDateTime, toWhatsAppLink } from "./salesHelpers";
 
 const WEEK_DAYS = [
   "sunday",
@@ -24,10 +26,38 @@ const WEEK_DAYS = [
 ];
 const TIME_RANGE_REGEX = /^(?:([01]\d|2[0-3]):([0-5]\d)|24:00)$/;
 const FREE_SESSION_FILTERS = [
-  { id: "pending", label: "Pending", icon: Clock },
-  { id: "assigned", label: "Assigned", icon: CheckCircle2 },
-  { id: "finished", label: "Finished", icon: CalendarDays },
+  { id: "pending", label: "Pending", hint: "Need assignment", icon: Clock },
+  { id: "assigned", label: "Assigned", hint: "Upcoming trials", icon: CheckCircle2 },
+  { id: "finished", label: "Finished", hint: "Trial time passed", icon: CalendarDays },
 ];
+const STATUS_BADGE_STYLES = {
+  pending: "border-amber-200 bg-amber-50 text-amber-700",
+  assigned: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  finished: "border-sky-200 bg-sky-50 text-sky-700",
+};
+const CARD_STATUS_STYLES = {
+  pending: {
+    border: "border-slate-100 hover:border-[#FBBF24]/30 hover:shadow-md",
+    header: "border-slate-100 bg-slate-50/50",
+    icon: "bg-gradient-to-br from-[#102a5a] to-[#1a3a6b] text-white",
+    panel: "border-amber-100 bg-amber-50/40",
+    panelText: "text-amber-700",
+  },
+  assigned: {
+    border: "border-emerald-200",
+    header: "border-emerald-100 bg-emerald-50/30",
+    icon: "bg-emerald-100 text-emerald-600",
+    panel: "border-emerald-100 bg-emerald-50/50",
+    panelText: "text-emerald-700",
+  },
+  finished: {
+    border: "border-sky-200",
+    header: "border-sky-100 bg-sky-50/40",
+    icon: "bg-sky-100 text-sky-600",
+    panel: "border-sky-100 bg-sky-50/50",
+    panelText: "text-sky-700",
+  },
+};
 
 const toMinutes = (timeValue) => {
   const [hours, minutes] = timeValue.split(":").map(Number);
@@ -92,6 +122,16 @@ const formatSlotTime = (date) =>
     hour: "numeric",
     minute: "2-digit",
   }).format(date);
+
+const formatSessionRange = (range) => {
+  if (!range) return "-";
+  const date = new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  }).format(range.startDate);
+  return `${date}, ${formatSlotTime(range.startDate)} - ${formatSlotTime(range.endDate)}`;
+};
 
 const resolveLeadSessionRange = (lead, fallbackDurationMinutes = 60) => {
   const freeSession = lead?.freeSession;
@@ -221,6 +261,7 @@ const SalesFreeSessionPage = () => {
   const sales = useOutletContext();
   const [draftOverrides, setDraftOverrides] = useState({});
   const [freeSessionFilter, setFreeSessionFilter] = useState("pending");
+  const [searchQuery, setSearchQuery] = useState("");
   const [slotPicker, setSlotPicker] = useState({
     open: false,
     leadId: "",
@@ -319,12 +360,34 @@ const SalesFreeSessionPage = () => {
     return buckets;
   }, [requestedLeads]);
 
-  const filteredRequestedLeads = freeSessionBuckets[freeSessionFilter] || [];
   const filterCounts = {
     pending: freeSessionBuckets.pending.length,
     assigned: freeSessionBuckets.assigned.length,
     finished: freeSessionBuckets.finished.length,
   };
+  const activeFilter = FREE_SESSION_FILTERS.find((filter) => filter.id === freeSessionFilter);
+  const filteredRequestedLeads = useMemo(() => {
+    const statusLeads = freeSessionBuckets[freeSessionFilter] || [];
+    const query = searchQuery.trim().toLowerCase();
+
+    if (!query) return statusLeads;
+
+    return statusLeads.filter((lead) => {
+      const haystack = [
+        lead.parentName,
+        lead.childName,
+        lead.phone,
+        lead.source,
+        lead.status,
+        lead.freeSession?.instructorName,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return haystack.includes(query);
+    });
+  }, [freeSessionBuckets, freeSessionFilter, searchQuery]);
 
   const updateDraft = (leadId, field, value) => {
     setDraftOverrides((prev) => ({
@@ -400,38 +463,7 @@ const SalesFreeSessionPage = () => {
 
   return (
     <section className="space-y-5">
-      <div
-        className="rounded-2xl p-5 relative overflow-hidden"
-        style={{ background: "linear-gradient(135deg, #071228 0%, #102a5a 55%, #1a3a6b 100%)" }}
-      >
-        <div className="absolute top-3 right-8 w-16 h-16 rounded-full bg-[#FBBF24]/10" />
-        <div className="absolute -bottom-3 left-1/3 w-10 h-10 rounded-full bg-emerald-500/10" />
-        <div className="flex items-center justify-between relative z-10">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#FBBF24]/20 flex items-center justify-center">
-              <CalendarClock className="w-5 h-5 text-[#FBBF24]" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-white">Assign Free Sessions</h2>
-              <p className="text-xs text-slate-300">Pair leads with instructors and schedule their trial</p>
-            </div>
-          </div>
-          <div className="hidden sm:flex items-center gap-3">
-            <div className="text-center bg-white/10 rounded-xl px-4 py-2 border border-white/10">
-              <p className="text-lg font-bold text-[#FBBF24]">{pendingCount}</p>
-              <p className="text-[10px] text-white/60 font-semibold uppercase tracking-wider">Pending</p>
-            </div>
-            <div className="text-center bg-white/10 rounded-xl px-4 py-2 border border-white/10">
-              <p className="text-lg font-bold text-emerald-400">{assignedCount}</p>
-              <p className="text-[10px] text-white/60 font-semibold uppercase tracking-wider">Assigned</p>
-            </div>
-            <div className="text-center bg-white/10 rounded-xl px-4 py-2 border border-white/10">
-              <p className="text-lg font-bold text-sky-300">{finishedCount}</p>
-              <p className="text-[10px] text-white/60 font-semibold uppercase tracking-wider">Finished</p>
-            </div>
-          </div>
-        </div>
-      </div>
+     
 
       {requestedLeads.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-14 text-center">
@@ -443,34 +475,59 @@ const SalesFreeSessionPage = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="rounded-2xl border border-slate-100 bg-white p-2 shadow-sm">
-            <div className="grid grid-cols-3 gap-2">
-              {FREE_SESSION_FILTERS.map((filter) => {
-                const Icon = filter.icon;
-                const isActive = freeSessionFilter === filter.id;
-                return (
-                  <button
-                    key={filter.id}
-                    type="button"
-                    onClick={() => setFreeSessionFilter(filter.id)}
-                    className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold transition-all ${
-                      isActive
-                        ? "bg-[#102a5a] text-white shadow-sm"
-                        : "bg-slate-50 text-slate-600 hover:bg-slate-100"
-                    }`}
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span>{filter.label}</span>
-                    <span
-                      className={`min-w-6 rounded-full px-2 py-0.5 text-[11px] ${
-                        isActive ? "bg-white/15 text-white" : "bg-white text-slate-500"
+          <div className="sticky top-3 z-20 rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-sm backdrop-blur">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div className="grid grid-cols-3 gap-2 lg:w-[560px]">
+                {FREE_SESSION_FILTERS.map((filter) => {
+                  const Icon = filter.icon;
+                  const isActive = freeSessionFilter === filter.id;
+                  return (
+                    <button
+                      key={filter.id}
+                      type="button"
+                      aria-pressed={isActive}
+                      onClick={() => setFreeSessionFilter(filter.id)}
+                      className={`min-h-[64px] rounded-xl border px-3 py-2 text-left transition-all ${
+                        isActive
+                          ? "border-[#102a5a] bg-[#102a5a] text-white shadow-sm"
+                          : "border-slate-100 bg-slate-50 text-slate-600 hover:border-slate-200 hover:bg-slate-100"
                       }`}
                     >
-                      {filterCounts[filter.id]}
-                    </span>
-                  </button>
-                );
-              })}
+                      <span className="flex items-center justify-between gap-2">
+                        <Icon className="h-4 w-4 shrink-0" />
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-xs font-bold ${
+                            isActive ? "bg-white/15 text-white" : "bg-white text-slate-600"
+                          }`}
+                        >
+                          {filterCounts[filter.id]}
+                        </span>
+                      </span>
+                      <span className="mt-1 block text-xs font-bold">{filter.label}</span>
+                      <span className={`mt-0.5 hidden text-[10px] sm:block ${isActive ? "text-white/65" : "text-slate-400"}`}>
+                        {filter.hint}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center lg:flex-1 lg:justify-end">
+                <div className="relative min-w-0 sm:w-72">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="search"
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                    placeholder="Search parent, child, phone..."
+                    className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 text-sm font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-[#FBBF24] focus:bg-white focus:ring-4 focus:ring-[#FBBF24]/10"
+                  />
+                </div>
+                <div className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-xs text-slate-500">
+                  <span className="font-bold text-[#102a5a]">{filteredRequestedLeads.length}</span>{" "}
+                  of {filterCounts[freeSessionFilter]} {activeFilter?.label.toLowerCase()}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -482,46 +539,32 @@ const SalesFreeSessionPage = () => {
               <h3 className="text-base font-bold text-[#102a5a] mb-1">
                 No {freeSessionFilter} free sessions
               </h3>
-              <p className="text-sm text-slate-500">Try another status filter.</p>
+              <p className="text-sm text-slate-500">
+                {searchQuery.trim() ? "No matching lead found in this status." : "Try another status filter."}
+              </p>
             </div>
           ) : (
             filteredRequestedLeads.map((lead) => {
-            const leadId = lead.id || lead._id;
-            const draft = drafts[leadId] || { instructorId: "", scheduledAt: "" };
-            const sessionStatus = getFreeSessionStatus(lead);
-            const isAssigned = sessionStatus !== "pending";
-            const isFinished = sessionStatus === "finished";
+              const leadId = lead.id || lead._id;
+              const draft = drafts[leadId] || { instructorId: "", scheduledAt: "" };
+              const sessionStatus = getFreeSessionStatus(lead);
+              const statusStyles = CARD_STATUS_STYLES[sessionStatus];
+              const isAssigned = sessionStatus !== "pending";
+              const isFinished = sessionStatus === "finished";
+              const sessionRange = resolveLeadSessionRange(lead);
+              const waLink = toWhatsAppLink(lead.phone);
+              const canAssign = Boolean(draft.instructorId && draft.scheduledAt);
 
-            return (
-              <article
-                key={leadId}
-                className={`bg-white rounded-2xl border-2 shadow-sm overflow-hidden transition-all ${
-                  isFinished
-                    ? "border-sky-200"
-                    : isAssigned
-                    ? "border-emerald-200"
-                    : "border-slate-100 hover:border-[#FBBF24]/30 hover:shadow-md"
-                }`}
-              >
-                <div
-                  className={`px-5 py-4 border-b ${
-                    isFinished
-                      ? "border-sky-100 bg-sky-50/40"
-                      : isAssigned
-                      ? "border-emerald-100 bg-emerald-50/30"
-                      : "border-slate-100 bg-slate-50/50"
-                  }`}
+              return (
+                <article
+                  key={leadId}
+                  className={`bg-white rounded-2xl border-2 shadow-sm overflow-hidden transition-all ${statusStyles.border}`}
                 >
+                  <div className={`px-5 py-4 border-b ${statusStyles.header}`}>
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <div
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                          isFinished
-                            ? "bg-sky-100 text-sky-600"
-                            : isAssigned
-                            ? "bg-emerald-100 text-emerald-600"
-                            : "bg-gradient-to-br from-[#102a5a] to-[#1a3a6b] text-white"
-                        }`}
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${statusStyles.icon}`}
                       >
                         {isAssigned ? (
                           <CheckCircle2 className="w-5 h-5" />
@@ -544,7 +587,18 @@ const SalesFreeSessionPage = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {waLink && (
+                        <a
+                          href={waLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-white px-2.5 py-1 text-[11px] font-bold text-emerald-700 hover:bg-emerald-50"
+                        >
+                          <MessageCircle className="w-3 h-3" />
+                          WhatsApp
+                        </a>
+                      )}
                       <span
                         className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold border ${
                           lead.source === "Free Session"
@@ -554,27 +608,40 @@ const SalesFreeSessionPage = () => {
                       >
                         {lead.source || "Manual"}
                       </span>
-                      {isAssigned && (
-                        <span
-                          className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-bold ${
-                            isFinished
-                              ? "border-sky-200 bg-sky-50 text-sky-700"
-                              : "border-emerald-200 bg-emerald-50 text-emerald-700"
-                          }`}
-                        >
-                          {isFinished ? (
-                            <CalendarDays className="w-3 h-3" />
-                          ) : (
-                            <CheckCircle2 className="w-3 h-3" />
-                          )}
-                          {isFinished ? "Finished" : "Assigned"}
-                        </span>
-                      )}
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-bold ${STATUS_BADGE_STYLES[sessionStatus]}`}
+                      >
+                        {sessionStatus === "pending" ? (
+                          <Clock className="w-3 h-3" />
+                        ) : isFinished ? (
+                          <CalendarDays className="w-3 h-3" />
+                        ) : (
+                          <CheckCircle2 className="w-3 h-3" />
+                        )}
+                        {sessionStatus === "pending" ? "Pending" : isFinished ? "Finished" : "Assigned"}
+                      </span>
                     </div>
                   </div>
                 </div>
 
                 <div className="p-5">
+                  <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <div className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Requested</p>
+                      <p className="mt-0.5 text-xs font-semibold text-slate-700">
+                        {formatDateTime(lead.createdAt || lead.updatedAt)}
+                      </p>
+                    </div>
+                    <div className={`rounded-xl border px-3 py-2 ${statusStyles.panel}`}>
+                      <p className={`text-[10px] font-bold uppercase tracking-wider ${statusStyles.panelText}`}>
+                        {isAssigned ? "Session Window" : "Next Step"}
+                      </p>
+                      <p className="mt-0.5 text-xs font-semibold text-slate-700">
+                        {isAssigned ? formatSessionRange(sessionRange) : "Choose instructor and available slot"}
+                      </p>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="flex items-center gap-1.5 text-[11px] font-bold text-slate-600 mb-2 uppercase tracking-wider">
@@ -624,7 +691,8 @@ const SalesFreeSessionPage = () => {
                       <button
                         type="button"
                         onClick={() => assign(lead)}
-                        className="w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-white shadow-md hover:shadow-lg transition-all"
+                        disabled={!canAssign}
+                        className="w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-white shadow-md transition-all hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-55 disabled:shadow-none"
                         style={{
                           background: isAssigned
                             ? "linear-gradient(135deg, #059669, #10b981)"
@@ -632,16 +700,28 @@ const SalesFreeSessionPage = () => {
                         }}
                       >
                         <CalendarClock className="w-4 h-4" />
-                        {isAssigned ? "Reassign" : "Assign Session"}
+                        {!draft.instructorId
+                          ? "Select Instructor"
+                          : !draft.scheduledAt
+                          ? "Choose Time"
+                          : isAssigned
+                          ? "Reassign"
+                          : "Assign Session"}
                       </button>
                     </div>
                   </div>
 
                   {isAssigned && (
-                    <div className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50/50 p-4">
-                      <p className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        Current Assignment
+                    <div className={`mt-4 rounded-xl border p-4 ${statusStyles.panel}`}>
+                      <p
+                        className={`text-[11px] font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5 ${statusStyles.panelText}`}
+                      >
+                        {isFinished ? (
+                          <CalendarDays className="w-3.5 h-3.5" />
+                        ) : (
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                        )}
+                        {isFinished ? "Finished Assignment" : "Current Assignment"}
                       </p>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-xs text-slate-600">
                         <p>

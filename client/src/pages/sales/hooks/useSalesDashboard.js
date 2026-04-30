@@ -161,11 +161,12 @@ export const useSalesDashboard = () => {
     }
   };
 
-  const updateLeadStatus = async (lead, status) => {
+  const updateLeadStatus = async (lead, status, options = {}) => {
     const token = checkAuth();
     if (!token) return;
 
     let lostReason = "";
+    let callLaterAt = options.callLaterAt || "";
     if (status === "Closed - Lost") {
       const reason = window.prompt(
         "Please enter the reason for closing this lead as lost:",
@@ -178,6 +179,18 @@ export const useSalesDashboard = () => {
       lostReason = reason.trim();
     }
 
+    if (status === "Busy Call Later" && !callLaterAt) {
+      const scheduledAt = window.prompt(
+        "Enter the next call date/time (example: 2026-06-26T14:00):",
+        ""
+      );
+      if (!scheduledAt || !scheduledAt.trim()) {
+        toast.error("Call time is required.");
+        return;
+      }
+      callLaterAt = scheduledAt.trim();
+    }
+
     try {
       const leadId = lead.id || lead._id;
       const res = await fetch(`${API_BASE_URL}/api/sales/leads/${leadId}/status`, {
@@ -186,7 +199,7 @@ export const useSalesDashboard = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ status, lostReason }),
+        body: JSON.stringify({ status, lostReason, callLaterAt }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -211,6 +224,41 @@ export const useSalesDashboard = () => {
     } catch (err) {
       console.error("Update lead status error:", err);
       toast.error(err.message || "Failed to update status");
+    }
+  };
+
+  const scheduleBusyCallLater = async (lead, callLaterAt) => {
+    const token = checkAuth();
+    if (!token) return null;
+
+    const leadId = lead.id || lead._id;
+    if (!callLaterAt) {
+      toast.error("Please choose the call time.");
+      return null;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/sales/leads/${leadId}/call-later`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ callLaterAt }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to schedule call reminder");
+      }
+
+      upsertLead(data);
+      toast.success("Call reminder scheduled for sales");
+      fetchDashboard();
+      return data;
+    } catch (err) {
+      console.error("Schedule call later error:", err);
+      toast.error(err.message || "Failed to schedule call reminder");
+      return null;
     }
   };
 
@@ -517,6 +565,7 @@ export const useSalesDashboard = () => {
     fetchDashboard,
     createLead,
     updateLeadStatus,
+    scheduleBusyCallLater,
     addLeadNote,
     savePaymentLink,
     assignFreeSession,

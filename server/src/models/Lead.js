@@ -5,6 +5,7 @@ export const LEAD_STATUSES = [
   "Contacted",
   "Demo Booked",
   "Follow-up",
+  "Busy Call Later",
   "Closed - Won",
   "Closed - Lost",
 ];
@@ -39,6 +40,13 @@ const leadSchema = new mongoose.Schema(
     paymentLink: { type: String, trim: true, default: "" },
     notes: { type: [noteSchema], default: [] },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    callLater: {
+      scheduledAt: { type: Date, default: null },
+      scheduledBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      scheduledByName: { type: String, trim: true, default: "" },
+      scheduledAtSet: { type: Date, default: null },
+      reminderSentAt: { type: Date, default: null },
+    },
     freeSession: {
       requested: { type: Boolean, default: false },
       isAssigned: { type: Boolean, default: false },

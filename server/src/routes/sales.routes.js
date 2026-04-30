@@ -123,6 +123,17 @@ const parseDateTimeInTimeZone = (value, timeZone = FREE_SESSION_TIMEZONE) => {
   return new Date(utcMs);
 };
 
+const parseCallLaterAt = (value) => {
+  const scheduledAt = parseDateTimeInTimeZone(value);
+  if (Number.isNaN(scheduledAt.getTime())) {
+    return { error: "Valid call later date/time is required" };
+  }
+  if (scheduledAt.getTime() <= Date.now()) {
+    return { error: "Call later date/time must be in the future" };
+  }
+  return { scheduledAt };
+};
+
 const getDateTimePartsInTimeZone = (
   value,
   timeZone = FREE_SESSION_TIMEZONE
@@ -533,7 +544,7 @@ router.post("/leads", authRequired, agentOrAdmin, async (req, res) => {
 
 router.patch("/leads/:id/status", authRequired, agentOrAdmin, async (req, res) => {
   try {
-    const { status, lostReason = "" } = req.body;
+    const { status, lostReason = "", callLaterAt = "" } = req.body;
 
     if (!assertValidStatus(status)) {
       return res.status(400).json({ message: "Invalid lead status" });
@@ -545,6 +556,12 @@ router.patch("/leads/:id/status", authRequired, agentOrAdmin, async (req, res) =
         .json({ message: "lostReason is required for Closed - Lost" });
     }
 
+    const callLaterParse =
+      status === "Busy Call Later" ? parseCallLaterAt(callLaterAt) : null;
+    if (callLaterParse?.error) {
+      return res.status(400).json({ message: callLaterParse.error });
+    }
+
     const leadBefore = await Lead.findById(req.params.id).lean();
     if (!leadBefore) {
       return res.status(404).json({ message: "Lead not found" });
@@ -554,6 +571,17 @@ router.patch("/leads/:id/status", authRequired, agentOrAdmin, async (req, res) =
       status,
       lostReason: status === "Closed - Lost" ? lostReason.trim() : "",
     };
+
+    if (status === "Busy Call Later") {
+      updatePayload["callLater.scheduledAt"] = callLaterParse.scheduledAt;
+      updatePayload["callLater.scheduledBy"] = req.user._id;
+      updatePayload["callLater.scheduledByName"] = req.user.name || "";
+      updatePayload["callLater.scheduledAtSet"] = new Date();
+      updatePayload["callLater.reminderSentAt"] = null;
+    } else {
+      updatePayload["callLater.scheduledAt"] = null;
+      updatePayload["callLater.reminderSentAt"] = null;
+    }
 
     // If telesales marks a lead as Demo Booked manually, treat it as a free-session request.
     if (status === "Demo Booked") {
@@ -598,6 +626,46 @@ router.patch("/leads/:id/status", authRequired, agentOrAdmin, async (req, res) =
     });
   } catch (err) {
     console.error("Update lead status error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.patch("/leads/:id/call-later", authRequired, agentOrAdmin, async (req, res) => {
+  try {
+    const { callLaterAt } = req.body;
+    const parsed = parseCallLaterAt(callLaterAt);
+    if (parsed.error) {
+      return res.status(400).json({ message: parsed.error });
+    }
+
+    const leadBefore = await Lead.findById(req.params.id).lean();
+    if (!leadBefore) {
+      return res.status(404).json({ message: "Lead not found" });
+    }
+
+    const updatePayload = {
+      status: "Busy Call Later",
+      lostReason: "",
+      "callLater.scheduledAt": parsed.scheduledAt,
+      "callLater.scheduledBy": req.user._id,
+      "callLater.scheduledByName": req.user.name || "",
+      "callLater.scheduledAtSet": new Date(),
+      "callLater.reminderSentAt": null,
+    };
+
+    if (!leadBefore.createdBy && ["agent", "admin"].includes(req.user.role)) {
+      updatePayload.createdBy = req.user._id;
+    }
+
+    const updated = await Lead.findByIdAndUpdate(
+      req.params.id,
+      { $set: updatePayload },
+      { new: true }
+    );
+
+    return res.json(updated.toJSON());
+  } catch (err) {
+    console.error("Schedule busy call later error:", err);
     return res.status(500).json({ message: "Server error" });
   }
 });

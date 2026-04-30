@@ -60,9 +60,7 @@ const SalesLayout = () => {
           <h1 className="text-3xl md:text-4xl font-extrabold text-white leading-tight mb-2">
             Telesales <span className="text-[#FBBF24]">Workspace</span>
           </h1>
-          <p className="text-slate-300 text-sm md:text-base max-w-2xl">
-            Internal pages and focused routes to move faster between pipeline, follow-ups, and closed deals.
-          </p>
+       
 
           <nav className="mt-6 bg-white/10 border border-white/15 rounded-2xl p-2">
             <div className="flex flex-wrap gap-2">
@@ -92,7 +90,7 @@ const SalesLayout = () => {
       </header>
 
       <main className="flex-1 px-4 sm:px-6 lg:px-8 -mt-3 pb-10 relative z-10">
-        <div className="max-w-7xl mx-auto space-y-5">
+        <div className="max-w-8xl mx-auto space-y-5">
           {sales.error && (
             <div className="bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-2xl px-4 py-3">
               {sales.error}

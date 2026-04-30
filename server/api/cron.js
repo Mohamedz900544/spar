@@ -4,6 +4,7 @@ import User from "../src/models/User.js";
 import { connectDB } from "../src/config/db.js";
 import { processRoundSessionReminders } from "../src/services/roundSessionReminders.service.js";
 import { completeFinishedRounds } from "../src/services/roundStatus.service.js";
+import { processBusyCallReminders } from "../src/services/busyCallReminder.service.js";
 import {
     notifyInstructorSessionReminder,
     notifyParentSessionReminder,
@@ -125,6 +126,7 @@ export default async function handler(req, res) {
         const freeSessionReminders = await processFreeSessionReminders();
         const roundSessionReminders = await processRoundSessionReminders();
         const roundStatusUpdates = await completeFinishedRounds();
+        const busyCallReminders = await processBusyCallReminders();
 
         return res.status(200).json({
             success: true,
@@ -132,6 +134,7 @@ export default async function handler(req, res) {
             roundStatusUpdates,
             freeSessionReminders,
             roundSessionReminders,
+            busyCallReminders,
         });
 
     } catch (error) {

@@ -7,6 +7,10 @@ import { sendBrevoEmail } from "./brevoEmail.service.js";
 
 const getNotificationConfig = () => ({
   followUpTemplateName: process.env.WHATSAPP_TEMPLATE_FOLLOW_UP || "",
+  busyCallReminderTemplateName:
+    process.env.WHATSAPP_TEMPLATE_BUSY_CALL_REMINDER ||
+    process.env.WHATSAPP_TEMPLATE_FOLLOW_UP ||
+    "",
   instructorAssignTemplateName:
     process.env.WHATSAPP_TEMPLATE_INSTRUCTOR_ASSIGN || "",
   instructorSessionReminderTemplateName:
@@ -183,6 +187,39 @@ const buildSalesFollowUpParams = (lead, followUpAt = new Date()) => [
   namedTemplateParam("follow_up_time", formatCairoDateTime(followUpAt)),
 ];
 
+const buildSalesBusyCallReminderBody = (lead, callAt = new Date()) =>
+  [
+    "Call-later reminder",
+    "",
+    "Parent name:",
+    `${lead.parentName || "-"}`,
+    "",
+    "Parent phone:",
+    `${lead.phone || "-"}`,
+    "",
+    "Child name:",
+    `${lead.childName || "-"}`,
+    "",
+    "Child age:",
+    `${lead.childAge || "-"}`,
+    "",
+    "Call time:",
+    `${formatCairoDateTime(callAt)}`,
+    "",
+    "Latest notes:",
+    extractLatestNotes(lead),
+  ].join("\n");
+
+const buildSalesBusyCallReminderParams = (lead, callAt = new Date()) => [
+  namedTemplateParam("parent_name", valueOrDash(lead.parentName)),
+  namedTemplateParam("parent_phone", valueOrDash(lead.phone)),
+  namedTemplateParam("child_name", valueOrDash(lead.childName)),
+  namedTemplateParam("child_age", valueOrDash(lead.childAge)),
+  namedTemplateParam("lead_status", valueOrDash(lead.status || "Busy Call Later")),
+  namedTemplateParam("follow_up_time", formatCairoDateTime(callAt)),
+  namedTemplateParam("call_time", formatCairoDateTime(callAt)),
+];
+
 const buildInstructorFreeSessionAssignedBody = (lead, instructor) =>
   [
     "تم تعيين حصة مجانية جديدة",
@@ -266,6 +303,23 @@ const resolveSalesRecipient = async (
   fallbackSalesUser = null,
   config = getNotificationConfig()
 ) => {
+  if (lead?.callLater?.scheduledBy) {
+    const scheduledBy = await User.findById(lead.callLater.scheduledBy)
+      .select("name phone email role")
+      .lean();
+    if (
+      (scheduledBy?.phone || scheduledBy?.email) &&
+      ["agent", "admin"].includes(scheduledBy.role)
+    ) {
+      return {
+        id: scheduledBy._id?.toString(),
+        name: scheduledBy.name || "Sales",
+        phone: scheduledBy.phone,
+        email: scheduledBy.email || "",
+      };
+    }
+  }
+
   if (lead?.createdBy) {
     const owner = await User.findById(lead.createdBy)
       .select("name phone email role")
@@ -424,6 +478,40 @@ export const notifySalesFollowUpReminder = async ({
   return combineChannelResults(result, emailResult);
 };
 
+export const notifySalesBusyCallReminder = async ({
+  lead,
+  fallbackSalesUser = null,
+}) => {
+  const config = getNotificationConfig();
+  const recipient = await resolveSalesRecipient(lead, fallbackSalesUser, config);
+  if (!recipient) {
+    return { sent: false, skipped: true, reason: "missing_sales_recipient" };
+  }
+
+  const callAt = lead?.callLater?.scheduledAt || new Date();
+  const textBody = buildSalesBusyCallReminderBody(lead, callAt);
+  const recipientPhone = recipient.phone || config.defaultSalesPhone;
+  if (!recipientPhone) {
+    return { sent: false, skipped: true, reason: "missing_sales_phone" };
+  }
+
+  const result = await sendNotification({
+    phone: recipientPhone,
+    customTemplateName: config.busyCallReminderTemplateName,
+    templateLanguage: config.defaultTemplateLanguage,
+    templateBodyParams: buildSalesBusyCallReminderParams(lead, callAt),
+    textBody,
+    config,
+    sendTextAfterTemplate: false,
+  });
+
+  return {
+    sent: Boolean(result?.sent),
+    whatsappSent: Boolean(result?.sent),
+    whatsapp: result,
+  };
+};
+
 const buildParentWelcomeBody = () =>
   [
     "أهلا بيك أنا كيدفتي من عائلة Sparvi وهكون المساعد الشخصي لحضرتك 😊",
@@ -531,6 +619,9 @@ const createWhatsAppTestLead = (phone) => {
     freeSession: {
       scheduledAt,
     },
+    callLater: {
+      scheduledAt,
+    },
   };
 };
 
@@ -542,6 +633,7 @@ const createWhatsAppTestInstructor = (phone) => ({
 
 const WHATSAPP_AUTOMATION_TEST_LABELS = {
   sales_follow_up: "Sales follow-up",
+  busy_call_reminder: "Busy call later reminder",
   instructor_assignment: "Instructor assignment",
   instructor_reminder: "Instructor 1-hour reminder",
   parent_welcome: "Parent welcome",
@@ -568,6 +660,20 @@ export const sendWhatsAppAutomationTest = async ({ type, phone }) => {
       customTemplateName: config.followUpTemplateName,
       templateLanguage: config.defaultTemplateLanguage,
       templateBodyParams: buildSalesFollowUpParams(lead, followUpAt),
+      textBody,
+      config,
+      sendTextAfterTemplate: false,
+    });
+  }
+
+  if (type === "busy_call_reminder") {
+    const callAt = lead.callLater.scheduledAt;
+    const textBody = buildSalesBusyCallReminderBody(lead, callAt);
+    result = await sendNotification({
+      phone,
+      customTemplateName: config.busyCallReminderTemplateName,
+      templateLanguage: config.defaultTemplateLanguage,
+      templateBodyParams: buildSalesBusyCallReminderParams(lead, callAt),
       textBody,
       config,
       sendTextAfterTemplate: false,

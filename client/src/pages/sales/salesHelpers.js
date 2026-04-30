@@ -3,6 +3,7 @@ export const LEAD_STATUSES = [
   "Contacted",
   "Demo Booked",
   "Follow-up",
+  "Busy Call Later",
   "Closed - Won",
   "Closed - Lost",
 ];
@@ -12,6 +13,7 @@ export const statusPill = {
   Contacted: "bg-indigo-50 text-indigo-700 border-indigo-200",
   "Demo Booked": "bg-violet-50 text-violet-700 border-violet-200",
   "Follow-up": "bg-amber-50 text-amber-700 border-amber-200",
+  "Busy Call Later": "bg-cyan-50 text-cyan-700 border-cyan-200",
   "Closed - Won": "bg-emerald-50 text-emerald-700 border-emerald-200",
   "Closed - Lost": "bg-rose-50 text-rose-700 border-rose-200",
 };
