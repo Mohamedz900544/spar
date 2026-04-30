@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
-import { CalendarClock, ClipboardCopy, MessageCircle, Save, Send } from "lucide-react";
+import { CalendarClock, ClipboardCopy, MessageCircle, Save } from "lucide-react";
 import {
   LEAD_STATUSES,
   toWhatsAppLink,
@@ -146,10 +146,6 @@ const SalesPipelinePage = () => {
     if (result) closeBusyCallForm(leadId);
   };
 
-  const isTestingBusyTemplate = Boolean(
-    sales.sendingWhatsAppAutomationTests?.busy_call_reminder
-  );
-
   const statusCounts = useMemo(() => {
     const counts = { All: (sales.leads || []).length };
     for (const status of LEAD_STATUSES) {
@@ -208,20 +204,6 @@ const SalesPipelinePage = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-            <button
-              type="button"
-              onClick={() =>
-                sales.sendWhatsAppAutomationTest(
-                  "busy_call_reminder",
-                  "Busy call reminder"
-                )
-              }
-              disabled={isTestingBusyTemplate}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-cyan-200 bg-cyan-50 px-3 py-2 text-xs font-bold text-cyan-700 transition-all hover:bg-cyan-100 disabled:opacity-60"
-            >
-              <Send className="h-3.5 w-3.5" />
-              {isTestingBusyTemplate ? "Testing..." : "Test busy template"}
-            </button>
             <input
               type="text"
               value={search}

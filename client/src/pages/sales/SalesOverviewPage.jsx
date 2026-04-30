@@ -4,7 +4,6 @@ import { LEAD_STATUSES, statusPill, formatDateTime } from "./salesHelpers";
 
 const WHATSAPP_AUTOMATION_TESTS = [
   { type: "sales_follow_up", label: "Sales follow-up" },
-  { type: "busy_call_reminder", label: "Busy call reminder" },
   { type: "instructor_assignment", label: "Instructor assignment" },
   { type: "instructor_reminder", label: "Instructor reminder" },
   { type: "parent_welcome", label: "Parent welcome" },
