@@ -209,10 +209,10 @@ const HERO_VIDEOS = [
     meta: "Grade 5 | Egypt",
   },
   {
-    thumbnail: "https://i.ibb.co/xRtsf8T/Screenshot-2026-01-12-043823.webp",
-    ytSrc: "https://www.youtube.com/embed/_4InPBLQ1z4?autoplay=1&playsinline=1&rel=0&modestbranding=1",
-    name: "Mostafa Fouda",
-    meta: "Grade 5 | Egypt",
+    thumbnail: "https://i.ibb.co/XrGByJv8/image-2.webp",
+    ytSrc: "https://www.youtube.com/embed/d0-mZHNXPn4?autoplay=1&playsinline=1&rel=0&modestbranding=1",
+    name: "Parent",
+    meta: "",
   },
 ];
 
