@@ -10,7 +10,6 @@ import {
   Target,
   Blocks,
   Activity,
-  ShieldCheck,
   Sparkles,
   Rocket,
   GraduationCap,
@@ -67,7 +66,6 @@ const ageTracksRaw = {
   "15-17": [
     { id: "data-ai", icon: Activity, image: "https://i.ibb.co/H6zN2Wb/846545.webp" },
     { id: "automation", icon: Target, image: "https://i.ibb.co/xVTp1PK/2962489.webp" },
-    { id: "cyber", icon: ShieldCheck, image: "https://i.ibb.co/FL6Y97dQ/3818937.webp" },
   ],
 };
 

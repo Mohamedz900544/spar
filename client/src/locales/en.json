@@ -433,10 +433,6 @@
       "automation": {
         "name": "Automation",
         "desc": "Automate tasks, connect tools together, and design efficient digital workflows."
-      },
-      "cyber": {
-        "name": "Intro to Cyber Security",
-        "desc": "Learn how to stay safe online, protect data, and understand basic security concepts."
       }
     },
     "phases": {
