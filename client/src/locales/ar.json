@@ -237,8 +237,11 @@
         "subscription": "الاشتراك لمدة 3 شهور",
         "subscriptionOneMonth": "الاشتراك لمدة شهر",
         "totalSessions": "مجموع الحصص 15 حصة",
+        "totalSessionsOneMonth": "مجموع الحصص 5 حصص",
         "sessionLength": "مدة الحصة الواحدة ساعتين",
         "courseSessions": "12 حصة لمحتوى الدورة",
+        "courseSessionsOneMonth": "عدد الحصص 4 حصص لمحتوى الدورة",
+        "skillsSessionOneMonth": "حصة واحدة من مهارات متنوعة",
         "skillsSessions": "3 حصص مهارات متنوعة مثل تنظيم الوقت ومهارات التفاوض والتفكير المنطقي"
       }
         }

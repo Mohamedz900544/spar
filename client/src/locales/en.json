@@ -237,8 +237,11 @@
         "subscription": "3-month subscription",
         "subscriptionOneMonth": "1-month subscription",
         "totalSessions": "15 total sessions",
+        "totalSessionsOneMonth": "5 total sessions",
         "sessionLength": "Each session is 2 hours",
         "courseSessions": "12 sessions for course content",
+        "courseSessionsOneMonth": "4 sessions for course content",
+        "skillsSessionOneMonth": "1 varied skills session",
         "skillsSessions": "3 varied skills sessions: time management, negotiation skills, and logical thinking"
       }
     }

@@ -18,7 +18,13 @@ const plans = [
     key: "oneMonthPrivate",
     price: "1500",
     originalPrice: "2200",
-    features: ["subscriptionOneMonth", "sessionLength"],
+    features: [
+      "subscriptionOneMonth",
+      "totalSessionsOneMonth",
+      "sessionLength",
+      "courseSessionsOneMonth",
+      "skillsSessionOneMonth",
+    ],
   },
 ];
 
