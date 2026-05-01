@@ -3,7 +3,6 @@ import { motion as Motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Parentsreviews from "../components/Parentsreviews";
-import CurriculumSection from "../components/CurriculumSection";
 import PricingSection from "../components/PricingSection";
 import {
   Monitor,
@@ -681,31 +680,6 @@ const Landing = () => {
 
           </div>
         </div>
-      </section>
-
-      {/* ============================
-         LEARNING PATH SECTION
-         ============================ */}
-      <section
-        className="py-16 md:py-24 px-6 bg-gradient-to-b from-white to-slate-50"
-      >
-        <div className="max-w-6xl mx-auto mb-10 text-center">
-          <h2
-            className="text-2xl md:text-4xl font-display"
-            style={{
-              fontWeight: 800,
-              lineHeight: 1.15,
-              letterSpacing: "-0.02em",
-              background: "linear-gradient(135deg, #0f172a 0%, #2563eb 50%, #06b6d4 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
-          >
-            {t("landing.learning_path.title")}
-          </h2>
-        </div>
-        <CurriculumSection />
       </section>
 
       <Parentsreviews />
