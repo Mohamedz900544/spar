@@ -946,4 +946,47 @@ router.patch("/leads/:id/free-session", authRequired, agentOrAdmin, async (req, 
   }
 });
 
+router.delete("/leads/:id/free-session", authRequired, agentOrAdmin, async (req, res) => {
+  try {
+    const lead = await Lead.findById(req.params.id).lean();
+    if (!lead) {
+      return res.status(404).json({ message: "Lead not found" });
+    }
+
+    if (!lead.freeSession?.isAssigned && !lead.freeSession?.scheduledAt) {
+      return res.status(400).json({ message: "This lead has no assigned free session" });
+    }
+
+    const updated = await Lead.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: {
+          ...(lead.status === "Demo Booked" ? { status: "New" } : {}),
+          "freeSession.requested": true,
+          "freeSession.isAssigned": false,
+          "freeSession.scheduledAt": null,
+          "freeSession.durationMinutes": 60,
+          "freeSession.endsAt": null,
+          "freeSession.followUpDueAt": null,
+          "freeSession.movedToFollowUpAt": null,
+          "freeSession.instructor": null,
+          "freeSession.instructorName": "",
+          "freeSession.assignedBy": null,
+          "freeSession.assignedByName": "",
+          "freeSession.assignedAt": null,
+          "freeSession.reminderSentAt": null,
+          "freeSession.parentAssignmentNotifiedAt": null,
+          "freeSession.parentReminderSentAt": null,
+        },
+      },
+      { new: true }
+    );
+
+    return res.json(updated.toJSON());
+  } catch (err) {
+    console.error("Clear free session assignment error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
 export default router;

@@ -389,6 +389,37 @@ export const useSalesDashboard = () => {
     }
   };
 
+  const clearFreeSession = async (leadId) => {
+    const token = checkAuth();
+    if (!token) return null;
+    if (!leadId) {
+      toast.error("Missing lead id.");
+      return null;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/sales/leads/${leadId}/free-session`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to clear free session");
+      }
+
+      upsertLead(data);
+      toast.success("Free session assignment removed");
+      fetchDashboard();
+      return data;
+    } catch (err) {
+      console.error("Clear free session error:", err);
+      toast.error(err.message || "Failed to clear free session");
+      return null;
+    }
+  };
+
   const sendWhatsAppTest = async () => {
     const token = checkAuth();
     if (!token) return false;
@@ -569,6 +600,7 @@ export const useSalesDashboard = () => {
     addLeadNote,
     savePaymentLink,
     assignFreeSession,
+    clearFreeSession,
     sendWhatsAppTest,
     sendWhatsAppAutomationTest,
     sendEmailTest,

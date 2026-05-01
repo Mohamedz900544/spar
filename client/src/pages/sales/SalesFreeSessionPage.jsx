@@ -11,6 +11,7 @@ import {
   Baby,
   CalendarDays,
   Search,
+  Trash2,
   X,
 } from "lucide-react";
 import { formatDateTime, toWhatsAppLink } from "./salesHelpers";
@@ -482,6 +483,25 @@ const SalesFreeSessionPage = () => {
     });
   };
 
+  const clearAssignment = async (lead) => {
+    const leadId = lead.id || lead._id;
+    const confirmed = window.confirm(
+      `Remove the assigned free session for ${lead.parentName || "this lead"}? The request will move back to Pending.`
+    );
+    if (!confirmed) return;
+
+    const updated = await sales.clearFreeSession(leadId);
+    if (!updated) return;
+
+    setDraftOverrides((prev) => ({
+      ...prev,
+      [leadId]: {
+        instructorId: "",
+        scheduledAt: "",
+      },
+    }));
+  };
+
   const selectedSlotValue = drafts[slotPicker.leadId]?.scheduledAt || "";
 
   return (
@@ -739,16 +759,26 @@ const SalesFreeSessionPage = () => {
 
                   {isAssigned && (
                     <div className={`mt-4 rounded-xl border p-4 ${statusStyles.panel}`}>
-                      <p
-                        className={`text-[11px] font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5 ${statusStyles.panelText}`}
-                      >
-                        {isFinished ? (
-                          <CalendarDays className="w-3.5 h-3.5" />
-                        ) : (
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                        )}
-                        {isFinished ? "Finished Assignment" : "Current Assignment"}
-                      </p>
+                      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                        <p
+                          className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${statusStyles.panelText}`}
+                        >
+                          {isFinished ? (
+                            <CalendarDays className="w-3.5 h-3.5" />
+                          ) : (
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                          )}
+                          {isFinished ? "Finished Assignment" : "Current Assignment"}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => clearAssignment(lead)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-white px-2.5 py-1.5 text-[11px] font-bold text-rose-700 transition-colors hover:bg-rose-50"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          Delete Assignment
+                        </button>
+                      </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-xs text-slate-600">
                         <p>
                           <span className="font-semibold text-[#102a5a]">Instructor:</span>{" "}
