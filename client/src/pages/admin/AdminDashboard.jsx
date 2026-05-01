@@ -46,6 +46,7 @@ const AdminDashboard = () => {
     newMessagesCount,
     sessions,
     filteredSessions,
+    sessionCounts,
     sessionSearch,
     setSessionSearch,
     sessionStatusFilter,
@@ -187,6 +188,7 @@ const AdminDashboard = () => {
                 sessionSearch={sessionSearch}
                 setSessionSearch={setSessionSearch}
                 sessionStatusFilter={sessionStatusFilter}
+                sessionCounts={sessionCounts}
                 setSessionStatusFilter={setSessionStatusFilter}
                 filteredSessions={filteredSessions}
                 handleFormUpdate={handleFormUpdate}

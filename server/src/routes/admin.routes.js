@@ -103,7 +103,7 @@ const buildInstructorWelcomeEmail = ({
 ===================================================== */
 router.get("/dashboard", authRequired, adminOnly, async (req, res) => {
   try {
-    const today = new Date().toLocaleDateString('en-CA');
+    const today = formatDateInCairo(new Date());
     const [
       sessions,
       enrollments,

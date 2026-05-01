@@ -5,7 +5,9 @@ export async function getAllSessions(req, res) {
     try {
         const date = req.query?.date ? req.query.date.replace(/\//g, '-') : null;
         const filter = date ? { date } : {}
-        const sessions = await Session.find(filter).populate('round', { sessions: 0 }).sort();
+        const sessions = await Session.find(filter)
+            .populate('round', { sessions: 0 })
+            .sort({ date: 1, time: 1, createdAt: 1 });
         return res.json({ sessions })
     } catch (error) {
         return res.sendStatus(500)

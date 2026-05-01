@@ -33,6 +33,96 @@ const parseResponseOrThrow = async (res, fallbackMessage = "Request failed") => 
   return data;
 };
 
+const FALLBACK_SESSION_TIME = Number.MAX_SAFE_INTEGER;
+
+const getSessionId = (session) => session?._id?.toString?.() || session?.id;
+
+const getSessionDateKey = (session) => {
+  if (session?.scheduledAt) {
+    const date = new Date(session.scheduledAt);
+    if (!Number.isNaN(date.getTime())) {
+      return date.toLocaleDateString("en-CA");
+    }
+  }
+
+  if (typeof session?.date === "string" && session.date.trim()) {
+    return session.date.slice(0, 10);
+  }
+
+  if (session?.date) {
+    const date = new Date(session.date);
+    if (!Number.isNaN(date.getTime())) {
+      return date.toLocaleDateString("en-CA");
+    }
+  }
+
+  return "";
+};
+
+const getSessionTimestamp = (session) => {
+  if (session?.scheduledAt) {
+    const scheduledAt = new Date(session.scheduledAt).getTime();
+    if (!Number.isNaN(scheduledAt)) return scheduledAt;
+  }
+
+  const dateKey = getSessionDateKey(session);
+  if (!dateKey) return FALLBACK_SESSION_TIME;
+
+  const time = typeof session?.time === "string" && session.time.trim()
+    ? session.time.slice(0, 5)
+    : "00:00";
+  const timestamp = new Date(`${dateKey}T${time}:00`).getTime();
+  return Number.isNaN(timestamp) ? FALLBACK_SESSION_TIME : timestamp;
+};
+
+const getTodayKey = () => new Date().toLocaleDateString("en-CA");
+
+const isSameSessionId = (session, id) => {
+  const sessionId = getSessionId(session);
+  return sessionId?.toString?.() === id?.toString?.();
+};
+
+const getSessionStatusRank = (status = "") => {
+  const ranks = {
+    Active: 0,
+    Full: 1,
+    Draft: 2,
+    Completed: 3,
+  };
+  return ranks[status] ?? 4;
+};
+
+const FREE_SESSION_FILTERS = ["Free Pending", "Free Assigned", "Free Finished"];
+
+const getFreeSessionFilter = (session, now = new Date()) => {
+  if (session?.sessionType !== "free") return "";
+  if (!session.scheduledAt) return "Free Pending";
+
+  const startDate = new Date(session.scheduledAt);
+  if (Number.isNaN(startDate.getTime())) return "Free Pending";
+
+  const explicitEndDate = session.endsAt ? new Date(session.endsAt) : null;
+  const durationMinutes = Number(session.durationMinutes) > 0
+    ? Number(session.durationMinutes)
+    : 60;
+  const endDate = explicitEndDate && !Number.isNaN(explicitEndDate.getTime())
+    ? explicitEndDate
+    : new Date(startDate.getTime() + durationMinutes * 60 * 1000);
+
+  return endDate.getTime() <= now.getTime() ? "Free Finished" : "Free Assigned";
+};
+
+const sortSessionsBySchedule = (items = []) =>
+  [...items].sort((a, b) => {
+    const timeDiff = getSessionTimestamp(a) - getSessionTimestamp(b);
+    if (timeDiff !== 0) return timeDiff;
+
+    const statusDiff = getSessionStatusRank(a.status) - getSessionStatusRank(b.status);
+    if (statusDiff !== 0) return statusDiff;
+
+    return (a.title || "").localeCompare(b.title || "");
+  });
+
 /* ========== INITIAL DATA MODELS (UI fallback) ========== */
 
 // const initialSessions = [
@@ -214,7 +304,7 @@ export const useAdminDashboard = () => {
   // sessions
   const [sessions, setSessions] = useState([]);
   const [sessionSearch, setSessionSearch] = useState("");
-  const [sessionStatusFilter, setSessionStatusFilter] = useState("All");
+  const [sessionStatusFilter, setSessionStatusFilter] = useState("Today");
 
   // enrollments
   const [enrollments, setEnrollments] = useState([]);
@@ -524,16 +614,15 @@ export const useAdminDashboard = () => {
 
   async function deleteSessions(id) {
     try {
-      console.log(id)
       await axios.delete(`${API_BASE_URL}/api/admin/sessions/${id}`, {
         headers: {
           Authorization: `Bearer ${getTokenOrRedirect()}`
         }
       })
-      setSessions(prevSessions => prevSessions.filter(s => s.id !== id || s._id !== id))
+      setSessions(prevSessions => prevSessions.filter(s => !isSameSessionId(s, id)))
       toast.success('Session deleted successfully')
     } catch (error) {
-      console.log(error.response.data.message)
+      console.log(error.response?.data?.message || error.message)
       toast.error('Error deleting session')
     }
   }
@@ -599,15 +688,18 @@ export const useAdminDashboard = () => {
           Authorization: `Bearer ${getTokenOrRedirect()}`
         }
       })
-      setSessions((prev) => prev.map(s => {
-        if (s.id === sessionData.id || s.id === sessionData._id) {
-          console.log('updating the sessionData', { s }, { sessionData })
-          return { ...s, ...sessionData }
-        }
-        return s
-      }))
+      const updatedSession = data.session || sessionData;
+      setSessions((prev) => sortSessionsBySchedule(prev.map(s => (
+        isSameSessionId(s, sessionData.id || sessionData._id)
+          ? {
+            ...s,
+            ...updatedSession,
+            id: getSessionId(updatedSession) || getSessionId(s),
+            date: getSessionDateKey(updatedSession),
+          }
+          : s
+      ))))
       toast.success('session updated successfully')
-      console.log(data.session)
     } catch (error) {
       console.error(error);
       toast.error('Failed to update session');
@@ -648,10 +740,11 @@ export const useAdminDashboard = () => {
 
       // ✅ normalize sessions: حول _id → id
       if (Array.isArray(data.sessions)) {
-        const normalizedSessions = data.sessions.map((s) => ({
+        const normalizedSessions = sortSessionsBySchedule(data.sessions.map((s) => ({
           ...s,
-          id: s._id?.toString() || s.id, // نضمن دايماً وجود id
-        }));
+          id: getSessionId(s), // نضمن دايماً وجود id
+          date: getSessionDateKey(s),
+        })));
         setSessions(normalizedSessions);
       }
 
@@ -659,7 +752,7 @@ export const useAdminDashboard = () => {
       if (Array.isArray(data.enrollments)) {
         const normalizedEnrollments = data.enrollments.map((e) => ({
           ...e,
-          id: e._id?.toString() || e.id,   // مهم جداً عشان handlers
+          id: getSessionId(e),   // مهم جداً عشان handlers
         }));
         setEnrollments(normalizedEnrollments);
       }
@@ -668,7 +761,7 @@ export const useAdminDashboard = () => {
       if (Array.isArray(data.rounds)) {
         const normalizedRounds = data.rounds.map((r) => ({
           ...r,
-          id: r._id?.toString() || r.id,
+          id: getSessionId(r),
         }));
         setRounds(normalizedRounds);
       }
@@ -696,7 +789,7 @@ export const useAdminDashboard = () => {
       if (Array.isArray(data.parents)) {
         const normalizedParents = data.parents.map((p) => ({
           ...p,
-          id: p._id?.toString() || p.id,
+          id: getSessionId(p),
         }));
         setUsers(normalizedParents);
       }
@@ -783,7 +876,7 @@ export const useAdminDashboard = () => {
   /* ========== DERIVED STATS ========== */
 
   const activeSessionsCount = useMemo(
-    () => sessions.filter((s) => s.status === "Active").length,
+    () => sessions.filter((s) => s.sessionType !== "free" && s.status === "Active").length,
     [sessions]
   );
 
@@ -803,16 +896,38 @@ export const useAdminDashboard = () => {
   );
 
   const averageOccupancy = useMemo(() => {
-    if (!sessions.length) return 0;
-    const totalSlots = sessions.reduce((sum, s) => sum + s.capacity, 0);
-    const totalEnrolled = sessions.reduce((sum, s) => sum + s.enrolled, 0);
+    const capacitySessions = sessions.filter((s) => s.sessionType !== "free" && Number(s.capacity) > 0);
+    if (!capacitySessions.length) return 0;
+    const totalSlots = capacitySessions.reduce((sum, s) => sum + Number(s.capacity || 0), 0);
+    const totalEnrolled = capacitySessions.reduce((sum, s) => sum + Number(s.enrolled || 0), 0);
     return Math.round((totalEnrolled / totalSlots) * 100);
   }, [sessions]);
 
   /* ========== FILTERED LISTS ========== */
 
-  const filteredSessions = useMemo(() => sessions.filter((s) => {
-    const q = sessionSearch.toLowerCase();
+  const orderedSessions = useMemo(() => sortSessionsBySchedule(sessions), [sessions]);
+
+  const sessionCounts = useMemo(() => {
+    const today = getTodayKey();
+    const now = new Date();
+    return orderedSessions.reduce((counts, session) => {
+      const status = session.status || "Unknown";
+      const freeSessionFilter = getFreeSessionFilter(session, now);
+      counts.All += 1;
+      counts[status] = (counts[status] || 0) + 1;
+      if (freeSessionFilter) {
+        counts[freeSessionFilter] = (counts[freeSessionFilter] || 0) + 1;
+      }
+      if (getSessionDateKey(session) === today) {
+        counts.Today += 1;
+      }
+      return counts;
+    }, { All: 0, Today: 0 });
+  }, [orderedSessions]);
+
+  const filteredSessions = useMemo(() => orderedSessions.filter((s) => {
+    const q = sessionSearch.trim().toLowerCase();
+    const dateKey = getSessionDateKey(s);
 
     const matchesSearch =
       !q ||
@@ -821,11 +936,17 @@ export const useAdminDashboard = () => {
       (s.level || "").toLowerCase().includes(q) ||
       (s.parentName || "").toLowerCase().includes(q) ||
       (s.childName || "").toLowerCase().includes(q) ||
-      (s.phone || "").toLowerCase().includes(q);
+      (s.phone || "").toLowerCase().includes(q) ||
+      (s.instructorName || "").toLowerCase().includes(q) ||
+      (dateKey || "").toLowerCase().includes(q) ||
+      (s.time || "").toLowerCase().includes(q);
 
-    if (sessionStatusFilter === 'Today') {
-      const today = new Date().toLocaleDateString('en-CA');
-      return (s.date === today) && matchesSearch;
+    if (sessionStatusFilter === "Today") {
+      return dateKey === getTodayKey() && matchesSearch;
+    }
+
+    if (FREE_SESSION_FILTERS.includes(sessionStatusFilter)) {
+      return getFreeSessionFilter(s) === sessionStatusFilter && matchesSearch;
     }
 
     const matchesStatus =
@@ -833,7 +954,7 @@ export const useAdminDashboard = () => {
       s.status === sessionStatusFilter;
 
     return matchesStatus && matchesSearch;
-  }), [sessions, sessionSearch, sessionStatusFilter]);
+  }), [orderedSessions, sessionSearch, sessionStatusFilter]);
 
   const filteredEnrollments = useMemo(
     () => enrollments.filter((e) => enrollmentStatusFilter === "All" || e.status === enrollmentStatusFilter),
@@ -975,7 +1096,7 @@ export const useAdminDashboard = () => {
     const token = getTokenOrRedirect();
     if (!token) return;
 
-    const session = sessions.find((s) => s.id === id);
+    const session = sessions.find((s) => isSameSessionId(s, id));
     if (!session) return;
     if (session.sessionType === "free") return;
 
@@ -984,11 +1105,11 @@ export const useAdminDashboard = () => {
       (session.status === "Active" ? "Draft" : "Active");
 
     // optimistic update
-    setSessions((prev) =>
+    setSessions((prev) => sortSessionsBySchedule(
       prev.map((s) =>
-        s.id === id ? { ...s, status: nextStatus } : s
+        isSameSessionId(s, id) ? { ...s, status: nextStatus } : s
       )
-    );
+    ));
 
     try {
       const res = await fetch(
@@ -1363,9 +1484,10 @@ export const useAdminDashboard = () => {
     newMessagesCount,
 
     // sessions
-    sessions,
+    sessions: orderedSessions,
     setSessions,
     filteredSessions,
+    sessionCounts,
     sessionSearch,
     setSessionSearch,
     sessionStatusFilter,

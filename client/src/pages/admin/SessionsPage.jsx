@@ -10,11 +10,87 @@ import {
 } from "lucide-react";
 import { useAdminDashboard } from "./hooks/useAdminDashboard";
 
+const SESSION_FILTERS = [
+  "Today",
+  "Active",
+  "Full",
+  "Draft",
+  "Completed",
+  "Free Pending",
+  "Free Assigned",
+  "Free Finished",
+  "All",
+];
+
+const FILTER_LABELS = {
+  Draft: "Upcoming",
+};
+
+const getStatusLabel = (status) => FILTER_LABELS[status] || status;
+
+const FILTER_STYLES = {
+  Today: {
+    active: "bg-sky-600 text-white border-sky-600",
+    idle: "border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100",
+    countActive: "bg-white/20 text-white",
+    countIdle: "bg-sky-100 text-sky-700",
+  },
+  Active: {
+    active: "bg-emerald-600 text-white border-emerald-600",
+    idle: "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
+    countActive: "bg-white/20 text-white",
+    countIdle: "bg-emerald-100 text-emerald-700",
+  },
+  Full: {
+    active: "bg-rose-600 text-white border-rose-600",
+    idle: "border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100",
+    countActive: "bg-white/20 text-white",
+    countIdle: "bg-rose-100 text-rose-700",
+  },
+  Draft: {
+    active: "bg-slate-700 text-white border-slate-700",
+    idle: "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100",
+    countActive: "bg-white/20 text-white",
+    countIdle: "bg-slate-200 text-slate-700",
+  },
+  Completed: {
+    active: "bg-violet-600 text-white border-violet-600",
+    idle: "border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100",
+    countActive: "bg-white/20 text-white",
+    countIdle: "bg-violet-100 text-violet-700",
+  },
+  "Free Pending": {
+    active: "bg-amber-600 text-white border-amber-600",
+    idle: "border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100",
+    countActive: "bg-white/20 text-white",
+    countIdle: "bg-amber-100 text-amber-700",
+  },
+  "Free Assigned": {
+    active: "bg-teal-600 text-white border-teal-600",
+    idle: "border-teal-200 bg-teal-50 text-teal-800 hover:bg-teal-100",
+    countActive: "bg-white/20 text-white",
+    countIdle: "bg-teal-100 text-teal-700",
+  },
+  "Free Finished": {
+    active: "bg-indigo-600 text-white border-indigo-600",
+    idle: "border-indigo-200 bg-indigo-50 text-indigo-800 hover:bg-indigo-100",
+    countActive: "bg-white/20 text-white",
+    countIdle: "bg-indigo-100 text-indigo-700",
+  },
+  All: {
+    active: "bg-[#102a5a] text-white border-[#102a5a]",
+    idle: "border-[#102a5a]/20 bg-[#102a5a]/5 text-[#102a5a] hover:bg-[#102a5a]/10",
+    countActive: "bg-white/20 text-white",
+    countIdle: "bg-[#102a5a]/10 text-[#102a5a]",
+  },
+};
+
 const SessionsPage = () => {
   const {
     isLoading,
     loadError,
     filteredSessions,
+    sessionCounts,
     sessionSearch,
     setSessionSearch,
     sessionStatusFilter,
@@ -64,26 +140,30 @@ const SessionsPage = () => {
                   <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2.5" />
                   <input
                     type="text"
-                    placeholder="Search by title, campus or level"
+                    placeholder="Search title, date, campus, parent or phone"
                     className="pl-7 pr-3 py-1.5 rounded-full border border-[#e2e8f0] text-xs bg-white text-slate-800 outline-none focus:ring-1 focus:ring-[#FBBF24]"
                     value={sessionSearch}
                     onChange={(e) => setSessionSearch(e.target.value)}
                   />
                 </div>
-                <div className="flex items-center gap-1 text-[11px]">
+                <div className="flex flex-wrap items-center gap-1 text-[11px]">
                   <Filter className="w-3.5 h-3.5 text-slate-500" />
-                  {["All", "Active", "Full", "Draft"].map((status) => (
-                    <button
-                      key={status}
-                      className={`px-2 py-1 rounded-full border text-[10px] ${sessionStatusFilter === status
-                          ? "bg-[#102a5a] text-white border-[#102a5a]"
-                          : "border-[#e2e8f0] text-slate-700"
-                        }`}
-                      onClick={() => setSessionStatusFilter(status)}
-                    >
-                      {status}
-                    </button>
-                  ))}
+                  {SESSION_FILTERS.map((status) => {
+                    const styles = FILTER_STYLES[status];
+                    const isActive = sessionStatusFilter === status;
+                    return (
+                      <button
+                        key={status}
+                        className={`inline-flex items-center gap-1 px-2 py-1 rounded-full border text-[10px] font-semibold transition-colors ${isActive ? styles.active : styles.idle}`}
+                        onClick={() => setSessionStatusFilter(status)}
+                      >
+                        <span>{getStatusLabel(status)}</span>
+                        <span className={`rounded-full px-1.5 py-0.5 text-[9px] ${isActive ? styles.countActive : styles.countIdle}`}>
+                          {sessionCounts[status] || 0}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -137,7 +217,7 @@ const SessionsPage = () => {
                                   : "bg-[#f5f3ff] text-[#6d28d9]"
                             }`}
                         >
-                          {s.status}
+                          {getStatusLabel(s.status)}
                         </span>
                       </td>
                       <td className="py-2 pl-3 text-right">
