@@ -948,12 +948,13 @@ router.patch("/leads/:id/free-session", authRequired, agentOrAdmin, async (req, 
 
 router.delete("/leads/:id/free-session", authRequired, agentOrAdmin, async (req, res) => {
   try {
+    const removeRequest = req.query?.removeRequest === "true";
     const lead = await Lead.findById(req.params.id).lean();
     if (!lead) {
       return res.status(404).json({ message: "Lead not found" });
     }
 
-    if (!lead.freeSession?.isAssigned && !lead.freeSession?.scheduledAt) {
+    if (!removeRequest && !lead.freeSession?.isAssigned && !lead.freeSession?.scheduledAt) {
       return res.status(400).json({ message: "This lead has no assigned free session" });
     }
 
@@ -962,7 +963,8 @@ router.delete("/leads/:id/free-session", authRequired, agentOrAdmin, async (req,
       {
         $set: {
           ...(lead.status === "Demo Booked" ? { status: "New" } : {}),
-          "freeSession.requested": true,
+          ...(removeRequest && lead.source === "Free Session" ? { source: "Manual" } : {}),
+          "freeSession.requested": removeRequest ? false : true,
           "freeSession.isAssigned": false,
           "freeSession.scheduledAt": null,
           "freeSession.durationMinutes": 60,

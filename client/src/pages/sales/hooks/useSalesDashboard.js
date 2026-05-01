@@ -389,7 +389,7 @@ export const useSalesDashboard = () => {
     }
   };
 
-  const clearFreeSession = async (leadId) => {
+  const clearFreeSession = async (leadId, options = {}) => {
     const token = checkAuth();
     if (!token) return null;
     if (!leadId) {
@@ -398,7 +398,8 @@ export const useSalesDashboard = () => {
     }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/sales/leads/${leadId}/free-session`, {
+      const query = options.removeRequest ? "?removeRequest=true" : "";
+      const res = await fetch(`${API_BASE_URL}/api/sales/leads/${leadId}/free-session${query}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -410,7 +411,7 @@ export const useSalesDashboard = () => {
       }
 
       upsertLead(data);
-      toast.success("Free session assignment removed");
+      toast.success(options.removeRequest ? "Free session request deleted" : "Free session assignment removed");
       fetchDashboard();
       return data;
     } catch (err) {

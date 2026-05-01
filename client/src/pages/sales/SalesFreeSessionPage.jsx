@@ -502,6 +502,23 @@ const SalesFreeSessionPage = () => {
     }));
   };
 
+  const deleteRequest = async (lead) => {
+    const leadId = lead.id || lead._id;
+    const confirmed = window.confirm(
+      `Delete the free session request for ${lead.parentName || "this lead"}? It will be removed from Pending.`
+    );
+    if (!confirmed) return;
+
+    const updated = await sales.clearFreeSession(leadId, { removeRequest: true });
+    if (!updated) return;
+
+    setDraftOverrides((prev) => {
+      const next = { ...prev };
+      delete next[leadId];
+      return next;
+    });
+  };
+
   const selectedSlotValue = drafts[slotPicker.leadId]?.scheduledAt || "";
 
   return (
@@ -634,6 +651,16 @@ const SalesFreeSessionPage = () => {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2">
+                      {!isAssigned && (
+                        <button
+                          type="button"
+                          onClick={() => deleteRequest(lead)}
+                          className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-white px-2.5 py-1 text-[11px] font-bold text-rose-700 transition-colors hover:bg-rose-50"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          Delete Request
+                        </button>
+                      )}
                       {waLink && (
                         <a
                           href={waLink}
