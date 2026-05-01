@@ -1,4 +1,6 @@
 import express from "express";
+import fs from "fs";
+import { fileURLToPath } from "url";
 import { authRequired, adminOnly } from "../middleware/auth.js";
 import {
   constantTimeSecretEquals,
@@ -8,6 +10,9 @@ import {
 } from "../services/sparviAccess.service.js";
 
 const router = express.Router();
+const pointerInstallerPath = fileURLToPath(
+  new URL("../SPpointer/Sparvi Desktop Student.exe", import.meta.url)
+);
 
 const extractBearerToken = (authorizationHeader = "") => {
   const [scheme, token] = authorizationHeader.split(" ");
@@ -115,5 +120,27 @@ router.post(
     }
   }
 );
+
+router.get("/pointer/download", (req, res) => {
+  if (!fs.existsSync(pointerInstallerPath)) {
+    return res.status(404).json({
+      ok: false,
+      message: "Sparvi Pointer installer is not available",
+    });
+  }
+
+  return res.download(
+    pointerInstallerPath,
+    "Sparvi Pointer - Windows.exe",
+    (err) => {
+      if (err && !res.headersSent) {
+        return res.status(500).json({
+          ok: false,
+          message: "Failed to download Sparvi Pointer",
+        });
+      }
+    }
+  );
+});
 
 export default router;

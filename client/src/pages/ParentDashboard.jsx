@@ -9,7 +9,10 @@ import {
   Blocks,
   ChevronDown,
   CheckCircle2,
-  Camera,
+  Download,
+  Monitor,
+  Apple,
+  HardDrive,
   Sparkles,
   LogOut,
   Zap,
@@ -24,7 +27,8 @@ import {
 import toast from "react-hot-toast";
 import PropTypes from "prop-types";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+const SPARVI_POINTER_DOWNLOAD_URL = `${API_BASE_URL}/api/sparvi/pointer/download`;
 
 /* ====== TABS ====== */
 const TABS = [
@@ -300,12 +304,6 @@ const ParentDashboard = ({ parent, setParent }) => {
     [linkedRounds, rounds]
   );
   const getChildrenForRound = (roundCode) => enrollments.filter((e) => e.roundCode === roundCode);
-
-  const allPhotos = useMemo(() => {
-    return visibleRounds.flatMap((round) =>
-      (round.photos || []).map((photo) => ({ ...photo, roundName: round.name, roundCode: round.code }))
-    );
-  }, [visibleRounds]);
 
   const allSessions = useMemo(() => {
     return visibleRounds.flatMap((round) =>
@@ -958,54 +956,94 @@ const ParentDashboard = ({ parent, setParent }) => {
             </Motion.div>
           )}
 
-          {/* ===== TAB: GALLERY ===== */}
+          {/* ===== TAB: TOOLS ===== */}
           {!loading && activeTab === "gallery" && (
             <Motion.div key="gallery" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-                <div className="flex items-center justify-between mb-5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-[#FBBF24]/10 flex items-center justify-center">
-                      <Camera className="w-4 h-4 text-[#FBBF24]" />
+              <div className="overflow-hidden bg-white rounded-2xl border border-slate-100 shadow-sm">
+                <div className="p-5 sm:p-6 border-b border-slate-100 bg-gradient-to-br from-[#102a5a] via-[#15376f] to-[#0f766e]">
+                  <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center shrink-0 ring-1 ring-white/20">
+                        <Blocks className="w-6 h-6 text-[#FBBF24]" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-[#FBBF24]">Sparvi Tools</p>
+                        <h2 className="text-2xl font-bold text-white mt-1">Download Sparvi Pointer</h2>
+                        <p className="text-sm text-white/75 mt-2 max-w-2xl">
+                          Install the Sparvi Pointer desktop tool for your child's live sessions and classroom activities.
+                        </p>
+                      </div>
                     </div>
-                    <h2 className="text-base font-bold text-[#102a5a]">Photo Gallery</h2>
+                    <a
+                      href={SPARVI_POINTER_DOWNLOAD_URL}
+                      download
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#FBBF24] px-5 py-3 text-sm font-bold text-[#102a5a] shadow-sm transition-all hover:bg-[#f5b313] hover:-translate-y-0.5"
+                    >
+                      <Download className="w-4 h-4" />
+                      Download for Windows
+                    </a>
                   </div>
-                  <span className="inline-flex items-center rounded-full bg-[#FBBF24]/10 px-2.5 py-0.5 text-xs font-bold text-[#92400e]">
-                    {allPhotos.length} Photos
-                  </span>
                 </div>
 
-                {allPhotos.length === 0 ? (
-                  <div className="text-center py-12 border-t border-slate-100">
-                    <Camera className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                    <p className="text-sm font-semibold text-[#102a5a]">No lab photos yet</p>
-                    <p className="text-xs text-slate-500 mt-1">Instructors will upload moments here.</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                    {allPhotos.map((photo, index) => (
-                      <div
-                        key={photo.id || index}
-                        className="aspect-square rounded-2xl overflow-hidden border border-slate-100 bg-slate-100 relative group shadow-sm"
-                      >
-                        <img
-                          src={photo.url}
-                          alt={photo.caption || "Lab Session"}
-                          loading="lazy"
-                          decoding="async"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end">
-                          <div className="p-3 w-full">
-                            {photo.caption && (
-                              <p className="text-xs text-white font-medium truncate">{photo.caption}</p>
-                            )}
-                            <p className="text-[10px] text-white/60 mt-0.5">{photo.roundName}</p>
-                          </div>
+                <div className="p-5 sm:p-6 grid gap-4 lg:grid-cols-[1.3fr_0.7fr]">
+                  <div className="rounded-2xl border border-slate-100 bg-slate-50/60 p-5">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <Monitor className="w-5 h-5 text-[#102a5a]" />
+                          <h3 className="text-lg font-bold text-[#102a5a]">Sparvi Pointer for Windows</h3>
                         </div>
+                        <p className="mt-2 text-sm leading-6 text-slate-600">
+                          A Windows desktop companion for Sparvi Lab sessions. Download it once, install it on the
+                          student's computer, and keep it ready before class starts.
+                        </p>
                       </div>
-                    ))}
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 border border-emerald-100 shrink-0">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        Windows ready
+                      </span>
+                    </div>
+
+                    <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                      <div className="rounded-xl bg-white border border-slate-100 p-4">
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Platform</p>
+                        <p className="mt-1 text-sm font-semibold text-[#102a5a]">Windows</p>
+                      </div>
+                      <div className="rounded-xl bg-white border border-slate-100 p-4">
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">File</p>
+                        <p className="mt-1 text-sm font-semibold text-[#102a5a]">Installer (.exe)</p>
+                      </div>
+                      <div className="rounded-xl bg-white border border-slate-100 p-4">
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Size</p>
+                        <p className="mt-1 text-sm font-semibold text-[#102a5a]">43 MB</p>
+                      </div>
+                    </div>
+
+                    <a
+                      href={SPARVI_POINTER_DOWNLOAD_URL}
+                      download
+                      className="mt-5 inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-[#102a5a] px-5 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#1a3a6b]"
+                    >
+                      <Download className="w-4 h-4" />
+                      Download Sparvi Pointer
+                    </a>
                   </div>
-                )}
+
+                  <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+                    <div className="w-11 h-11 rounded-2xl bg-slate-100 flex items-center justify-center">
+                      <Apple className="w-5 h-5 text-slate-500" />
+                    </div>
+                    <h3 className="mt-4 text-lg font-bold text-[#102a5a]">Mac version</h3>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      Sparvi Pointer for macOS is coming soon. For now, please use the Windows version on a Windows
+                      device.
+                    </p>
+                    <div className="mt-5 inline-flex items-center gap-2 rounded-xl bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600">
+                      <HardDrive className="w-4 h-4" />
+                      Coming soon
+                    </div>
+                  </div>
+                </div>
               </div>
             </Motion.div>
           )}
