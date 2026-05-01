@@ -6,7 +6,7 @@ import {
   CalendarClock,
   KeyRound,
   Star,
-  Image as ImageIcon,
+  Blocks,
   ChevronDown,
   CheckCircle2,
   Camera,
@@ -30,7 +30,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const TABS = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "rounds", label: "My Rounds", icon: BookOpen },
-  { id: "gallery", label: "Gallery", icon: ImageIcon },
+  { id: "gallery", label: "Tools", icon: Blocks },
   { id: "feedback", label: "Feedback", icon: Star },
 ];
 
