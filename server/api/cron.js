@@ -1,10 +1,12 @@
-import Session from "../src/models/Session.js";
+import "../src/config/env.js";
 import Lead from "../src/models/Lead.js";
 import User from "../src/models/User.js";
 import { connectDB } from "../src/config/db.js";
 import { processRoundSessionReminders } from "../src/services/roundSessionReminders.service.js";
 import { completeFinishedRounds } from "../src/services/roundStatus.service.js";
 import { processBusyCallReminders } from "../src/services/busyCallReminder.service.js";
+import { updateSessionStatuses } from "../src/services/sessionStatus.service.js";
+import { processLeadFollowUpStatus } from "../src/services/leadFollowUpStatus.service.js";
 import {
     notifyInstructorSessionReminder,
     notifyParentSessionReminder,
@@ -75,54 +77,8 @@ export default async function handler(req, res) {
     await connectDB();
 
     try {
-        const activeSessions = await Session.find({
-            status: { $ne: "Completed" }
-        });
-
-        const bulkOps = [];
-
-        const cairoTimeString = new Date().toLocaleString("en-US", {
-            timeZone: "Africa/Cairo",
-        });
-
-        const nowInCairo = new Date(cairoTimeString);
-
-        for (const session of activeSessions) {
-            if (!session.date || !session.time) continue;
-
-            const sessionTimeStr = `${session.date.trim()}T${session.time.trim()}:00`;
-            const sessionStart = new Date(sessionTimeStr);
-
-            if (isNaN(sessionStart.getTime())) {
-                console.error("[cron] invalid session date");
-                continue;
-            }
-
-            const durationMinutes = Number(session.durationMinutes) || 120;
-            const sessionEnd = new Date(sessionStart.getTime() + durationMinutes * 60 * 1000);
-
-            let newStatus = null;
-
-            if (nowInCairo >= sessionEnd) {
-                if (session.status !== "Completed") newStatus = "Completed";
-            } else if (nowInCairo >= sessionStart) {
-                if (session.status !== "Active") newStatus = "Active";
-            }
-
-            if (newStatus) {
-                bulkOps.push({
-                    updateOne: {
-                        filter: { _id: session._id },
-                        update: { $set: { status: newStatus } }
-                    }
-                });
-            }
-        }
-
-        if (bulkOps.length > 0) {
-            await Session.bulkWrite(bulkOps);
-        }
-
+        const sessionStatusUpdates = await updateSessionStatuses();
+        const leadFollowUpStatus = await processLeadFollowUpStatus();
         const freeSessionReminders = await processFreeSessionReminders();
         const roundSessionReminders = await processRoundSessionReminders();
         const roundStatusUpdates = await completeFinishedRounds();
@@ -130,7 +86,8 @@ export default async function handler(req, res) {
 
         return res.status(200).json({
             success: true,
-            sessionStatusUpdates: bulkOps.length,
+            sessionStatusUpdates,
+            leadFollowUpStatus,
             roundStatusUpdates,
             freeSessionReminders,
             roundSessionReminders,

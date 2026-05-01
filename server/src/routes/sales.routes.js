@@ -15,14 +15,12 @@ import {
 } from "../services/whatsapp.service.js";
 import { sendBrevoEmail } from "../services/brevoEmail.service.js";
 import { sendBrevoSms } from "../services/brevoSms.service.js";
+import {
+  getFreeSessionDurationMinutes,
+  getFreeSessionFollowUpDelayMinutes,
+} from "../services/freeSessionTiming.service.js";
 
 const router = express.Router();
-const FREE_SESSION_DEFAULT_DURATION_MINUTES = Number(
-  process.env.FREE_SESSION_DURATION_MINUTES || 60
-);
-const FOLLOW_UP_DELAY_AFTER_END_MINUTES = Number(
-  process.env.FREE_SESSION_FOLLOW_UP_DELAY_MINUTES || 60
-);
 const WHATSAPP_TEST_PHONE = process.env.WHATSAPP_TEST_PHONE || "01007775705";
 const WHATSAPP_TEST_TEMPLATE = process.env.WHATSAPP_TEMPLATE_DEFAULT || "hello_world";
 const WHATSAPP_TEMPLATE_LANGUAGE = process.env.WHATSAPP_TEMPLATE_LANGUAGE || "en_US";
@@ -763,16 +761,8 @@ router.patch("/leads/:id/free-session", authRequired, agentOrAdmin, async (req, 
       return res.status(400).json({ message: "Invalid scheduledAt date" });
     }
 
-    const durationMinutes =
-      Number.isFinite(FREE_SESSION_DEFAULT_DURATION_MINUTES) &&
-      FREE_SESSION_DEFAULT_DURATION_MINUTES > 0
-        ? FREE_SESSION_DEFAULT_DURATION_MINUTES
-        : 60;
-    const followUpDelayMinutes =
-      Number.isFinite(FOLLOW_UP_DELAY_AFTER_END_MINUTES) &&
-      FOLLOW_UP_DELAY_AFTER_END_MINUTES >= 0
-        ? FOLLOW_UP_DELAY_AFTER_END_MINUTES
-        : 60;
+    const durationMinutes = getFreeSessionDurationMinutes();
+    const followUpDelayMinutes = getFreeSessionFollowUpDelayMinutes();
     const endsAt = new Date(
       scheduledDate.getTime() + durationMinutes * 60 * 1000
     );
