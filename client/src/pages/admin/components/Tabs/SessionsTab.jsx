@@ -20,6 +20,20 @@ const FILTER_LABELS = {
 
 const getStatusLabel = (status) => FILTER_LABELS[status] || status;
 
+const BidiContactLine = ({ name, phone }) => (
+    <span className="inline-flex flex-wrap items-center gap-1" dir="ltr">
+        <span dir="auto" style={{ unicodeBidi: "isolate" }}>
+            {name || "-"}
+        </span>
+        <span aria-hidden="true" className="text-slate-300">
+            ·
+        </span>
+        <span dir="ltr" style={{ unicodeBidi: "isolate" }}>
+            {phone || "-"}
+        </span>
+    </span>
+);
+
 const FILTER_STYLES = {
     Today: {
         active: "bg-sky-600 text-white border-sky-600",
@@ -167,7 +181,7 @@ export const SessionsTab = ({
                                     </div>
                                     {s.sessionType === "free" && (
                                         <span className="text-[11px] font-normal text-slate-500">
-                                            {s.parentName || "-"} · {s.phone || "-"}
+                                            <BidiContactLine name={s.parentName} phone={s.phone} />
                                         </span>
                                     )}
                                 </div>
