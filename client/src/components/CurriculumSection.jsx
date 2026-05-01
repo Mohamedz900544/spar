@@ -69,15 +69,10 @@ const ageTracksRaw = {
   ],
 };
 
-const standardPhasesRaw = [
-  { id: "exploration", color: "#FBBF24", icon: Compass },
-  { id: "indepth", color: "#a78bfa", icon: Target },
-];
-
 /* -------------------------------------------------------
    CONTENT PANEL (shared between mobile inline + desktop)
 --------------------------------------------------------*/
-function ContentPanel({ selectedAge, tracksForSelectedAge, openFoundation, setOpenFoundation, openPhase, setOpenPhase, t, i18n }) {
+function ContentPanel({ selectedAge, tracksForSelectedAge, openFoundation, setOpenFoundation, t, i18n }) {
   return (
     <div className="px-1 mt-8">
       {/* FOUNDATION STAGE (AGES 6-8) */}
@@ -242,115 +237,6 @@ function ContentPanel({ selectedAge, tracksForSelectedAge, openFoundation, setOp
             </div>
           </div>
 
-          {/* LEARNING PATH HEADER */}
-          <div className="text-center mb-10 pt-12 border-t border-slate-200">
-           
-            <h2 className="text-3xl font-extrabold text-slate-900 mb-3 tracking-tight">
-              {t("courses.standard_title")}
-            </h2>
-            <p className="text-slate-500 font-medium max-w-xl mx-auto text-base leading-relaxed">
-              {t("courses.standard_desc")}
-            </p>
-          </div>
-
-          {/* THE PHASES */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            {standardPhasesRaw.map((phase, idx) => {
-              const isOpen = openPhase === idx;
-              return (
-                <div
-                  key={phase.id}
-                  className={`relative bg-white rounded-[2rem] overflow-hidden transition-all duration-300 cursor-pointer border-2 hover:-translate-y-1
-                    ${isOpen
-                      ? "shadow-[0_20px_40px_rgba(0,0,0,0.08)] border-transparent"
-                      : "border-slate-100 shadow-sm hover:shadow-xl hover:border-slate-200"
-                    }`}
-                  style={{
-                    borderColor: isOpen ? phase.color : undefined,
-                  }}
-                  onClick={() => setOpenPhase(isOpen ? null : idx)}
-                >
-                  <div
-                    className="h-2 w-full"
-                    style={{ background: `linear-gradient(90deg, ${phase.color}, ${phase.color}90)` }}
-                  />
-                  <div className="p-6 md:p-8">
-                    <div className="flex items-center justify-between mb-4 md:hidden">
-                      <span
-                        className="text-xs font-extrabold px-3 py-1.5 rounded-lg uppercase tracking-wider"
-                        style={{ backgroundColor: `${phase.color}15`, color: phase.color }}
-                      >
-                        {t(`courses.phases.${phase.id}.duration`)}
-                      </span>
-                    </div>
-                    <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-2">
-                      <div className="flex items-start gap-4 md:gap-5 flex-1">
-                        <div
-                          className="w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center shrink-0"
-                          style={{
-                            background: `linear-gradient(135deg, ${phase.color}25, ${phase.color}10)`,
-                            boxShadow: `0 8px 20px ${phase.color}20`,
-                            border: `1px solid ${phase.color}30`,
-                          }}
-                        >
-                          <phase.icon className="w-6 h-6 md:w-7 md:h-7" style={{ color: phase.color }} />
-                        </div>
-                        <div className="min-w-0 text-start flex-1">
-                          <h3 className="text-xl font-extrabold text-slate-800 leading-tight mb-1">
-                            {t(`courses.phases.${phase.id}.name`)}
-                          </h3>
-                          <p className="text-sm font-medium text-slate-500 leading-relaxed line-clamp-2 md:line-clamp-none">
-                            {t(`courses.phases.${phase.id}.desc`)}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="hidden md:flex flex-col items-end gap-3 shrink-0">
-                        <span
-                          className="text-xs font-extrabold px-3 py-1.5 rounded-lg whitespace-nowrap uppercase tracking-wider"
-                          style={{ backgroundColor: `${phase.color}15`, color: phase.color }}
-                        >
-                          {t(`courses.phases.${phase.id}.duration`)}
-                        </span>
-                        <div
-                          className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100 transition-transform duration-300"
-                          style={{ transform: isOpen ? "rotate(180deg)" : "rotate(0deg)" }}
-                        >
-                          <ChevronDown className="w-4 h-4 text-slate-400" />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex justify-center mt-2 md:hidden">
-                      <div
-                        className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100 transition-transform duration-300"
-                        style={{ transform: isOpen ? "rotate(180deg)" : "rotate(0deg)" }}
-                      >
-                        <ChevronDown className="w-4 h-4 text-slate-400" />
-                      </div>
-                    </div>
-                    <div
-                      className={`overflow-hidden transition-all duration-400 ease-in-out ${
-                        isOpen ? "max-h-96 opacity-100 mt-6" : "max-h-0 opacity-0 mt-0"
-                      }`}
-                    >
-                      <div className="p-5 md:p-6 rounded-2xl bg-slate-50 border border-slate-100 text-start">
-                        <h4 className="text-xs font-extrabold text-slate-400 mb-4 uppercase tracking-widest">
-                          {t("courses.what_to_expect")}
-                        </h4>
-                        <ul className="space-y-3.5">
-                          {[0, 1, 2, 3].map((i) => (
-                            <li key={i} className="flex gap-3 items-start text-sm md:text-base font-medium text-slate-700 text-start">
-                              <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" style={{ color: phase.color }} />
-                              {t(`courses.phases.${phase.id}.highlights.${i}`)}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
         </>
       )}
     </div>
@@ -360,7 +246,6 @@ function ContentPanel({ selectedAge, tracksForSelectedAge, openFoundation, setOp
 export default function CurriculumSection() {
   const { t, i18n } = useTranslation();
   const [selectedAge, setSelectedAge] = useState(null);
-  const [openPhase, setOpenPhase] = useState(null);
   const [openFoundation, setOpenFoundation] = useState(null);
   const contentRef = useRef(null);
 
@@ -383,7 +268,6 @@ export default function CurriculumSection() {
                 <button
                   onClick={() => {
                     setSelectedAge(isActive ? null : age.id);
-                    setOpenPhase(null);
                     setOpenFoundation(null);
                     if (!isActive) {
                       setTimeout(() => {
@@ -415,8 +299,6 @@ export default function CurriculumSection() {
                       tracksForSelectedAge={tracksForSelectedAge}
                       openFoundation={openFoundation}
                       setOpenFoundation={setOpenFoundation}
-                      openPhase={openPhase}
-                      setOpenPhase={setOpenPhase}
                       t={t}
                       i18n={i18n}
                     />
@@ -436,8 +318,6 @@ export default function CurriculumSection() {
             tracksForSelectedAge={tracksForSelectedAge}
             openFoundation={openFoundation}
             setOpenFoundation={setOpenFoundation}
-            openPhase={openPhase}
-            setOpenPhase={setOpenPhase}
             t={t}
             i18n={i18n}
           />

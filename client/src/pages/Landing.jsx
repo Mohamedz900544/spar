@@ -3,6 +3,7 @@ import { motion as Motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Parentsreviews from "../components/Parentsreviews";
+import CurriculumSection from "../components/CurriculumSection";
 import PricingSection from "../components/PricingSection";
 import {
   Monitor,
@@ -680,6 +681,15 @@ const Landing = () => {
 
           </div>
         </div>
+      </section>
+
+      {/* ============================
+         CURRICULUM SECTION
+         ============================ */}
+      <section
+        className="py-16 md:py-24 px-6 bg-gradient-to-b from-white to-slate-50"
+      >
+        <CurriculumSection />
       </section>
 
       <Parentsreviews />
