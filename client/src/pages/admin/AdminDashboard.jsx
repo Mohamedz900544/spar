@@ -78,6 +78,7 @@ const AdminDashboard = () => {
     isCreatingSalesAgent,
     handleNewSalesAgentChange,
     handleCreateSalesAgent,
+    handleDeleteSalesAgent,
     users,
     userSearch,
     setUserSearch,
@@ -521,6 +522,7 @@ const AdminDashboard = () => {
                               <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Email</th>
                               <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Phone</th>
                               <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Created</th>
+                              <th className="text-left py-3 pr-3 font-semibold text-xs uppercase tracking-wider">Actions</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -540,6 +542,16 @@ const AdminDashboard = () => {
                                     {agent.createdAt
                                       ? new Date(agent.createdAt).toLocaleDateString()
                                       : "-"}
+                                  </td>
+                                  <td className="py-3 pr-3">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteSalesAgent(agentId)}
+                                      className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-[11px] font-semibold text-rose-700 hover:bg-rose-100 transition-colors"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                      Delete
+                                    </button>
                                   </td>
                                 </tr>
                               );

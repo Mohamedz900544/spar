@@ -455,7 +455,11 @@ export const useAdminDashboard = () => {
         phone: "",
         password: "",
       });
-      toast.success("Sales agent created successfully");
+      toast.success(
+        data.welcomeEmail?.sent
+          ? "Sales agent created and login email sent"
+          : "Sales agent created successfully"
+      );
     } catch (err) {
       console.error("Create sales agent error:", err);
       toast.error(err.message || "Failed to create sales agent");
@@ -535,6 +539,42 @@ export const useAdminDashboard = () => {
     } catch (err) {
       console.error("Delete instructor error:", err);
       toast.error(err.message || "Failed to delete instructor");
+    }
+  };
+
+  const handleDeleteSalesAgent = async (id) => {
+    const token = getTokenOrRedirect();
+    if (!token) return;
+
+    const targetSalesAgent = salesAgents.find(
+      (agent) => (agent.id || agent._id)?.toString?.() === id?.toString?.()
+    );
+    const confirmed = window.confirm(
+      `Delete sales agent "${targetSalesAgent?.name || "this sales agent"}"?`
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/sales-agents/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await parseResponseOrThrow(res, "Failed to delete sales agent");
+      const deletedId = data.salesAgentId || id;
+
+      setSalesAgents((prev) =>
+        prev.filter((agent) => {
+          const currentId = agent.id || agent._id;
+          return currentId?.toString?.() !== deletedId?.toString?.();
+        })
+      );
+      toast.success("Sales agent deleted successfully");
+    } catch (err) {
+      console.error("Delete sales agent error:", err);
+      toast.error(err.message || "Failed to delete sales agent");
     }
   };
 
@@ -1535,6 +1575,7 @@ export const useAdminDashboard = () => {
     handleDeleteInstructor,
     handleNewSalesAgentChange,
     handleCreateSalesAgent,
+    handleDeleteSalesAgent,
 
     // users
     users,

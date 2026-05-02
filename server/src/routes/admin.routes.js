@@ -16,7 +16,7 @@ import BlockProject from "../models/BlockProject.js";
 import { sendBrevoEmail } from "../services/brevoEmail.service.js";
 
 const router = express.Router();
-const INSTRUCTOR_LOGIN_URL = `${(process.env.CLIENT_URL || "").replace(/\/$/, "")}/login`;
+const LOGIN_URL = `${(process.env.CLIENT_URL || "").replace(/\/$/, "")}/login`;
 
 const formatDateInCairo = (value) => {
   if (!value) return "";
@@ -55,7 +55,7 @@ const buildInstructorWelcomeEmail = ({
   const safeEmail = escapeHtml(email || "");
   const safePassword = escapeHtml(password || "");
   const safeCampus = escapeHtml(campusCode || "N/A");
-  const safeLoginUrl = escapeHtml(INSTRUCTOR_LOGIN_URL || "/login");
+  const safeLoginUrl = escapeHtml(LOGIN_URL || "/login");
 
   return {
     subject: "Welcome to Sparvi Lab - Instructor Account Ready",
@@ -69,7 +69,7 @@ const buildInstructorWelcomeEmail = ({
       `Password: ${password || ""}`,
       `Campus Code: ${campusCode || "N/A"}`,
       "",
-      `Login URL: ${INSTRUCTOR_LOGIN_URL || "/login"}`,
+      `Login URL: ${LOGIN_URL || "/login"}`,
       "",
       "Please sign in and change your password after first login.",
     ].join("\n"),
@@ -85,6 +85,51 @@ const buildInstructorWelcomeEmail = ({
             <p style="margin:0 0 8px;font-size:13px;"><strong>Email:</strong> ${safeEmail}</p>
             <p style="margin:0 0 8px;font-size:13px;"><strong>Password:</strong> ${safePassword}</p>
             <p style="margin:0;font-size:13px;"><strong>Campus Code:</strong> ${safeCampus}</p>
+          </div>
+          <p style="margin:14px 0 0;font-size:13px;">
+            <a href="${safeLoginUrl}" style="color:#102a5a;font-weight:700;text-decoration:underline;">Go to Login Page</a>
+          </p>
+          <p style="margin:12px 0 0;font-size:12px;color:#64748b;">
+            For security, please change your password after the first login.
+          </p>
+        </div>
+      </div>
+    `,
+  };
+};
+
+const buildSalesAgentWelcomeEmail = ({ name, email, password }) => {
+  const safeName = escapeHtml(name || "Sales Agent");
+  const safeEmail = escapeHtml(email || "");
+  const safePassword = escapeHtml(password || "");
+  const safeLoginUrl = escapeHtml(LOGIN_URL || "/login");
+
+  return {
+    subject: "Welcome to Sparvi Lab - Sales Account Ready",
+    textContent: [
+      `Hello ${name || "Sales Agent"},`,
+      "",
+      "Welcome to Sparvi Lab. Your sales account has been created.",
+      "",
+      "Login details:",
+      `Email: ${email || ""}`,
+      `Password: ${password || ""}`,
+      "",
+      `Login URL: ${LOGIN_URL || "/login"}`,
+      "",
+      "Please sign in and change your password after first login.",
+    ].join("\n"),
+    htmlContent: `
+      <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
+        <div style="background:#102a5a;color:#ffffff;padding:14px 16px;">
+          <h2 style="margin:0;font-size:18px;line-height:1.2;">Welcome to Sparvi Lab</h2>
+        </div>
+        <div style="padding:16px;color:#0f172a;">
+          <p style="margin:0 0 12px;font-size:14px;">Hello <strong>${safeName}</strong>, your sales account is ready.</p>
+          <p style="margin:0 0 10px;font-size:13px;color:#475569;">Please use the credentials below to sign in:</p>
+          <div style="border:1px solid #e2e8f0;border-radius:10px;padding:12px;background:#f8fafc;">
+            <p style="margin:0 0 8px;font-size:13px;"><strong>Email:</strong> ${safeEmail}</p>
+            <p style="margin:0;font-size:13px;"><strong>Password:</strong> ${safePassword}</p>
           </div>
           <p style="margin:14px 0 0;font-size:13px;">
             <a href="${safeLoginUrl}" style="color:#102a5a;font-weight:700;text-decoration:underline;">Go to Login Page</a>
@@ -372,8 +417,31 @@ router.post("/sales-agents", authRequired, adminOnly, async (req, res) => {
       role: "agent",
     });
 
+    let welcomeEmail = { sent: false, skipped: true, reason: "not_attempted" };
+    try {
+      const emailPayload = buildSalesAgentWelcomeEmail({
+        name,
+        email,
+        password,
+      });
+      welcomeEmail = await sendBrevoEmail({
+        to: email,
+        toName: name || "",
+        subject: emailPayload.subject,
+        textContent: emailPayload.textContent,
+        htmlContent: emailPayload.htmlContent,
+      });
+    } catch (emailErr) {
+      console.error("Sales agent welcome email error:", emailErr);
+      welcomeEmail = {
+        sent: false,
+        error: emailErr?.message || "welcome_email_failed",
+      };
+    }
+
     return res.status(201).json({
       salesAgent: salesAgent.toJSON(),
+      welcomeEmail,
     });
   } catch (err) {
     console.error("Create sales agent error:", err);
@@ -435,6 +503,31 @@ router.delete("/instructors/:id", authRequired, adminOnly, async (req, res) => {
     });
   } catch (err) {
     console.error("Delete instructor error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.delete("/sales-agents/:id", authRequired, adminOnly, async (req, res) => {
+  try {
+    const salesAgent = await User.findOne({
+      _id: req.params.id,
+      role: "agent",
+    })
+      .select("name email")
+      .lean();
+
+    if (!salesAgent) {
+      return res.status(404).json({ message: "Sales agent not found" });
+    }
+
+    await User.deleteOne({ _id: salesAgent._id, role: "agent" });
+
+    return res.json({
+      message: "Sales agent deleted successfully",
+      salesAgentId: salesAgent._id.toString(),
+    });
+  } catch (err) {
+    console.error("Delete sales agent error:", err);
     return res.status(500).json({ message: "Server error" });
   }
 });
