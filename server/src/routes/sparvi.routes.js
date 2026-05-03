@@ -13,6 +13,9 @@ const router = express.Router();
 const pointerInstallerPath = fileURLToPath(
   new URL("../SPpointer/Sparvi Desktop Student.exe", import.meta.url)
 );
+const pointerApkPath = fileURLToPath(
+  new URL("../SPpointer/SparviPointer.apk", import.meta.url)
+);
 
 const extractBearerToken = (authorizationHeader = "") => {
   const [scheme, token] = authorizationHeader.split(" ");
@@ -137,6 +140,28 @@ router.get("/pointer/download", (req, res) => {
         return res.status(500).json({
           ok: false,
           message: "Failed to download Sparvi Pointer",
+        });
+      }
+    }
+  );
+});
+
+router.get("/pointer/android/download", (req, res) => {
+  if (!fs.existsSync(pointerApkPath)) {
+    return res.status(404).json({
+      ok: false,
+      message: "Sparvi Pointer APK is not available",
+    });
+  }
+
+  return res.download(
+    pointerApkPath,
+    "Sparvi Pointer - Android.apk",
+    (err) => {
+      if (err && !res.headersSent) {
+        return res.status(500).json({
+          ok: false,
+          message: "Failed to download Sparvi Pointer APK",
         });
       }
     }
