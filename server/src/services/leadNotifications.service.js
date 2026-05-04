@@ -157,6 +157,11 @@ const valueOrDash = (value) => {
   const text = `${value ?? ""}`.trim();
   return text || "-";
 };
+const valueForWhatsAppTemplate = (value) =>
+  valueOrDash(value)
+    .replace(/[\r\n\t]+/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .slice(0, 900);
 
 const DEFAULT_WHATSAPP_COUNTRY_CODE = (
   process.env.WHATSAPP_DEFAULT_COUNTRY_CODE || "20"
@@ -281,7 +286,10 @@ const buildInstructorFreeSessionAssignedParams = (lead, instructor) => [
     formatCairoDateTime(lead?.freeSession?.scheduledAt)
   ),
   namedTemplateParam("instructor_name", valueOrDash(instructor.name)),
-  namedTemplateParam("lead_notes", valueOrDash(extractLatestNotes(lead))),
+  namedTemplateParam(
+    "lead_notes",
+    valueForWhatsAppTemplate(extractLatestNotes(lead))
+  ),
 ];
 
 const buildInstructorSessionReminderBody = (lead, instructor) =>
@@ -320,7 +328,10 @@ const buildInstructorSessionReminderParams = (lead, instructor) => [
     formatCairoDateTime(lead?.freeSession?.scheduledAt)
   ),
   namedTemplateParam("instructor_name", valueOrDash(instructor.name)),
-  namedTemplateParam("lead_notes", valueOrDash(extractLatestNotes(lead))),
+  namedTemplateParam(
+    "lead_notes",
+    valueForWhatsAppTemplate(extractLatestNotes(lead))
+  ),
 ];
 
 const resolveSalesRecipient = async (

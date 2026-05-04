@@ -128,6 +128,13 @@ export const sendWhatsAppTemplate = async ({
   }
 
   const endpoint = `https://graph.facebook.com/${config.graphVersion}/${config.phoneNumberId}/messages`;
+  const sanitizeTemplateText = (value) =>
+    `${value ?? ""}`
+      .replace(/[\r\n\t]+/g, " ")
+      .replace(/\s{2,}/g, " ")
+      .trim()
+      .slice(0, 1024);
+
   const toTextParameter = (value) => {
     if (value && typeof value === "object" && !Array.isArray(value)) {
       const parameterName =
@@ -136,13 +143,13 @@ export const sendWhatsAppTemplate = async ({
       return {
         type: "text",
         ...(parameterName ? { parameter_name: `${parameterName}` } : {}),
-        text: `${textValue ?? ""}`.slice(0, 1024),
+        text: sanitizeTemplateText(textValue),
       };
     }
 
     return {
       type: "text",
-      text: `${value ?? ""}`.slice(0, 1024),
+      text: sanitizeTemplateText(value),
     };
   };
   const components =
