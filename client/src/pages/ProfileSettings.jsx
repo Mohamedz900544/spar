@@ -161,8 +161,27 @@ const ParentProfile = ({ userData, setUserData }) => {
         setStepIndex((prev) => Math.max(prev - 1, 0));
     };
 
+    const handleFormKeyDown = (e) => {
+        if (e.key === "Enter" && stepIndex < STEPS.length - 1) {
+            e.preventDefault();
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!isChildNameValid) {
+            setStepIndex(0);
+            setMessage({ type: "error", text: "Please enter your child's name." });
+            return;
+        }
+
+        if (!isChildAgeValid) {
+            setStepIndex(1);
+            setMessage({ type: "error", text: "Please enter an age between 3 and 18." });
+            return;
+        }
+
         setLoading(true);
         setMessage({ type: "", text: "" });
 
@@ -313,7 +332,11 @@ const ParentProfile = ({ userData, setUserData }) => {
                         )}
 
                         {/* Step Content */}
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                        <form
+                            onSubmit={handleSubmit}
+                            onKeyDown={handleFormKeyDown}
+                            className="space-y-6"
+                        >
                             <AnimatePresence mode="wait">
                                 <motion.div
                                     key={currentStep.key}
