@@ -1382,7 +1382,7 @@ const InstructorDashboard = () => {
                     </div>
 
                     {/* Toolbar */}
-                    <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="mt-4 flex flex-col gap-3 ">
                       <div className="flex flex-1 items-center gap-3">
                         <div className="relative w-full sm:max-w-xs">
                           <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
