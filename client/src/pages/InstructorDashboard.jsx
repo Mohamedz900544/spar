@@ -1225,14 +1225,14 @@ const InstructorDashboard = () => {
                                   <p className="mb-3 text-xs text-slate-500">
                                     Parent: {selectedOverviewLead.parentName || "-"} - Child: {selectedOverviewLead.childName || "-"}
                                   </p>
-                                  <div className="mb-3 flex flex-col gap-3 rounded-xl border border-slate-100 bg-slate-50/70 p-3">
-                                    <div>
+                                  <div className="mb-3 rounded-xl border border-slate-100 bg-slate-50/70 p-4">
+                                    <div className="mb-3">
                                       <p className="text-sm font-bold text-[#102a5a]">Did the kid show?</p>
                                       <p className="text-[11px] text-slate-500">
                                         This will be included in the automated follow-up message.
                                       </p>
                                     </div>
-                                    <div className="flex w-full items-center gap-3">
+                                    <div className="grid w-full grid-cols-2 gap-3">
                                       <button
                                         type="button"
                                         onClick={() => saveFreeSessionAttendance(selectedOverviewLeadId, true)}
@@ -1240,7 +1240,7 @@ const InstructorDashboard = () => {
                                           !selectedOverviewLeadId ||
                                           isSavingFreeSessionAttendanceId === selectedOverviewLeadId
                                         }
-                                        className={`min-h-11 flex-1 rounded-xl px-6 py-3 text-sm font-bold transition-all ${
+                                        className={`h-14 w-full rounded-xl px-6 text-base font-bold transition-all ${
                                           selectedOverviewChildShowedUp === true
                                             ? "bg-emerald-600 text-white shadow-sm"
                                             : "border border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50"
@@ -1255,7 +1255,7 @@ const InstructorDashboard = () => {
                                           !selectedOverviewLeadId ||
                                           isSavingFreeSessionAttendanceId === selectedOverviewLeadId
                                         }
-                                        className={`min-h-11 flex-1 rounded-xl px-6 py-3 text-sm font-bold transition-all ${
+                                        className={`h-14 w-full rounded-xl px-6 text-base font-bold transition-all ${
                                           selectedOverviewChildShowedUp === false
                                             ? "bg-red-600 text-white shadow-sm"
                                             : "border border-red-200 bg-white text-red-700 hover:bg-red-50"
@@ -1676,19 +1676,19 @@ const InstructorDashboard = () => {
                             </p>
                           </div>
 
-                          <div className="mb-3 flex flex-col gap-3 rounded-xl border border-slate-100 bg-white p-3">
-                            <div>
+                          <div className="mb-3 rounded-xl border border-slate-100 bg-white p-4">
+                            <div className="mb-3">
                               <p className="text-sm font-bold text-[#102a5a]">Did the kid show?</p>
                               <p className="text-[11px] text-slate-500">
                                 Included in the automated follow-up message.
                               </p>
                             </div>
-                            <div className="flex w-full items-center gap-3">
+                            <div className="grid w-full grid-cols-2 gap-3">
                               <button
                                 type="button"
                                 onClick={() => saveFreeSessionAttendance(leadId, true)}
                                 disabled={isSavingFreeSessionAttendanceId === leadId}
-                                className={`min-h-11 flex-1 rounded-xl px-6 py-3 text-sm font-bold transition-all ${
+                                className={`h-14 w-full rounded-xl px-6 text-base font-bold transition-all ${
                                   lead.freeSession?.childShowedUp === true
                                     ? "bg-emerald-600 text-white shadow-sm"
                                     : "border border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50"
@@ -1700,7 +1700,7 @@ const InstructorDashboard = () => {
                                 type="button"
                                 onClick={() => saveFreeSessionAttendance(leadId, false)}
                                 disabled={isSavingFreeSessionAttendanceId === leadId}
-                                className={`min-h-11 flex-1 rounded-xl px-6 py-3 text-sm font-bold transition-all ${
+                                className={`h-14 w-full rounded-xl px-6 text-base font-bold transition-all ${
                                   lead.freeSession?.childShowedUp === false
                                     ? "bg-red-600 text-white shadow-sm"
                                     : "border border-red-200 bg-white text-red-700 hover:bg-red-50"
