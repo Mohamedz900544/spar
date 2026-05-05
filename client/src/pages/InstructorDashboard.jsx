@@ -8,11 +8,18 @@ import {
   LogOut,
   CalendarClock,
   ChevronDown,
+  CheckCircle2,
+  ExternalLink,
+  Folder,
+  Link2,
+  List,
   Sparkles,
   ClipboardList,
   LayoutDashboard,
   Save,
+  Star,
   Clock3,
+  XCircle,
 } from "lucide-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -977,56 +984,65 @@ const InstructorDashboard = () => {
               animate={{ opacity: 1, y: 0 }}
               className="space-y-5"
             >
-              <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+              <div className="rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm">
                 <form
                   onSubmit={handleLinkRound}
-                  className="grid grid-cols-1 gap-2 lg:grid-cols-[150px_1fr_auto_auto]"
+                  className="grid grid-cols-1 gap-2 lg:grid-cols-[180px_1fr_auto_auto] lg:items-center"
                 >
-                  <label className="self-center text-sm font-semibold text-[#102a5a]">
-                    Link New Round
+                  <label className="flex items-center gap-3 text-sm font-bold text-[#102a5a]">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#102a5a]/7 text-[#0f3b82]">
+                      <Link2 className="h-4 w-4" />
+                    </span>
+                    <span>Link New Round</span>
                   </label>
                   <input
                     type="text"
                     value={roundCode}
                     onChange={(e) => setRoundCode(e.target.value)}
                     placeholder="Enter code here"
-                    className="rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-sm text-slate-800 outline-none focus:border-[#FBBF24] focus:ring-2 focus:ring-[#FBBF24]/50"
+                    className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-800 shadow-inner outline-none placeholder:text-slate-400 focus:border-[#FBBF24] focus:ring-2 focus:ring-[#FBBF24]/40"
                   />
                   <button
                     type="submit"
                     disabled={isLinking || !roundCode.trim()}
-                    className="rounded-xl bg-[#FBBF24] px-5 py-2.5 text-sm font-bold text-[#102a5a] transition-all hover:bg-[#F59E0B] disabled:opacity-50"
+                    className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#FBBF24] px-5 text-sm font-bold text-[#102a5a] shadow-sm transition-all hover:bg-[#F59E0B] disabled:opacity-50"
                   >
+                    <Link2 className="h-4 w-4" />
                     {isLinking ? "Linking..." : "Link"}
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowLinkedRounds((prev) => !prev)}
-                    className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition-all hover:bg-slate-50"
+                    className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-[#102a5a] transition-all hover:bg-slate-50"
                   >
+                    <List className="h-4 w-4" />
                     {showLinkedRounds ? "Hide linked rounds" : "See all rounds linked"}
                   </button>
                 </form>
               </div>
 
-              <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
-                <div className="grid grid-cols-1 xl:grid-cols-[360px_1fr]">
-                  <div className="border-b border-slate-100 xl:border-b-0 xl:border-r">
-                    <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-                      <h2 className="text-sm font-bold text-[#102a5a]">Upcoming Sessions</h2>
-                      <span className="inline-flex items-center rounded-full bg-[#FBBF24]/10 px-2.5 py-0.5 text-xs font-semibold text-[#92400e]">
-                        {upcomingSessions.length}
+              <div className="grid grid-cols-1 gap-4 xl:grid-cols-[360px_1fr]">
+                <div className="min-h-[520px] rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+                  <div className="flex items-center justify-between px-4 py-4">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#102a5a]/7 text-[#0f3b82]">
+                        <CalendarClock className="h-4 w-4" />
                       </span>
+                      <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-600">Upcoming Sessions</h2>
                     </div>
+                    <span className="inline-flex h-8 min-w-8 items-center justify-center rounded-full bg-[#FBBF24]/10 px-2 text-sm font-bold text-[#b45309]">
+                        {upcomingSessions.length}
+                    </span>
+                  </div>
 
                     {isLoading ? (
-                      <div className="px-4 py-10 text-center text-sm text-slate-500">Loading sessions...</div>
+                      <div className="px-5 py-10 text-center text-sm text-slate-500">Loading sessions...</div>
                     ) : upcomingSessions.length === 0 ? (
-                      <div className="px-4 py-10 text-center text-sm text-slate-500">
+                      <div className="px-5 py-10 text-center text-sm text-slate-500">
                         No sessions yet. Linked sessions will appear here.
                       </div>
                     ) : (
-                      <div className="max-h-[620px] overflow-y-auto">
+                      <div className="max-h-[450px] space-y-2 overflow-y-auto px-1 pb-4">
                         {upcomingSessions.map((session) => {
                           const statusMeta = getStatusMeta(session.lifecycleStatus);
                           const isSelected = selectedOverviewSessionKey === session.key;
@@ -1036,31 +1052,40 @@ const InstructorDashboard = () => {
                               key={session.key}
                               type="button"
                               onClick={() => handleSelectOverviewSession(session)}
-                              className={`w-full border-b border-slate-100 px-4 py-3 text-left transition-colors ${
-                                isSelected ? "bg-[#FBBF24]/10" : "hover:bg-slate-50"
+                              className={`relative mx-1 w-[calc(100%-0.5rem)] rounded-xl border px-4 py-3 text-left transition-all ${
+                                isSelected
+                                  ? "border-[#FBBF24]/55 bg-[#FFF7DC] shadow-[inset_4px_0_0_#FBBF24]"
+                                  : "border-transparent bg-white hover:border-slate-200 hover:bg-slate-50"
                               }`}
                             >
-                              <div className="flex items-start justify-between gap-2">
-                                <p className="text-sm font-semibold text-[#102a5a]">{session.title}</p>
-                                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusMeta.badgeClass}`}>
-                                  {statusMeta.label}
+                              <div className="flex items-start gap-3">
+                                <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${isSelected ? "bg-[#FBBF24]/18 text-[#b45309]" : "bg-[#102a5a]/7 text-[#0f3b82]"}`}>
+                                  <CalendarClock className="h-4 w-4" />
                                 </span>
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-start justify-between gap-3">
+                                    <p className="truncate text-sm font-semibold text-slate-900">{session.title}</p>
+                                    <span className={`shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] font-bold ${statusMeta.badgeClass}`}>
+                                      {statusMeta.label}
+                                    </span>
+                                  </div>
+                                  <p className={`mt-1.5 text-xs font-semibold ${statusMeta.hintClass}`}>
+                                    {session.dateLabel} at {session.timeLabel}
+                                  </p>
+                                  <p className="mt-2 text-xs font-medium text-slate-500">
+                                    {session.dateLabel}
+                                    {session.roundName ? ` - ${session.roundName}` : ""}
+                                  </p>
+                                </div>
                               </div>
-                              <p className={`mt-1 text-xs font-medium ${statusMeta.hintClass}`}>
-                                {session.hintText} ({session.timeLabel})
-                              </p>
-                              <p className="mt-1 text-[11px] text-slate-400">
-                                {session.dateLabel}
-                                {session.roundName ? ` - ${session.roundName}` : ""}
-                              </p>
                             </button>
                           );
                         })}
                       </div>
                     )}
-                  </div>
+                </div>
 
-                  <div className="min-w-0">
+                <div className="min-w-0 rounded-2xl border border-slate-200/80 bg-white shadow-sm">
                     {showLinkedRounds && (
                       <div className="border-b border-slate-100 p-4">
                         {rounds.length === 0 ? (
@@ -1094,28 +1119,32 @@ const InstructorDashboard = () => {
 
                     <div className="p-4 lg:p-5">
                       {!selectedOverviewSession ? (
-                        <div className="rounded-2xl border border-slate-100 bg-slate-50 px-5 py-8 text-center text-sm text-slate-500">
+                        <div className="rounded-2xl border border-slate-100 bg-slate-50 px-5 py-12 text-center text-sm text-slate-500">
                           Select any upcoming session from the list to add attendance or evaluation.
                         </div>
                       ) : (
                         <div className="space-y-4">
-                          <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
-                            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                            <div className="flex items-start gap-4">
+                              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#102a5a]/7 text-[#0f3b82]">
+                                <CalendarClock className="h-5 w-5" />
+                              </span>
                               <div>
-                                <p className="text-sm font-semibold text-[#102a5a]">{selectedOverviewSession.title}</p>
-                                <p className="mt-1 text-xs text-slate-500">
+                                <h2 className="text-base font-semibold text-slate-900">{selectedOverviewSession.title}</h2>
+                                <p className="mt-1 text-sm font-medium text-slate-500">
                                   {selectedOverviewSession.dateLabel} at {selectedOverviewSession.timeLabel}
                                   {selectedOverviewSession.roundName ? ` - ${selectedOverviewSession.roundName}` : ""}
                                 </p>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${getStatusMeta(selectedOverviewSession.lifecycleStatus).badgeClass}`}>
-                                  {getStatusMeta(selectedOverviewSession.lifecycleStatus).label}
-                                </span>
-                                <span className={`text-xs font-semibold ${getStatusMeta(selectedOverviewSession.lifecycleStatus).hintClass}`}>
-                                  {selectedOverviewSession.hintText}
-                                </span>
-                              </div>
+                            </div>
+                            <div className="flex items-center gap-3 md:pt-1">
+                              <span className={`rounded-full border px-3 py-1 text-xs font-bold ${getStatusMeta(selectedOverviewSession.lifecycleStatus).badgeClass}`}>
+                                {getStatusMeta(selectedOverviewSession.lifecycleStatus).label}
+                              </span>
+                              <span className={`inline-flex items-center gap-1.5 text-xs font-bold ${getStatusMeta(selectedOverviewSession.lifecycleStatus).hintClass}`}>
+                                <Clock3 className="h-4 w-4" />
+                                {selectedOverviewSession.hintText}
+                              </span>
                             </div>
                           </div>
 
@@ -1203,36 +1232,39 @@ const InstructorDashboard = () => {
                               )}
                             </div>
                           ) : (
-                            <div className="rounded-2xl border border-slate-100 p-4">
+                            <div className="rounded-2xl border border-slate-200 p-4">
                               <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                                 <div>
-                                  <h3 className="text-sm font-semibold text-[#102a5a]">Evaluation</h3>
-                                  <p className="text-xs text-slate-500">
+                                  <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-600">Evaluation</h3>
+                                  <p className="mt-1 text-xs text-slate-500">
                                     Fill child strengths and favorite project directly from this free session.
                                   </p>
                                 </div>
                                 <button
                                   type="button"
                                   onClick={() => setActiveTab("evaluations")}
-                                  className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                                  className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-[#102a5a] hover:bg-slate-50"
                                 >
-                                  Open all evaluations
+                                  <span>Open all evaluations</span>
+                                  <ExternalLink className="h-4 w-4" />
                                 </button>
                               </div>
 
                               {selectedOverviewLead ? (
                                 <>
-                                  <p className="mb-3 text-xs text-slate-500">
-                                    Parent: {selectedOverviewLead.parentName || "-"} - Child: {selectedOverviewLead.childName || "-"}
+                                  <p className="mb-3 text-xs font-semibold text-slate-600">
+                                    Parent: {selectedOverviewLead.parentName || "-"}
+                                    <span className="mx-3 text-slate-300">•</span>
+                                    Child: {selectedOverviewLead.childName || "-"}
                                   </p>
-                                  <div className="mb-3 rounded-xl border border-slate-100 bg-slate-50/70 p-4">
+                                  <div className="mb-3 rounded-xl border border-slate-100 bg-slate-50/80 p-4">
                                     <div className="mb-3">
                                       <p className="text-sm font-bold text-[#102a5a]">Did the kid show?</p>
-                                      <p className="text-[11px] text-slate-500">
+                                      <p className="mt-1 text-xs text-slate-500">
                                         This will be included in the automated follow-up message.
                                       </p>
                                     </div>
-                                    <div className="grid w-full grid-cols-2 gap-3">
+                                    <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
                                       <button
                                         type="button"
                                         onClick={() => saveFreeSessionAttendance(selectedOverviewLeadId, true)}
@@ -1240,12 +1272,13 @@ const InstructorDashboard = () => {
                                           !selectedOverviewLeadId ||
                                           isSavingFreeSessionAttendanceId === selectedOverviewLeadId
                                         }
-                                        className={`h-14 w-full rounded-xl px-6 text-base font-bold transition-all ${
+                                        className={`flex h-14 w-full items-center justify-center gap-3 rounded-xl border px-4 text-sm font-bold transition-all ${
                                           selectedOverviewChildShowedUp === true
-                                            ? "bg-emerald-600 text-white shadow-sm"
-                                            : "border border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50"
+                                            ? "border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm"
+                                            : "border-emerald-300 bg-white text-emerald-700 hover:bg-emerald-50"
                                         } disabled:opacity-50`}
                                       >
+                                        <CheckCircle2 className="h-5 w-5 fill-emerald-600 text-white" />
                                         Yes
                                       </button>
                                       <button
@@ -1255,44 +1288,51 @@ const InstructorDashboard = () => {
                                           !selectedOverviewLeadId ||
                                           isSavingFreeSessionAttendanceId === selectedOverviewLeadId
                                         }
-                                        className={`h-14 w-full rounded-xl px-6 text-base font-bold transition-all ${
+                                        className={`flex h-14 w-full items-center justify-center gap-3 rounded-xl border px-4 text-sm font-bold transition-all ${
                                           selectedOverviewChildShowedUp === false
-                                            ? "bg-red-600 text-white shadow-sm"
-                                            : "border border-red-200 bg-white text-red-700 hover:bg-red-50"
+                                            ? "border-red-500 bg-red-50 text-red-700 shadow-sm"
+                                            : "border-red-300 bg-white text-red-700 hover:bg-red-50"
                                         } disabled:opacity-50`}
                                       >
+                                        <XCircle className="h-5 w-5 fill-red-600 text-white" />
                                         No
                                       </button>
                                     </div>
                                   </div>
                                   <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-                                    <textarea
-                                      rows={3}
-                                      value={selectedOverviewEvaluationDraft.strengths}
-                                      onChange={(e) =>
-                                        handleEvaluationDraftChange(selectedOverviewLeadId, "strengths", e.target.value)
-                                      }
-                                      placeholder="Child strengths..."
-                                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-[#FBBF24] focus:ring-2 focus:ring-[#FBBF24]/50"
-                                    />
-                                    <textarea
-                                      rows={3}
-                                      value={selectedOverviewEvaluationDraft.favoriteProject}
-                                      onChange={(e) =>
-                                        handleEvaluationDraftChange(selectedOverviewLeadId, "favoriteProject", e.target.value)
-                                      }
-                                      placeholder="Favorite project..."
-                                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-[#FBBF24] focus:ring-2 focus:ring-[#FBBF24]/50"
-                                    />
+                                    <div className="relative">
+                                      <Star className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-blue-500" />
+                                      <textarea
+                                        rows={3}
+                                        value={selectedOverviewEvaluationDraft.strengths}
+                                        onChange={(e) =>
+                                          handleEvaluationDraftChange(selectedOverviewLeadId, "strengths", e.target.value)
+                                        }
+                                        placeholder="Child strengths..."
+                                        className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-[#FBBF24] focus:ring-2 focus:ring-[#FBBF24]/40"
+                                      />
+                                    </div>
+                                    <div className="relative">
+                                      <Folder className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-blue-500" />
+                                      <textarea
+                                        rows={3}
+                                        value={selectedOverviewEvaluationDraft.favoriteProject}
+                                        onChange={(e) =>
+                                          handleEvaluationDraftChange(selectedOverviewLeadId, "favoriteProject", e.target.value)
+                                        }
+                                        placeholder="Favorite project..."
+                                        className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-[#FBBF24] focus:ring-2 focus:ring-[#FBBF24]/40"
+                                      />
+                                    </div>
                                   </div>
                                   <div className="mt-3 flex justify-end">
                                     <button
                                       type="button"
                                       onClick={() => saveLeadEvaluation(selectedOverviewLeadId)}
                                       disabled={!selectedOverviewLeadId || isSavingEvaluationId === selectedOverviewLeadId}
-                                      className="inline-flex items-center gap-2 rounded-xl bg-[#102a5a] px-4 py-2 text-xs font-semibold text-white transition-all hover:bg-[#1a3a6b] disabled:opacity-50"
+                                      className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#0B43C8] px-5 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#103a9b] disabled:opacity-50"
                                     >
-                                      <Save className="h-3.5 w-3.5" />
+                                      <Save className="h-4 w-4" />
                                       {isSavingEvaluationId === selectedOverviewLeadId ? "Saving..." : "Save Evaluation"}
                                     </button>
                                   </div>
@@ -1309,7 +1349,6 @@ const InstructorDashboard = () => {
                     </div>
                   </div>
                 </div>
-              </div>
             </Motion.div>
           )}
 
