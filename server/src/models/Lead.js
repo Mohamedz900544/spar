@@ -66,6 +66,9 @@ const leadSchema = new mongoose.Schema(
       parentWelcomeSentAt: { type: Date, default: null },
       parentAssignmentNotifiedAt: { type: Date, default: null },
       parentReminderSentAt: { type: Date, default: null },
+      childShowedUp: { type: Boolean, default: null },
+      childShowedUpMarkedAt: { type: Date, default: null },
+      childShowedUpMarkedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     },
     trainerEvaluation: {
       strengths: { type: String, trim: true, default: "" },

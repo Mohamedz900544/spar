@@ -390,6 +390,41 @@ router.patch("/trial-leads/:id/evaluation", authRequired, instructorOnly, async 
   }
 });
 
+router.patch("/trial-leads/:id/free-session-attendance", authRequired, instructorOnly, async (req, res) => {
+  try {
+    const { childShowedUp } = req.body;
+
+    if (typeof childShowedUp !== "boolean") {
+      return res.status(400).json({ message: "childShowedUp must be true or false" });
+    }
+
+    const updated = await Lead.findOneAndUpdate(
+      {
+        _id: req.params.id,
+        "freeSession.isAssigned": true,
+        "freeSession.instructor": req.user._id,
+      },
+      {
+        $set: {
+          "freeSession.childShowedUp": childShowedUp,
+          "freeSession.childShowedUpMarkedAt": new Date(),
+          "freeSession.childShowedUpMarkedBy": req.user._id,
+        },
+      },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ message: "Free session lead not found" });
+    }
+
+    return res.json(updated.toJSON());
+  } catch (err) {
+    console.error("Update free session attendance error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
 router.get("/my-free-sessions", authRequired, instructorOnly, async (req, res) => {
   try {
     const leads = await Lead.find({
@@ -411,6 +446,7 @@ router.get("/my-free-sessions", authRequired, instructorOnly, async (req, res) =
         durationMinutes: lead.freeSession.durationMinutes || 60,
         endsAt: lead.freeSession.endsAt,
         status: lead.status,
+        childShowedUp: lead.freeSession.childShowedUp,
         notes: (lead.notes || [])
           .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
           .slice(0, 3)

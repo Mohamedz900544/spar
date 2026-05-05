@@ -301,6 +301,7 @@ const InstructorDashboard = () => {
   const [freeSessions, setFreeSessions] = useState([]);
   const [evaluationDrafts, setEvaluationDrafts] = useState({});
   const [isSavingEvaluationId, setIsSavingEvaluationId] = useState("");
+  const [isSavingFreeSessionAttendanceId, setIsSavingFreeSessionAttendanceId] = useState("");
   const [evaluationMessage, setEvaluationMessage] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
   const [timelineNow, setTimelineNow] = useState(() => Date.now());
@@ -463,6 +464,7 @@ const InstructorDashboard = () => {
         phone: session.phone,
         notes: session.notes || [],
         leadStatus: session.status,
+        childShowedUp: session.childShowedUp,
         startTs,
         endTs,
         visibleUntilTs: toNextDayStartTs(startTs),
@@ -640,6 +642,9 @@ const InstructorDashboard = () => {
     ? (evaluationDrafts[selectedOverviewLeadId] || { strengths: "", favoriteProject: "" })
     : { strengths: "", favoriteProject: "" };
 
+  const selectedOverviewChildShowedUp =
+    selectedOverviewLead?.freeSession?.childShowedUp ?? selectedOverviewSession?.childShowedUp ?? null;
+
   const handleSelectOverviewSession = (session) => {
     setSelectedOverviewSessionKey(session.key);
     if (session.sessionType === "round") {
@@ -745,6 +750,47 @@ const InstructorDashboard = () => {
       setError(err.message || "Failed to save evaluation");
     } finally {
       setIsSavingEvaluationId("");
+    }
+  };
+
+  const saveFreeSessionAttendance = async (leadId, childShowedUp) => {
+    const token = localStorage.getItem("sparvi_token");
+    if (!token) { navigate("/login"); return; }
+
+    try {
+      setIsSavingFreeSessionAttendanceId(leadId);
+      setEvaluationMessage("");
+      const res = await fetch(`${API_BASE_URL}/api/instructor/trial-leads/${leadId}/free-session-attendance`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ childShowedUp }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to save attendance");
+
+      setTrialLeads((prev) =>
+        prev.map((lead) => {
+          const currentId = lead.id || lead._id;
+          return currentId === leadId ? data : lead;
+        })
+      );
+      setFreeSessions((prev) =>
+        prev.map((session) =>
+          session.id === leadId
+            ? { ...session, childShowedUp: data.freeSession?.childShowedUp ?? childShowedUp }
+            : session
+        )
+      );
+      setError("");
+      setEvaluationMessage("Free session attendance saved.");
+      setTimeout(() => setEvaluationMessage(""), 3000);
+    } catch (err) {
+      setError(err.message || "Failed to save attendance");
+    } finally {
+      setIsSavingFreeSessionAttendanceId("");
     }
   };
 
@@ -1179,6 +1225,46 @@ const InstructorDashboard = () => {
                                   <p className="mb-3 text-xs text-slate-500">
                                     Parent: {selectedOverviewLead.parentName || "-"} - Child: {selectedOverviewLead.childName || "-"}
                                   </p>
+                                  <div className="mb-3 flex flex-col gap-2 rounded-xl border border-slate-100 bg-slate-50/70 p-3 sm:flex-row sm:items-center sm:justify-between">
+                                    <div>
+                                      <p className="text-xs font-bold text-[#102a5a]">Did the kid show?</p>
+                                      <p className="text-[11px] text-slate-500">
+                                        This will be included in the automated follow-up message.
+                                      </p>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={() => saveFreeSessionAttendance(selectedOverviewLeadId, true)}
+                                        disabled={
+                                          !selectedOverviewLeadId ||
+                                          isSavingFreeSessionAttendanceId === selectedOverviewLeadId
+                                        }
+                                        className={`rounded-xl px-4 py-2 text-xs font-bold transition-all ${
+                                          selectedOverviewChildShowedUp === true
+                                            ? "bg-emerald-600 text-white shadow-sm"
+                                            : "border border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50"
+                                        } disabled:opacity-50`}
+                                      >
+                                        Yes
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => saveFreeSessionAttendance(selectedOverviewLeadId, false)}
+                                        disabled={
+                                          !selectedOverviewLeadId ||
+                                          isSavingFreeSessionAttendanceId === selectedOverviewLeadId
+                                        }
+                                        className={`rounded-xl px-4 py-2 text-xs font-bold transition-all ${
+                                          selectedOverviewChildShowedUp === false
+                                            ? "bg-red-600 text-white shadow-sm"
+                                            : "border border-red-200 bg-white text-red-700 hover:bg-red-50"
+                                        } disabled:opacity-50`}
+                                      >
+                                        No
+                                      </button>
+                                    </div>
+                                  </div>
                                   <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
                                     <textarea
                                       rows={3}
@@ -1588,6 +1674,41 @@ const InstructorDashboard = () => {
                                 ? new Date(lead.trainerEvaluation.updatedAt).toLocaleString()
                                 : "-"}
                             </p>
+                          </div>
+
+                          <div className="mb-3 flex flex-col gap-2 rounded-xl border border-slate-100 bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                              <p className="text-xs font-bold text-[#102a5a]">Did the kid show?</p>
+                              <p className="text-[11px] text-slate-500">
+                                Included in the automated follow-up message.
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => saveFreeSessionAttendance(leadId, true)}
+                                disabled={isSavingFreeSessionAttendanceId === leadId}
+                                className={`rounded-xl px-4 py-2 text-xs font-bold transition-all ${
+                                  lead.freeSession?.childShowedUp === true
+                                    ? "bg-emerald-600 text-white shadow-sm"
+                                    : "border border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50"
+                                } disabled:opacity-50`}
+                              >
+                                Yes
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => saveFreeSessionAttendance(leadId, false)}
+                                disabled={isSavingFreeSessionAttendanceId === leadId}
+                                className={`rounded-xl px-4 py-2 text-xs font-bold transition-all ${
+                                  lead.freeSession?.childShowedUp === false
+                                    ? "bg-red-600 text-white shadow-sm"
+                                    : "border border-red-200 bg-white text-red-700 hover:bg-red-50"
+                                } disabled:opacity-50`}
+                              >
+                                No
+                              </button>
+                            </div>
                           </div>
 
                           <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">

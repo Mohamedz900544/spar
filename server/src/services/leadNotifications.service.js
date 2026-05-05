@@ -186,6 +186,22 @@ const getValidWhatsAppPhone = (...phones) => {
   return "";
 };
 
+const getFreeSessionAttendanceLabel = (lead) => {
+  if (lead?.freeSession?.childShowedUp === true) return "الطفل حضر الحصه";
+  if (lead?.freeSession?.childShowedUp === false) return "الطفل لم يحضر الحصه";
+  if (lead?.freeSession?.isAssigned || lead?.freeSession?.scheduledAt) {
+    return "المدرب لم يدخل هل حضر او لا";
+  }
+  return "";
+};
+
+const getSalesFollowUpStatusText = (lead) => {
+  const attendanceLabel = getFreeSessionAttendanceLabel(lead);
+  return [valueOrDash(lead?.status || "Follow-up"), attendanceLabel]
+    .filter(Boolean)
+    .join(" - ");
+};
+
 const buildSalesFollowUpBody = (lead, followUpAt = new Date()) =>
   [
     "تذكير متابعة عميل",
@@ -203,7 +219,10 @@ const buildSalesFollowUpBody = (lead, followUpAt = new Date()) =>
     `${lead.childAge || "-"}`,
     "",
     "الحالة الحالية:",
-    `${lead.status || "Follow-up"}`,
+    getSalesFollowUpStatusText(lead),
+    ...(getFreeSessionAttendanceLabel(lead)
+      ? ["", "حضور الطفل:", getFreeSessionAttendanceLabel(lead)]
+      : []),
     "",
     "موعد المتابعة:",
     `${formatCairoDateTime(followUpAt)}`,
@@ -214,7 +233,7 @@ const buildSalesFollowUpParams = (lead, followUpAt = new Date()) => [
   namedTemplateParam("parent_phone", valueOrDash(lead.phone)),
   namedTemplateParam("child_name", valueOrDash(lead.childName)),
   namedTemplateParam("child_age", valueOrDash(lead.childAge)),
-  namedTemplateParam("lead_status", valueOrDash(lead.status || "Follow-up")),
+  namedTemplateParam("lead_status", getSalesFollowUpStatusText(lead)),
   namedTemplateParam("follow_up_time", formatCairoDateTime(followUpAt)),
 ];
 
@@ -665,6 +684,7 @@ const createWhatsAppTestLead = (phone) => {
     ],
     freeSession: {
       scheduledAt,
+      childShowedUp: true,
     },
     callLater: {
       scheduledAt,
