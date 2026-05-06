@@ -14,6 +14,13 @@ const getNotificationConfig = () => ({
     process.env.WHATSAPP_TEMPLATE_BUSY_CALL_REMINDER_LANGUAGE ||
     process.env.WHATSAPP_TEMPLATE_LANGUAGE ||
     "en_US",
+  reservedCallReminderTemplateName:
+    process.env.WHATSAPP_TEMPLATE_RESERVED_CALL_REMINDER || "",
+  reservedCallReminderTemplateLanguage:
+    process.env.WHATSAPP_TEMPLATE_RESERVED_CALL_REMINDER_LANGUAGE ||
+    process.env.WHATSAPP_TEMPLATE_BUSY_CALL_REMINDER_LANGUAGE ||
+    process.env.WHATSAPP_TEMPLATE_LANGUAGE ||
+    "en_US",
   instructorAssignTemplateName:
     process.env.WHATSAPP_TEMPLATE_INSTRUCTOR_ASSIGN || "",
   instructorSessionReminderTemplateName:
@@ -268,6 +275,29 @@ const buildSalesBusyCallReminderParams = (lead, callAt = new Date()) => [
   namedTemplateParam("lead_status", valueOrDash(lead.status || "Reserved Later")),
   namedTemplateParam("call_time", formatCairoDateTime(callAt)),
 ];
+
+const getCallReminderTemplateConfig = (status, config) => {
+  const isReservedLater = status === "Reserved Later";
+  const primaryTemplateName = isReservedLater
+    ? config.reservedCallReminderTemplateName
+    : config.busyCallReminderTemplateName;
+  const fallbackTemplateName = isReservedLater
+    ? config.busyCallReminderTemplateName
+    : config.reservedCallReminderTemplateName;
+  const primaryTemplateLanguage = isReservedLater
+    ? config.reservedCallReminderTemplateLanguage
+    : config.busyCallReminderTemplateLanguage;
+  const fallbackTemplateLanguage = isReservedLater
+    ? config.busyCallReminderTemplateLanguage
+    : config.reservedCallReminderTemplateLanguage;
+
+  return {
+    templateName: primaryTemplateName || fallbackTemplateName,
+    templateLanguage: primaryTemplateName
+      ? primaryTemplateLanguage
+      : fallbackTemplateLanguage,
+  };
+};
 
 const buildInstructorFreeSessionAssignedBody = (lead, instructor) =>
   [
@@ -553,18 +583,20 @@ export const notifySalesBusyCallReminder = async ({
     return { sent: false, skipped: true, reason: "missing_valid_sales_phone" };
   }
 
-  if (!config.busyCallReminderTemplateName) {
+  const reminderTemplate = getCallReminderTemplateConfig(lead?.status, config);
+  if (!reminderTemplate.templateName) {
     return {
       sent: false,
       skipped: true,
-      reason: "missing_busy_call_template_env",
+      reason: "missing_call_reminder_template_env",
+      status: lead?.status || "",
     };
   }
 
   const result = await sendNotification({
     phone: recipientPhone,
-    customTemplateName: config.busyCallReminderTemplateName,
-    templateLanguage: config.busyCallReminderTemplateLanguage,
+    customTemplateName: reminderTemplate.templateName,
+    templateLanguage: reminderTemplate.templateLanguage,
     templateBodyParams: buildSalesBusyCallReminderParams(lead, callAt),
     textBody,
     config,
@@ -668,14 +700,14 @@ const sendParentWhatsApp = async ({
     sendTextAfterTemplate: false,
   });
 
-const createWhatsAppTestLead = (phone) => {
+const createWhatsAppTestLead = (phone, status = "Reserved Later") => {
   const scheduledAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
   return {
     parentName: "ولي الأمر التجريبي",
     phone,
     childName: "المهندس الصغير",
     childAge: 8,
-    status: "Reserved Later",
+    status,
     notes: [
       {
         text: "مهتم بتجربة الحصة ومعرفة مستوى الطفل.",
@@ -700,7 +732,8 @@ const createWhatsAppTestInstructor = (phone) => ({
 
 const WHATSAPP_AUTOMATION_TEST_LABELS = {
   sales_follow_up: "Sales follow-up",
-  busy_call_reminder: "Reserved later reminder",
+  reserved_call_reminder: "Reserved later reminder",
+  busy_call_reminder: "Busy call later reminder",
   instructor_assignment: "Instructor assignment",
   instructor_reminder: "Instructor 1-hour reminder",
   parent_welcome: "Parent welcome",
@@ -715,7 +748,14 @@ export const sendWhatsAppAutomationTest = async ({ type, phone }) => {
     return { sent: false, skipped: true, reason: "invalid_automation_test_type" };
   }
 
-  const lead = createWhatsAppTestLead(phone);
+  const reminderStatusByType = {
+    reserved_call_reminder: "Reserved Later",
+    busy_call_reminder: "Busy Call Later",
+  };
+  const lead = createWhatsAppTestLead(
+    phone,
+    reminderStatusByType[type] || "Reserved Later"
+  );
   const instructor = createWhatsAppTestInstructor(phone);
   let result = null;
 
@@ -733,7 +773,7 @@ export const sendWhatsAppAutomationTest = async ({ type, phone }) => {
     });
   }
 
-  if (type === "busy_call_reminder") {
+  if (type === "reserved_call_reminder" || type === "busy_call_reminder") {
     const testPhone = getValidWhatsAppPhone(phone);
     if (!testPhone) {
       return {
@@ -743,11 +783,13 @@ export const sendWhatsAppAutomationTest = async ({ type, phone }) => {
       };
     }
 
-    if (!config.busyCallReminderTemplateName) {
+    const reminderTemplate = getCallReminderTemplateConfig(lead.status, config);
+    if (!reminderTemplate.templateName) {
       return {
         sent: false,
         skipped: true,
-        reason: "missing_busy_call_template_env",
+        reason: "missing_call_reminder_template_env",
+        status: lead.status,
       };
     }
 
@@ -755,8 +797,8 @@ export const sendWhatsAppAutomationTest = async ({ type, phone }) => {
     const textBody = buildSalesBusyCallReminderBody(lead, callAt);
     result = await sendNotification({
       phone: testPhone,
-      customTemplateName: config.busyCallReminderTemplateName,
-      templateLanguage: config.busyCallReminderTemplateLanguage,
+      customTemplateName: reminderTemplate.templateName,
+      templateLanguage: reminderTemplate.templateLanguage,
       templateBodyParams: buildSalesBusyCallReminderParams(lead, callAt),
       textBody,
       config,

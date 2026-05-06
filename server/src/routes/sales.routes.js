@@ -378,10 +378,13 @@ router.post("/whatsapp/automation-test", authRequired, agentOrAdmin, async (req,
       });
     }
 
-    if (result?.reason === "missing_busy_call_template_env") {
+    if (
+      result?.reason === "missing_busy_call_template_env" ||
+      result?.reason === "missing_call_reminder_template_env"
+    ) {
       return res.status(400).json({
         message:
-          "Missing WHATSAPP_TEMPLATE_BUSY_CALL_REMINDER env for reserved later reminder",
+          "Missing WHATSAPP_TEMPLATE_BUSY_CALL_REMINDER or WHATSAPP_TEMPLATE_RESERVED_CALL_REMINDER env for call later reminder",
         details: result,
       });
     }
