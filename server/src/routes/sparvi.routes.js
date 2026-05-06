@@ -74,7 +74,7 @@ router.post("/rotate-password", authRequired, adminOnly, async (req, res) => {
       rotatedAt,
     });
   } catch (err) {
-    console.error("Rotate Sparvi password error:", err);
+    console.error("Rotate SP School password error:", err);
     return res.status(500).json({
       ok: false,
       message: "Failed to rotate instructor password",
@@ -115,7 +115,7 @@ router.post(
 
       return res.json({ ok: true });
     } catch (err) {
-      console.error("Verify Sparvi password error:", err);
+      console.error("Verify SP School password error:", err);
       return res.status(500).json({
         ok: false,
         message: "Failed to verify instructor password",
@@ -128,18 +128,18 @@ router.get("/pointer/download", (req, res) => {
   if (!fs.existsSync(pointerInstallerPath)) {
     return res.status(404).json({
       ok: false,
-      message: "Sparvi Pointer installer is not available",
+      message: "SP School Pointer installer is not available",
     });
   }
 
   return res.download(
     pointerInstallerPath,
-    "Sparvi Pointer - Windows.exe",
+    "SP School Pointer - Windows.exe",
     (err) => {
       if (err && !res.headersSent) {
         return res.status(500).json({
           ok: false,
-          message: "Failed to download Sparvi Pointer",
+          message: "Failed to download SP School Pointer",
         });
       }
     }
@@ -150,18 +150,18 @@ router.get("/pointer/android/download", (req, res) => {
   if (!fs.existsSync(pointerApkPath)) {
     return res.status(404).json({
       ok: false,
-      message: "Sparvi Pointer APK is not available",
+      message: "SP School Pointer APK is not available",
     });
   }
 
   return res.download(
     pointerApkPath,
-    "Sparvi Pointer - Android.apk",
+    "SP School Pointer - Android.apk",
     (err) => {
       if (err && !res.headersSent) {
         return res.status(500).json({
           ok: false,
-          message: "Failed to download Sparvi Pointer APK",
+          message: "Failed to download SP School Pointer APK",
         });
       }
     }

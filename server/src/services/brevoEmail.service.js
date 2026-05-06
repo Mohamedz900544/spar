@@ -2,7 +2,7 @@ import axios from "axios";
 import { createTransport } from "nodemailer";
 
 const BREVO_API_BASE_URL = "https://api.brevo.com/v3";
-const BREVO_FIXED_SENDER_NAME = "Sparvi Lab";
+const BREVO_FIXED_SENDER_NAME = "SP School";
 const BREVO_BRAND_IMAGE_URL = "https://i.ibb.co/gFbR9ptZ/instructor-team.jpg";
 
 const getBrevoConfig = () => ({
@@ -46,7 +46,7 @@ const buildBrandedHtml = (htmlContent = "", textContent = "") => {
                 <td style="vertical-align:middle;">
                   <img
                     src="${BREVO_BRAND_IMAGE_URL}"
-                    alt="Sparvi Lab"
+                    alt="SP School"
                     width="42"
                     height="42"
                     style="display:block;width:42px;height:42px;border-radius:50%;object-fit:cover;"

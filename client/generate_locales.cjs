@@ -9,16 +9,16 @@ const en = JSON.parse(fs.readFileSync(enPath));
 
 const faqs = [
     {
-        enQ: "What exactly will my child learn at Sparvi Lab?",
+        enQ: "What exactly will my child learn at SP School?",
         enA: "Your child will learn the skills that make technology easier to understand long-term, not just one tool for a short time. We build strong foundations in problem-solving, logical reasoning, creativity, and learning agility, then apply them through hands-on learning across computational thinking, creative coding, electronics and robotics, game development, and early AI concepts. The goal is a child who can face new challenges confidently and learn new technologies faster.",
-        arQ: "ما الذي سيتعلمه طفلي بالتحديد في سبارفي لاب؟",
+        arQ: "ما الذي سيتعلمه طفلي بالتحديد في SP School؟",
         arA: "سيتعلم طفلك المهارات التي تجعل فهم التكنولوجيا أسهل على المدى الطويل. نحن نبني أسسًا قوية في حل المشكلات والمنطق الإبداعي والمرونة في التعلم، ثم نطبقها من خلال التعلم العملي في التفكير الحسابي، والبرمجة الإبداعية، والإلكترونيات والروبوتات، وتطوير الألعاب، ومفاهيم الذكاء الاصطناعي المبكرة."
     },
     {
         enQ: "What age groups do you offer, and how are levels decided?",
-        enA: "Sparvi Lab is designed for ages 6–17. Students are placed into age bands with a progressive curriculum that grows year by year. Placement is based on age and a simple onboarding check to understand the child's current level, attention span, and comfort with problem-solving. If a child is advanced, we can place them higher. If they need stronger foundations, we start from the right step without pressure.",
+        enA: "SP School is designed for ages 6–17. Students are placed into age bands with a progressive curriculum that grows year by year. Placement is based on age and a simple onboarding check to understand the child's current level, attention span, and comfort with problem-solving. If a child is advanced, we can place them higher. If they need stronger foundations, we start from the right step without pressure.",
         arQ: "ما هي الفئات العمرية المتوفرة، وكيف يتم تحديد المستويات؟",
-        arA: "تم تصميم سبارفي لاب للأعمار من 6 إلى 17 عامًا. يتم وضع الطلاب في مجموعات عمرية مع منهج تقدمي ينمو عامًا بعد عام. يعتمد التحديد على العمر وتقييم بسيط لفهم مستوى الطفل وانتباهه وراحته في حل المشكلات."
+        arA: "تم تصميم SP School للأعمار من 6 إلى 17 عامًا. يتم وضع الطلاب في مجموعات عمرية مع منهج تقدمي ينمو عامًا بعد عام. يعتمد التحديد على العمر وتقييم بسيط لفهم مستوى الطفل وانتباهه وراحته في حل المشكلات."
     },
     {
         enQ: "Do students need any prior coding or robotics experience?",
@@ -45,10 +45,10 @@ const faqs = [
         arA: "نحن نتابع التقدم باستخدام معالم قائمة على المهارات، وليس فقط الدروس المكتملة. نركز على كيفية تحسن الطفل في مجالات مثل استراتيجية حل المشكلات، والمنطق، وقدرة التصحيح، والإبداع في الحلول."
     },
     {
-        enQ: "Is Sparvi Lab online, in-person, or both?",
-        enA: "Sparvi Lab can be delivered online and in-person depending on your location and the program schedule. Online sessions are interactive and hands-on, not passive watching. In-person sessions follow the same curriculum, with more physical collaboration. When you enroll, we confirm the available format options and schedules for your area.",
-        arQ: "هل دراسة سبارفي لاب عبر الإنترنت أم حضوريًا أم كلاهما؟",
-        arA: "يمكن تقديم برامج سبارفي لاب عبر الإنترنت أو حضوريًا بناءً على موقعك وجدول البرنامج. الجلسات عبر الإنترنت تفاعلية وعملية."
+        enQ: "Is SP School online, in-person, or both?",
+        enA: "SP School can be delivered online and in-person depending on your location and the program schedule. Online sessions are interactive and hands-on, not passive watching. In-person sessions follow the same curriculum, with more physical collaboration. When you enroll, we confirm the available format options and schedules for your area.",
+        arQ: "هل دراسة SP School عبر الإنترنت أم حضوريًا أم كلاهما؟",
+        arA: "يمكن تقديم برامج SP School عبر الإنترنت أو حضوريًا بناءً على موقعك وجدول البرنامج. الجلسات عبر الإنترنت تفاعلية وعملية."
     },
     {
         enQ: "How are lessons taught to match different learning styles?",
@@ -88,9 +88,9 @@ const faqs = [
     },
     {
         enQ: "How do you ensure the curriculum is not just random activities?",
-        enA: "Every activity at Sparvi Lab is tied to a learning objective and a progression path. We do not teach random \"fun projects\" without a learning journey. Each level builds on the previous one and prepares the child for more advanced thinking and real-world relevance. That is what makes Sparvi Lab a curriculum-driven system, not a tool-based academy.",
+        enA: "Every activity at SP School is tied to a learning objective and a progression path. We do not teach random \"fun projects\" without a learning journey. Each level builds on the previous one and prepares the child for more advanced thinking and real-world relevance. That is what makes SP School a curriculum-driven system, not a tool-based academy.",
         arQ: "كيف تضمنون أن المنهج ليس مجرد أنشطة عشوائية؟",
-        arA: "كل نشاط في سبارفي لاب مرتبط بهدف تعليمي ومسار مدروس. نحن لا نعلم مجرد مسابقات ممتعة، بل مستويات تعتمد على بعضها البعض لتحقيق التفكير المتطور."
+        arA: "كل نشاط في SP School مرتبط بهدف تعليمي ومسار مدروس. نحن لا نعلم مجرد مسابقات ممتعة، بل مستويات تعتمد على بعضها البعض لتحقيق التفكير المتطور."
     }
 ];
 
@@ -102,7 +102,7 @@ faqs.forEach((item, idx) => {
 });
 
 const features = [
-    { k: "live_missions", enT: "Live, Instructor-Led Missions", enD: "A Sparvi coach leads every session step by step and answers questions in real time, so no one gets stuck.", arT: "مهمات بقيادة مدربين مباشرين", arD: "مدرب من سبارفي يوجهك خطوة بخطوة في كل جلسة ويجيب على الأسئلة في الوقت الفعلي." },
+    { k: "live_missions", enT: "Live, Instructor-Led Missions", enD: "A SP School coach leads every session step by step and answers questions in real time, so no one gets stuck.", arT: "مهمات بقيادة مدربين مباشرين", arD: "مدرب من SP School يوجهك خطوة بخطوة في كل جلسة ويجيب على الأسئلة في الوقت الفعلي." },
     { k: "learning_journey", enT: "A Full Learning Journey", enD: "A structured curriculum for ages 6–17 that grows with your child, with clear levels and long-term progress, not random short courses.", arT: "رحلة تعليمية كاملة", arD: "منهج منهجي للأعمار من 6-17 ينمو مع طفلك مع تقدم ومستويات واضحة." },
     { k: "built_for", enT: "Built for Ages 6–17", enD: "Age-appropriate lessons that support beginners and still challenge advanced students.", arT: "صُمم للأعمار 6–17", arD: "دروس مناسبة للعمر تدعم المبتدئين وتتحدى الطلاب المتقدمين." },
     { k: "screen_time", enT: "Screen Time With a Purpose", enD: "Kids watch, then build, test, and improve hands-on projects, turning screen time into real creation.", arT: "وقت الشاشة بهدف", arD: "يشاهد الأطفال ثم يبنون ويختبرون لتحويل وقت الشاشة إلى ابتكار فعلي." },

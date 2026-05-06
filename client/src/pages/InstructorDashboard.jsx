@@ -1042,10 +1042,10 @@ const InstructorDashboard = () => {
           <div className="flex h-20 items-center border-b border-slate-200 px-6">
             <Link to="/instructor" className="inline-flex min-w-0 items-center gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 ring-1 ring-emerald-100">
-                <img src="/icon.png" alt="Sparvi Lab" className="h-6 w-6 rounded-md object-contain" />
+                <img src="/icon.png" alt="SP School" className="h-6 w-6 rounded-md object-contain" />
               </span>
               <span className="min-w-0">
-                <span className="block truncate text-lg font-semibold text-slate-800">Sparvi Instructor</span>
+                <span className="block truncate text-lg font-semibold text-slate-800">SP School Instructor</span>
                 <span className="block truncate text-xs font-semibold text-slate-400">Instructor Workspace</span>
               </span>
             </Link>
@@ -1101,7 +1101,7 @@ const InstructorDashboard = () => {
                   to="/instructor"
                   className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 ring-1 ring-emerald-100 lg:hidden"
                 >
-                  <img src="/icon.png" alt="Sparvi Lab" className="h-6 w-6 rounded-md object-contain" />
+                  <img src="/icon.png" alt="SP School" className="h-6 w-6 rounded-md object-contain" />
                 </Link>
                 <div className="min-w-0">
                   <h1 className="truncate text-2xl font-semibold tracking-normal text-slate-800">
@@ -2140,7 +2140,7 @@ const InstructorDashboard = () => {
                       rows={8}
                       value={customMessageForm.body}
                       onChange={(event) => updateCustomMessageField("body", event.target.value)}
-                      placeholder="Hi {parentName}, this is your Sparvi Lab instructor..."
+                      placeholder="Hi {parentName}, this is your SP School instructor..."
                       className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-300 focus:bg-white focus:ring-4 focus:ring-emerald-100"
                     />
                   </div>

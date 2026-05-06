@@ -262,7 +262,7 @@ const ParentProfile = ({ userData, setUserData }) => {
                             <Zap className="w-4 h-4 text-[#102a5a]" />
                         </div>
                         <span className="text-white font-bold text-lg tracking-tight">
-                            Sparvi Lab
+                            SP School
                         </span>
                     </Link>
                     <h1 className="text-2xl md:text-3xl font-extrabold text-white mb-2 font-display">

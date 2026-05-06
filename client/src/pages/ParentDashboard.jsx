@@ -33,7 +33,7 @@ const SPARVI_POINTER_ANDROID_DOWNLOAD_URL = `${API_BASE_URL}/api/sparvi/pointer/
 const TOOL_SYSTEMS = [
   {
     title: "Windows",
-    subtitle: "Sparvi Pointer desktop app",
+    subtitle: "SP School Pointer desktop app",
     description:
       "Install the Windows companion used during live sessions and interactive classroom activities.",
     icon: FaWindows,
@@ -50,7 +50,7 @@ const TOOL_SYSTEMS = [
   },
   {
     title: "macOS",
-    subtitle: "Sparvi Pointer for Mac",
+    subtitle: "SP School Pointer for Mac",
     description:
       "The macOS version is being prepared. Parents can use the Windows or Android version for now.",
     icon: FaApple,
@@ -66,7 +66,7 @@ const TOOL_SYSTEMS = [
   },
   {
     title: "Android APK",
-    subtitle: "Sparvi Pointer mobile app",
+    subtitle: "SP School Pointer mobile app",
     description:
       "Download the Android APK and install it on a supported Android device for Sparvi activities.",
     icon: FaAndroid,
@@ -517,7 +517,7 @@ const ParentDashboard = ({ parent, setParent }) => {
           <div className="flex items-center justify-between h-16">
             {/* Left: Logo */}
             <Link to="/" className="flex items-center gap-3 shrink-0">
-              <img src="/logo-white.png" alt="Sparvi Lab" className="h-8" />
+              <img src="/logo-white.png" alt="SP School" className="h-8" />
               <span className="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border border-[#FBBF24]/30 text-[#FBBF24]" style={{ background: "rgba(251,191,36,0.08)" }}>
                 Parent Portal
               </span>
@@ -1197,7 +1197,7 @@ const ParentDashboard = ({ parent, setParent }) => {
       {/* Footer */}
       <footer className="py-5 text-center text-xs bg-[#071228] mt-auto">
         <p className="text-slate-500">
-          © {new Date().getFullYear()} Sparvi Lab. All rights reserved.
+          © {new Date().getFullYear()} SP School. All rights reserved.
         </p>
       </footer>
     </div>

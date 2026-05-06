@@ -64,7 +64,7 @@ const featuresKeys = [
 const SignUp = () => {
   const { t, i18n } = useTranslation();
   useEffect(() => {
-    document.title = "Enroll Your Child — Sparvi Lab | Reserve a Seat Today";
+    document.title = "Enroll Your Child — SP School | Reserve a Seat Today";
   }, []);
   const navigate = useNavigate();
   const [serverError, setServerError] = useState("");
@@ -129,7 +129,7 @@ const SignUp = () => {
           >
             <Link to="/" className="inline-flex items-center gap-2 mb-12">
 
-              <img src="/logo-white.png" alt="Sparvi Lab" className="h-12" />
+              <img src="/logo-white.png" alt="SP School" className="h-12" />
             </Link>
           </motion.div>
 
@@ -179,7 +179,7 @@ const SignUp = () => {
         {/* Bottom */}
         <div className="relative z-10 px-12 xl:px-16 pb-8" dir={i18n.language === "ar" ? "rtl" : "ltr"}>
           <p className="text-slate-500 text-xs">
-            © {new Date().getFullYear()} Sparvi Lab. {t("login.rights")}.
+            © {new Date().getFullYear()} SP School. {t("login.rights")}.
           </p>
         </div>
       </motion.div>
@@ -204,7 +204,7 @@ const SignUp = () => {
           {/* Mobile brand */}
           <div className="lg:hidden text-center mb-8">
             <Link to="/" className="inline-flex items-center">
-              <img src="/logo.png" alt="Sparvi Lab" className="h-10" />
+              <img src="/logo.png" alt="SP School" className="h-10" />
             </Link>
           </div>
 

@@ -24,7 +24,7 @@ export default function FractionLevelsPage() {
           <div>
             <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700 mb-2">
               <Sparkles className="w-4 h-4" />
-              Sparvi Lab · Fraction Smash
+              SP School · Fraction Smash
             </div>
             <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900">
               Visual fraction challenges

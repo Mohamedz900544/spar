@@ -66,7 +66,7 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 app.get("/", (req, res) => {
-  res.json({ message: "Sparvi Lab backend running 🚀" });
+  res.json({ message: "SP School backend running 🚀" });
 });
 
 // Routes

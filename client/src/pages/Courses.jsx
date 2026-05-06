@@ -21,7 +21,7 @@ const FloatingShape = ({ className, delay = 0, duration = 6 }) => (
 export default function Courses() {
   const { t } = useTranslation();
   useEffect(() => {
-    document.title = "Courses — Sparvi Lab | STEM Programs for Ages 6–17";
+    document.title = "Courses — SP School | STEM Programs for Ages 6–17";
   }, []);
 
   return (
@@ -88,7 +88,7 @@ export default function Courses() {
       {/* Footer */}
       <footer className="py-6 text-center text-xs bg-[#071228]">
         <p className="text-slate-500">
-          © {new Date().getFullYear()} Sparvi Lab. All rights reserved.
+          © {new Date().getFullYear()} SP School. All rights reserved.
         </p>
       </footer>
     </div>

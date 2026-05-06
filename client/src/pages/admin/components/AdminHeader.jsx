@@ -17,7 +17,7 @@ const AdminHeader = ({ isLoading, searchValue, setSearchValue }) => {
             <div className="flex items-center">
                 {/* Logo + role badge */}
                 <Link to="/" className="inline-flex items-center gap-3">
-                    <img src="/logo-white.png" alt="Sparvi Lab" className="h-8" />
+                    <img src="/logo-white.png" alt="SP School" className="h-8" />
                     <span
                         className="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border border-[#FBBF24]/30 text-[#FBBF24]"
                         style={{ background: "rgba(251,191,36,0.08)" }}

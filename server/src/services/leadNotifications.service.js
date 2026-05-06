@@ -670,7 +670,7 @@ const buildParentRoundSessionReminderBody = ({ session, round, enrollment }) => 
       });
 
   return [
-    `Reminder: ${enrollment?.childName || "your child"} has an upcoming Sparvi Lab session in about 1 hour.`,
+    `Reminder: ${enrollment?.childName || "your child"} has an upcoming SP School session in about 1 hour.`,
     "",
     `Round: ${round?.name || "-"}`,
     `Session: ${session?.title || "-"}`,

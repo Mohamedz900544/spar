@@ -88,7 +88,7 @@ const SalesCustomMessagesPage = () => {
               rows={8}
               value={form.body}
               onChange={(event) => updateField("body", event.target.value)}
-              placeholder="Hi {parentName}, this is Sparvi Lab..."
+              placeholder="Hi {parentName}, this is SP School..."
               className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-300 focus:bg-white focus:ring-4 focus:ring-emerald-100"
             />
           </div>

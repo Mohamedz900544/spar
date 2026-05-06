@@ -10,7 +10,7 @@ export const BlockHeader = ({ data }) => {
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
                 S
             </div>
-            <span className="font-bold text-slate-800 text-lg hidden md:block">Sparvi Lab</span>
+            <span className="font-bold text-slate-800 text-lg hidden md:block">SP School</span>
         </div>
 
         {/* Profile Area */}

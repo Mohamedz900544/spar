@@ -37,14 +37,14 @@ const Sparkles = () => (
    ============================== */
 const faqItems = [
   {
-    question: "What exactly will my child learn at Sparvi Lab?",
+    question: "What exactly will my child learn at SP School?",
     answer:
       "Your child will learn the skills that make technology easier to understand long-term, not just one tool for a short time. We build strong foundations in problem-solving, logical reasoning, creativity, and learning agility, then apply them through hands-on learning across computational thinking, creative coding, electronics and robotics, game development, and early AI concepts. The goal is a child who can face new challenges confidently and learn new technologies faster.",
   },
   {
     question: "What age groups do you offer, and how are levels decided?",
     answer:
-      "Sparvi Lab is designed for ages 6–17. Students are placed into age bands with a progressive curriculum that grows year by year. Placement is based on age and a simple onboarding check to understand the child's current level, attention span, and comfort with problem-solving. If a child is advanced, we can place them higher. If they need stronger foundations, we start from the right step without pressure.",
+      "SP School is designed for ages 6–17. Students are placed into age bands with a progressive curriculum that grows year by year. Placement is based on age and a simple onboarding check to understand the child's current level, attention span, and comfort with problem-solving. If a child is advanced, we can place them higher. If they need stronger foundations, we start from the right step without pressure.",
   },
   {
     question: "Do students need any prior coding or robotics experience?",
@@ -67,9 +67,9 @@ const faqItems = [
       "We track progress using skill-based milestones, not just completed lessons. We focus on how the child is improving in areas such as problem-solving strategy, logical reasoning, debugging ability, creativity in solutions, and confidence during challenges. Parents receive progress updates that highlight strengths and what to work on next. This makes learning measurable and shows real growth, not just finished projects.",
   },
   {
-    question: "Is Sparvi Lab online, in-person, or both?",
+    question: "Is SP School online, in-person, or both?",
     answer:
-      "Sparvi Lab can be delivered online and in-person depending on your location and the program schedule. Online sessions are interactive and hands-on, not passive watching. In-person sessions follow the same curriculum, with more physical collaboration. When you enroll, we confirm the available format options and schedules for your area.",
+      "SP School can be delivered online and in-person depending on your location and the program schedule. Online sessions are interactive and hands-on, not passive watching. In-person sessions follow the same curriculum, with more physical collaboration. When you enroll, we confirm the available format options and schedules for your area.",
   },
   {
     question: "How are lessons taught to match different learning styles?",
@@ -104,7 +104,7 @@ const faqItems = [
   {
     question: "How do you ensure the curriculum is not just random activities?",
     answer:
-      "Every activity at Sparvi Lab is tied to a learning objective and a progression path. We do not teach random \"fun projects\" without a learning journey. Each level builds on the previous one and prepares the child for more advanced thinking and real-world relevance. That is what makes Sparvi Lab a curriculum-driven system, not a tool-based academy.",
+      "Every activity at SP School is tied to a learning objective and a progression path. We do not teach random \"fun projects\" without a learning journey. Each level builds on the previous one and prepares the child for more advanced thinking and real-world relevance. That is what makes SP School a curriculum-driven system, not a tool-based academy.",
   },
 ];
 
@@ -323,7 +323,7 @@ const cardAccents = [
 const Landing = () => {
   const { t, i18n } = useTranslation();
   useEffect(() => {
-    document.title = "Sparvi Lab — Live STEM Education for Kids Ages 6–17";
+    document.title = "SP School — Live STEM Education for Kids Ages 6–17";
   }, []);
   const [openFAQ, setOpenFAQ] = useState(-1);
   const [projectIndex, setProjectIndex] = useState(0);
@@ -406,7 +406,7 @@ const Landing = () => {
           >
             <img
               src="https://res.cloudinary.com/dipzvlfnt/image/upload/f_auto,q_auto,w_900/v1772832876/Robot_l1b0pg.webp"
-              alt="Sparvi Lab Robot"
+              alt="SP School Robot"
               fetchpriority="high"
               width="900"
               height="496"
@@ -574,7 +574,7 @@ const Landing = () => {
       </section>
 
       {/* ============================
-         WHY CHOOSE SPARVI LAB?
+         WHY CHOOSE SP SCHOOL?
          ============================ */}
       <section
         className="py-16 md:py-24 px-6 bg-slate-50"
@@ -771,7 +771,7 @@ const Landing = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-16">
             {/* Column 1: Logo & Info */}
             <div>
-              <img src="/logo-white.png" alt="Sparvi Lab" width="133" height="70" className="h-10 mb-5" />
+              <img src="/logo-white.png" alt="SP School" width="133" height="70" className="h-10 mb-5" />
               <p className="text-slate-400 font-medium text-sm leading-relaxed mb-6 text-start">
                 {t("landing.footer.description")}
               </p>
@@ -849,7 +849,7 @@ const Landing = () => {
           {/* Bottom bar */}
           <div className="mt-16 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-slate-500 font-medium text-xs">
-              © {new Date().getFullYear()} Sparvi Lab. {t("landing.footer.rights")}
+              © {new Date().getFullYear()} SP School. {t("landing.footer.rights")}
               <span className="block md:inline md:mx-2">
                 {t("landing.footer.designed_for")}
               </span>

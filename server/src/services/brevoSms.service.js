@@ -13,7 +13,7 @@ let smsCreditsCache = {
 const getBrevoSmsConfig = () => ({
   enabled: process.env.BREVO_SMS_ENABLED === "true",
   apiKey: process.env.BREVO_SMS_API_KEY || process.env.BREVO_API_KEY || "",
-  sender: process.env.BREVO_SMS_SENDER || "SparviLab",
+  sender: process.env.BREVO_SMS_SENDER || "SPSchool",
   type: (process.env.BREVO_SMS_TYPE || "transactional").toLowerCase(),
   tag: process.env.BREVO_SMS_TAG || "",
   unicodeEnabled: process.env.BREVO_SMS_UNICODE_ENABLED !== "false",

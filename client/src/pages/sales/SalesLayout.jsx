@@ -84,10 +84,10 @@ const SalesLayout = () => {
           <div className="flex h-20 items-center border-b border-slate-200 px-6">
             <Link to="/sales" className="inline-flex min-w-0 items-center gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 ring-1 ring-emerald-100">
-                <img src="/icon.png" alt="Sparvi Lab" className="h-6 w-6 rounded-md object-contain" />
+                <img src="/icon.png" alt="SP School" className="h-6 w-6 rounded-md object-contain" />
               </span>
               <span className="min-w-0">
-                <span className="block truncate text-lg font-semibold text-slate-800">Sparvi Sales</span>
+                <span className="block truncate text-lg font-semibold text-slate-800">SP School Sales</span>
                 <span className="block truncate text-xs font-semibold text-slate-400">Telesales Workspace</span>
               </span>
             </Link>
@@ -144,7 +144,7 @@ const SalesLayout = () => {
                   to="/sales"
                   className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 ring-1 ring-emerald-100 lg:hidden"
                 >
-                  <img src="/icon.png" alt="Sparvi Lab" className="h-6 w-6 rounded-md object-contain" />
+                  <img src="/icon.png" alt="SP School" className="h-6 w-6 rounded-md object-contain" />
                 </Link>
                 <div className="min-w-0">
                   <h1 className="truncate text-2xl font-semibold tracking-normal text-slate-800">

@@ -58,11 +58,11 @@ const buildInstructorWelcomeEmail = ({
   const safeLoginUrl = escapeHtml(LOGIN_URL || "/login");
 
   return {
-    subject: "Welcome to Sparvi Lab - Instructor Account Ready",
+    subject: "Welcome to SP School - Instructor Account Ready",
     textContent: [
       `Hello ${name || "Instructor"},`,
       "",
-      "Welcome to Sparvi Lab. Your instructor account has been created.",
+      "Welcome to SP School. Your instructor account has been created.",
       "",
       "Login details:",
       `Email: ${email || ""}`,
@@ -76,7 +76,7 @@ const buildInstructorWelcomeEmail = ({
     htmlContent: `
       <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
         <div style="background:#102a5a;color:#ffffff;padding:14px 16px;">
-          <h2 style="margin:0;font-size:18px;line-height:1.2;">Welcome to Sparvi Lab</h2>
+          <h2 style="margin:0;font-size:18px;line-height:1.2;">Welcome to SP School</h2>
         </div>
         <div style="padding:16px;color:#0f172a;">
           <p style="margin:0 0 12px;font-size:14px;">Hello <strong>${safeName}</strong>, your instructor account is ready.</p>
@@ -105,11 +105,11 @@ const buildSalesAgentWelcomeEmail = ({ name, email, password }) => {
   const safeLoginUrl = escapeHtml(LOGIN_URL || "/login");
 
   return {
-    subject: "Welcome to Sparvi Lab - Sales Account Ready",
+    subject: "Welcome to SP School - Sales Account Ready",
     textContent: [
       `Hello ${name || "Sales Agent"},`,
       "",
-      "Welcome to Sparvi Lab. Your sales account has been created.",
+      "Welcome to SP School. Your sales account has been created.",
       "",
       "Login details:",
       `Email: ${email || ""}`,
@@ -122,7 +122,7 @@ const buildSalesAgentWelcomeEmail = ({ name, email, password }) => {
     htmlContent: `
       <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
         <div style="background:#102a5a;color:#ffffff;padding:14px 16px;">
-          <h2 style="margin:0;font-size:18px;line-height:1.2;">Welcome to Sparvi Lab</h2>
+          <h2 style="margin:0;font-size:18px;line-height:1.2;">Welcome to SP School</h2>
         </div>
         <div style="padding:16px;color:#0f172a;">
           <p style="margin:0 0 12px;font-size:14px;">Hello <strong>${safeName}</strong>, your sales account is ready.</p>

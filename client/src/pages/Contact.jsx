@@ -39,7 +39,7 @@ const contactMethodsRaw = [
 const Contact = () => {
   const { t, i18n } = useTranslation();
   useEffect(() => {
-    document.title = "Contact Sparvi Lab — Reach Us by Phone, WhatsApp, or Email";
+    document.title = "Contact SP School — Reach Us by Phone, WhatsApp, or Email";
   }, []);
   const [formState, setFormState] = useState({
     parentName: "",
@@ -348,7 +348,7 @@ const Contact = () => {
       {/* Footer */}
       <footer className="py-6 text-center text-xs bg-[#071228]">
         <p className="text-slate-500">
-          © {new Date().getFullYear()} Sparvi Lab. All rights reserved.
+          © {new Date().getFullYear()} SP School. All rights reserved.
         </p>
       </footer>
     </div>

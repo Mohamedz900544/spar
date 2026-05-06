@@ -42,7 +42,7 @@ const OurStory = () => {
   const isRTL = i18n.language === "ar";
 
   useEffect(() => {
-    document.title = "Our Story — Sparvi Lab | The Origin of Innovation";
+    document.title = "Our Story — SP School | The Origin of Innovation";
     window.scrollTo(0, 0);
   }, []);
 

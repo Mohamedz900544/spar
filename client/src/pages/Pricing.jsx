@@ -16,7 +16,7 @@ const Pricing = () => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    document.title = "Pricing — Sparvi Lab | Plans & Packages";
+    document.title = "Pricing — SP School | Plans & Packages";
     window.scrollTo(0, 0);
   }, []);
 

@@ -112,7 +112,7 @@ const SparviInstructorAccessCard = () => {
           rotatedAt: data.rotatedAt ?? null,
         });
       } catch (err) {
-        console.error("Load Sparvi access error:", err);
+        console.error("Load SP School access error:", err);
         setLoadError(
           err.message || "Failed to load the current Sparvi instructor access."
         );
@@ -199,9 +199,9 @@ const SparviInstructorAccessCard = () => {
         message:
           "New password generated. The previous instructor password is now invalid.",
       });
-      toast.success("Sparvi password rotated");
+      toast.success("SP School password rotated");
     } catch (err) {
-      console.error("Rotate Sparvi password error:", err);
+      console.error("Rotate SP School password error:", err);
       const message =
         err.message || "Failed to rotate the Sparvi instructor password.";
       setRotationStatus({
@@ -228,7 +228,7 @@ const SparviInstructorAccessCard = () => {
         setCopyFeedback("");
       }, 1500);
     } catch (err) {
-      console.error("Copy Sparvi password error:", err);
+      console.error("Copy SP School password error:", err);
       toast.error("Could not copy password");
     }
   };
@@ -239,14 +239,14 @@ const SparviInstructorAccessCard = () => {
         <div className="space-y-3">
           <div className="inline-flex items-center gap-2 rounded-full bg-[#102a5a]/10 px-3 py-1 text-xs font-semibold text-[#102a5a]">
             <ShieldCheck className="w-3.5 h-3.5" />
-            Sparvi Instructor Access
+            SP School Instructor Access
           </div>
           <div>
             <h2 className="text-lg font-bold text-[#102a5a]">
               Desktop instructor password
             </h2>
             <p className="mt-1 max-w-2xl text-sm text-slate-600">
-              Sparvi desktop verifies instructors against the latest password
+              SP School desktop verifies instructors against the latest password
               stored in this dashboard backend. Only the newest generated
               password works.
             </p>
@@ -331,7 +331,7 @@ const SparviInstructorAccessCard = () => {
 
       {isLoading && (
         <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-          Loading current Sparvi access status...
+          Loading current SP School access status...
         </div>
       )}
 

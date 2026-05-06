@@ -107,7 +107,7 @@ const Navbar = () => {
         <Link to="/" className="shrink-0 flex items-center gap-4">
           <img
             src={effectiveScrolled ? logoScrolled : logoTransparent}
-            alt="Sparvi Lab"
+            alt="SP School"
             width="133"
             height="70"
             className={[
@@ -189,7 +189,7 @@ const Navbar = () => {
           dir={document.documentElement.dir}
         >
           <div className="flex items-center justify-between p-5 bg-white">
-            <img src={logoScrolled} alt="Sparvi Lab" className="h-8" />
+            <img src={logoScrolled} alt="SP School" className="h-8" />
             <button
               onClick={() => setOpen(false)}
               className="w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200 text-[#102a5a] hover:bg-slate-50"

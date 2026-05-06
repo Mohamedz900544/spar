@@ -82,7 +82,7 @@ export default function FractionPlayPage() {
           <div>
             <div className="inline-flex items-center gap-2 rounded-full bg-sky-500/15 px-3 py-1 text-xs font-medium text-sky-300 mb-2 border border-sky-500/40">
               <Sparkles className="w-4 h-4" />
-              Sparvi Lab · Fraction Smash
+              SP School · Fraction Smash
             </div>
             <h1 className="text-2xl md:text-3xl font-extrabold text-white">
               Smash the whole and discover fractions

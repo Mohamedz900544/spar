@@ -25,11 +25,11 @@
     "password_placeholder": "••••••••",
     "forgot_password": "Forgot password?",
     "submit": "Sign in",
-    "new_user": "New to Sparvi Lab?",
+    "new_user": "New to SP School?",
     "create_account": "Create an account →"
   },
   "signup": {
-    "title": "Join Sparvi Lab",
+    "title": "Join SP School",
     "heading": "Start your child's",
     "journey": "STEM journey",
     "description": "Create your parent account to book real electronics sessions and watch your kid build amazing projects.",
@@ -61,7 +61,7 @@
       "subtitle": "Live, instructor-led STEM sessions for ages 6–17. Kids learn electronics, coding, robotics, and AI through structured hands-on projects — online and in-person.",
       "cta_primary": "Secure your seat!",
       "cta_secondary": "Ask about the free session",
-      "seo_text": "Sparvi Lab — Live STEM Education for Kids Ages 6–17. Coding, electronics, robotics, and AI through structured hands-on sessions."
+      "seo_text": "SP School — Live STEM Education for Kids Ages 6–17. Coding, electronics, robotics, and AI through structured hands-on sessions."
     },
     "heroes": {
       "title": "Hear from Our Heroes"
@@ -72,10 +72,10 @@
     },
     "projects": {
       "title": "Discover Our Students' Projects",
-      "subtitle": "Explore out these incredible hands-on creations by Sparvi Lab makers."
+      "subtitle": "Explore out these incredible hands-on creations by SP School makers."
     },
     "why_choose": {
-      "title": "Why Choose Sparvi Lab?",
+      "title": "Why Choose SP School?",
       "cta": "Secure your Seat!"
     },
     "learning_path": {
@@ -83,7 +83,7 @@
     },
     "faq": {
       "title": "Frequently Asked Questions",
-      "subtitle": "Everything you need to know about Sparvi Lab before getting started.",
+      "subtitle": "Everything you need to know about SP School before getting started.",
       "still_have_questions": "Still have questions?",
       "team_happy_to_help": "Our team is happy to help you out.",
       "contact_us": "Contact Us"
@@ -105,12 +105,12 @@
     },
     "faqs": {
       "q0": {
-        "q": "What exactly will my child learn at Sparvi Lab?",
+        "q": "What exactly will my child learn at SP School?",
         "a": "Your child will learn the skills that make technology easier to understand long-term, not just one tool for a short time. We build strong foundations in problem-solving, logical reasoning, creativity, and learning agility, then apply them through hands-on learning across computational thinking, creative coding, electronics and robotics, game development, and early AI concepts. The goal is a child who can face new challenges confidently and learn new technologies faster."
       },
       "q1": {
         "q": "What age groups do you offer, and how are levels decided?",
-        "a": "Sparvi Lab is designed for ages 6–17. Students are placed into age bands with a progressive curriculum that grows year by year. Placement is based on age and a simple onboarding check to understand the child's current level, attention span, and comfort with problem-solving. If a child is advanced, we can place them higher. If they need stronger foundations, we start from the right step without pressure."
+        "a": "SP School is designed for ages 6–17. Students are placed into age bands with a progressive curriculum that grows year by year. Placement is based on age and a simple onboarding check to understand the child's current level, attention span, and comfort with problem-solving. If a child is advanced, we can place them higher. If they need stronger foundations, we start from the right step without pressure."
       },
       "q2": {
         "q": "Do students need any prior coding or robotics experience?",
@@ -129,8 +129,8 @@
         "a": "We track progress using skill-based milestones, not just completed lessons. We focus on how the child is improving in areas such as problem-solving strategy, logical reasoning, debugging ability, creativity in solutions, and confidence during challenges. Parents receive progress updates that highlight strengths and what to work on next. This makes learning measurable and shows real growth, not just finished projects."
       },
       "q6": {
-        "q": "Is Sparvi Lab online, in-person, or both?",
-        "a": "Sparvi Lab can be delivered online and in-person depending on your location and the program schedule. Online sessions are interactive and hands-on, not passive watching. In-person sessions follow the same curriculum, with more physical collaboration. When you enroll, we confirm the available format options and schedules for your area."
+        "q": "Is SP School online, in-person, or both?",
+        "a": "SP School can be delivered online and in-person depending on your location and the program schedule. Online sessions are interactive and hands-on, not passive watching. In-person sessions follow the same curriculum, with more physical collaboration. When you enroll, we confirm the available format options and schedules for your area."
       },
       "q7": {
         "q": "How are lessons taught to match different learning styles?",
@@ -158,7 +158,7 @@
       },
       "q13": {
         "q": "How do you ensure the curriculum is not just random activities?",
-        "a": "Every activity at Sparvi Lab is tied to a learning objective and a progression path. We do not teach random \"fun projects\" without a learning journey. Each level builds on the previous one and prepares the child for more advanced thinking and real-world relevance. That is what makes Sparvi Lab a curriculum-driven system, not a tool-based academy."
+        "a": "Every activity at SP School is tied to a learning objective and a progression path. We do not teach random \"fun projects\" without a learning journey. Each level builds on the previous one and prepares the child for more advanced thinking and real-world relevance. That is what makes SP School a curriculum-driven system, not a tool-based academy."
       }
     },
     "features": {
@@ -294,14 +294,14 @@
     "timeline_subtitle": "The transition from a simple observation to a structured educational revolution.",
     "curriculum_title1": "Engineered for ",
     "curriculum_title2": "Deep Learning",
-    "curriculum_subtitle": "Sparvi Lab is not a one-off workshop or a scattered blend of tools. It is a curriculum-driven architecture designed around how children actually process information. We sequence experiences so the leap from early curiosity to real innovation is seamless.",
+    "curriculum_subtitle": "SP School is not a one-off workshop or a scattered blend of tools. It is a curriculum-driven architecture designed around how children actually process information. We sequence experiences so the leap from early curiosity to real innovation is seamless.",
     "checks": [
       "Experiential first, conceptual second",
       "Adaptable across multiple tools & frameworks",
       "Aligned with international tech standards"
     ],
     "outcomes_title": "From Coding to Creating",
-    "outcomes_subtitle": "In Sparvi Lab, learners don't just \"complete activities\". They learn to see technology as a raw material they can shape, building a tolerance for trial, error, and debugging.",
+    "outcomes_subtitle": "In SP School, learners don't just \"complete activities\". They learn to see technology as a raw material they can shape, building a tolerance for trial, error, and debugging.",
     "quote": "\"They learn to be comfortable with ambiguity, debugging both their code and their own logic.\"",
     "cta_title1": "The future belongs to the ",
     "cta_title2": "resilient.",
@@ -321,7 +321,7 @@
       },
       {
         "year": "The Ecosystem",
-        "title": "Sparvi Lab Is Born",
+        "title": "SP School Is Born",
         "desc": "It wasn't just about offering classes; it was about creating a full ecosystem involving students, mentors, and parents. By building this partnership, we turned isolated workshops into a long-term developmental journey."
       }
     ],

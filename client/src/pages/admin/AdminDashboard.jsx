@@ -704,7 +704,7 @@ const AdminDashboard = () => {
       </main>
 
       <footer className="py-5 text-center text-xs text-slate-400 bg-white border-t border-slate-100">
-        © {new Date().getFullYear()} Sparvi Lab · Admin Dashboard
+        © {new Date().getFullYear()} SP School · Admin Dashboard
       </footer>
     </>
   );

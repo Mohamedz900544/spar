@@ -473,7 +473,7 @@ router.post("/sms/test", authRequired, agentOrAdmin, async (req, res) => {
     const agentName = req.user?.name || "Sales Agent";
     const now = new Date().toLocaleString("en-GB", { timeZone: "Africa/Cairo" });
     const content = [
-      "Sparvi SMS test",
+      "SP School SMS test",
       "",
       "Agent:",
       agentName,
