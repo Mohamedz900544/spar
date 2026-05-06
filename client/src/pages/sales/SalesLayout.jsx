@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import {
+  AlertTriangle,
   CalendarClock,
   ClipboardList,
   LogOut,
@@ -53,6 +54,10 @@ const SalesLayout = () => {
   }, [customWhatsAppMessages]);
 
   const closeWhatsAppMessagePicker = () => setWhatsAppPickerLead(null);
+
+  const closeLostReasonPrompt = () => {
+    sales.closeLostReasonPrompt();
+  };
 
   const sendWhatsAppMessage = (message) => {
     if (!whatsAppPickerLead) return;
@@ -209,6 +214,83 @@ const SalesLayout = () => {
           </main>
         </div>
       </div>
+
+      {sales.lostReasonPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <button
+            type="button"
+            aria-label="Close lost reason form"
+            onClick={closeLostReasonPrompt}
+            className="absolute inset-0 bg-slate-950/45 backdrop-blur-[1px]"
+          />
+
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              const formData = new FormData(event.currentTarget);
+              sales.submitLostReason(formData.get("lostReason"));
+            }}
+            className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-rose-100 bg-white shadow-2xl"
+          >
+            <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4">
+              <div className="flex min-w-0 items-start gap-3">
+                <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600 ring-1 ring-rose-100">
+                  <AlertTriangle className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold uppercase tracking-wider text-rose-600">
+                    Close Lead as Lost
+                  </p>
+                  <h2 className="mt-1 truncate text-lg font-semibold text-slate-800">
+                    {sales.lostReasonPrompt.lead?.parentName || "Lead"}
+                  </h2>
+                  <p className="mt-1 text-sm font-medium text-slate-500">
+                    Add a clear reason so the team understands why this lead was lost.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={closeLostReasonPrompt}
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 p-0 text-slate-500 transition-all hover:bg-slate-100"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="px-5 py-4">
+              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">
+                Lost Reason
+              </label>
+              <textarea
+                name="lostReason"
+                rows={5}
+                defaultValue={sales.lostReasonPrompt.initialReason || ""}
+                required
+                autoFocus
+                placeholder="Example: parent is not interested, pricing concern, no response..."
+                className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-rose-300 focus:bg-white focus:ring-4 focus:ring-rose-100"
+              />
+            </div>
+
+            <div className="flex flex-col-reverse gap-2 border-t border-slate-100 bg-slate-50/70 px-5 py-4 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={closeLostReasonPrompt}
+                className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 transition-all hover:bg-slate-100"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="inline-flex h-10 items-center justify-center rounded-lg bg-rose-600 px-4 text-sm font-semibold text-white shadow-sm transition-all hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Save Reason
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {whatsAppPickerLead && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

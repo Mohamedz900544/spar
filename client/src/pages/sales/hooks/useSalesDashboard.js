@@ -45,6 +45,7 @@ export const useSalesDashboard = () => {
   const [sendingWhatsAppAutomationTests, setSendingWhatsAppAutomationTests] =
     useState({});
   const [isSendingEmailTest, setIsSendingEmailTest] = useState(false);
+  const [lostReasonPrompt, setLostReasonPrompt] = useState(null);
 
   const checkAuth = useCallback(() => {
     const token = localStorage.getItem("sparvi_token");
@@ -165,18 +166,17 @@ export const useSalesDashboard = () => {
     const token = checkAuth();
     if (!token) return;
 
-    let lostReason = "";
+    let lostReason = options.lostReason || "";
     let callLaterAt = options.callLaterAt || "";
     if (status === "Closed - Lost") {
-      const reason = window.prompt(
-        "Please enter the reason for closing this lead as lost:",
-        lead.lostReason || ""
-      );
-      if (!reason || !reason.trim()) {
-        toast.error("Lost reason is required.");
+      if (!lostReason.trim()) {
+        setLostReasonPrompt({
+          lead,
+          initialReason: lead.lostReason || "",
+        });
         return;
       }
-      lostReason = reason.trim();
+      lostReason = lostReason.trim();
     }
 
     if ((status === "Reserved Later" || status === "Busy Call Later") && !callLaterAt) {
@@ -229,6 +229,26 @@ export const useSalesDashboard = () => {
       console.error("Update lead status error:", err);
       toast.error(err.message || "Failed to update status");
     }
+  };
+
+  const closeLostReasonPrompt = () => {
+    setLostReasonPrompt(null);
+  };
+
+  const submitLostReason = async (reason) => {
+    const prompt = lostReasonPrompt;
+    if (!prompt?.lead) return;
+
+    const trimmedReason = `${reason || ""}`.trim();
+    if (!trimmedReason) {
+      toast.error("Lost reason is required.");
+      return;
+    }
+
+    setLostReasonPrompt(null);
+    await updateLeadStatus(prompt.lead, "Closed - Lost", {
+      lostReason: trimmedReason,
+    });
   };
 
   const scheduleBusyCallLater = async (lead, callLaterAt, status = "Busy Call Later") => {
@@ -589,6 +609,7 @@ export const useSalesDashboard = () => {
     isSendingWhatsAppTest,
     sendingWhatsAppAutomationTests,
     isSendingEmailTest,
+    lostReasonPrompt,
     error,
     leads,
     instructors,
@@ -601,6 +622,8 @@ export const useSalesDashboard = () => {
     fetchDashboard,
     createLead,
     updateLeadStatus,
+    closeLostReasonPrompt,
+    submitLostReason,
     scheduleBusyCallLater,
     addLeadNote,
     savePaymentLink,
