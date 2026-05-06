@@ -13,14 +13,24 @@ import {
   Folder,
   Link2,
   List,
+  MessageCircle,
+  MessageSquareText,
+  PlusCircle,
   Sparkles,
   ClipboardList,
   LayoutDashboard,
   Save,
+  Send,
   Star,
   Clock3,
+  Trash2,
+  X,
   XCircle,
 } from "lucide-react";
+import {
+  normalizeCustomWhatsAppMessages,
+  toWhatsAppMessageLink,
+} from "./sales/salesHelpers";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -30,8 +40,86 @@ const TABS = [
   { id: "attendance", label: "Attendance", icon: ClipboardList },
   { id: "sessions", label: "Upcoming", icon: CalendarClock },
   { id: "evaluations", label: "Evaluations", icon: Sparkles },
+  { id: "customMessages", label: "Custom Messages", icon: MessageSquareText },
   { id: "workingHours", label: "Working Hours", icon: Clock3 },
 ];
+
+const INSTRUCTOR_MESSAGE_PLACEHOLDERS = [
+  "{parentName}",
+  "{childName}",
+  "{childAge}",
+  "{phone}",
+  "{status}",
+  "{source}",
+  "{sessionTitle}",
+  "{roundName}",
+];
+
+const createMessageId = () => {
+  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+};
+
+const getStoredInstructorUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem("sparvi_user") || "{}") || {};
+  } catch {
+    return {};
+  }
+};
+
+const getInstructorCustomMessagesStorageKey = () => {
+  const user = getStoredInstructorUser();
+  const keySource =
+    user.id ||
+    user._id ||
+    user.email ||
+    localStorage.getItem("sparvi_user_email") ||
+    "unknown";
+  return `sparvi_instructor_custom_whatsapp_messages:${keySource}`;
+};
+
+const loadInstructorCustomMessages = (storageKey) => {
+  try {
+    return normalizeCustomWhatsAppMessages(
+      JSON.parse(localStorage.getItem(storageKey) || "[]")
+    );
+  } catch {
+    return [];
+  }
+};
+
+const saveInstructorCustomMessages = (storageKey, messages) => {
+  localStorage.setItem(
+    storageKey,
+    JSON.stringify(normalizeCustomWhatsAppMessages(messages))
+  );
+};
+
+const fillInstructorWhatsAppTemplate = (template, contact = {}) => {
+  const values = {
+    parentName: contact.parentName || "",
+    childName: contact.childName || "",
+    childAge: contact.childAge || "",
+    phone: contact.phone || "",
+    status: contact.status || "",
+    source: contact.source || "",
+    sessionTitle: contact.sessionTitle || "",
+    roundName: contact.roundName || "",
+  };
+
+  return (template || "").replace(
+    /\{(parentName|childName|childAge|phone|status|source|sessionTitle|roundName)\}/g,
+    (_, key) => values[key]
+  );
+};
+
+const formatCustomMessageDateTime = (value) => {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString();
+};
 
 const WEEK_DAY_ITEMS = [
   {
@@ -318,6 +406,12 @@ const InstructorDashboard = () => {
   const [workingHoursGrid, setWorkingHoursGrid] = useState(createEmptyWorkingHoursGrid());
   const [isSavingWorkingHours, setIsSavingWorkingHours] = useState(false);
   const [workingHoursMessage, setWorkingHoursMessage] = useState("");
+  const [customMessagesStorageKey] = useState(() => getInstructorCustomMessagesStorageKey());
+  const [customWhatsAppMessages, setCustomWhatsAppMessages] = useState(() =>
+    loadInstructorCustomMessages(getInstructorCustomMessagesStorageKey())
+  );
+  const [customMessageForm, setCustomMessageForm] = useState({ title: "", body: "" });
+  const [whatsAppPickerContact, setWhatsAppPickerContact] = useState(null);
 
   const fetchDashboard = useCallback(async () => {
     const token = localStorage.getItem("sparvi_token");
@@ -397,6 +491,9 @@ const InstructorDashboard = () => {
   }, [navigate]);
 
   useEffect(() => { fetchDashboard(); }, [fetchDashboard]);
+  useEffect(() => {
+    saveInstructorCustomMessages(customMessagesStorageKey, customWhatsAppMessages);
+  }, [customMessagesStorageKey, customWhatsAppMessages]);
   useEffect(() => {
     const timer = setInterval(() => setTimelineNow(Date.now()), 30000);
     return () => clearInterval(timer);
@@ -652,6 +749,70 @@ const InstructorDashboard = () => {
   const selectedOverviewChildShowedUp =
     selectedOverviewLead?.freeSession?.childShowedUp ?? selectedOverviewSession?.childShowedUp ?? null;
 
+  const sortedCustomWhatsAppMessages = useMemo(
+    () =>
+      [...(customWhatsAppMessages || [])].sort(
+        (first, second) => new Date(second.createdAt || 0) - new Date(first.createdAt || 0)
+      ),
+    [customWhatsAppMessages]
+  );
+
+  const updateCustomMessageField = (field, value) => {
+    setCustomMessageForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const addCustomWhatsAppMessage = (event) => {
+    event.preventDefault();
+    const title = customMessageForm.title.trim();
+    const body = customMessageForm.body.trim();
+    if (!title || !body) return;
+
+    setCustomWhatsAppMessages((prev) => [
+      {
+        id: createMessageId(),
+        title,
+        body,
+        createdAt: new Date().toISOString(),
+      },
+      ...(prev || []),
+    ]);
+    setCustomMessageForm({ title: "", body: "" });
+  };
+
+  const deleteCustomWhatsAppMessage = (messageId) => {
+    setCustomWhatsAppMessages((prev) =>
+      (prev || []).filter((message) => message.id !== messageId)
+    );
+  };
+
+  const openWhatsAppMessagePicker = (contact) => {
+    const phone = (contact?.phone || "").toString().trim();
+    if (!phone) return;
+    setWhatsAppPickerContact({
+      parentName: contact?.parentName || "",
+      childName: contact?.childName || "",
+      childAge: contact?.childAge || "",
+      phone,
+      status: contact?.status || "",
+      source: contact?.source || "",
+      sessionTitle: contact?.sessionTitle || "",
+      roundName: contact?.roundName || "",
+    });
+  };
+
+  const closeWhatsAppMessagePicker = () => setWhatsAppPickerContact(null);
+
+  const sendWhatsAppMessage = (message) => {
+    if (!whatsAppPickerContact) return;
+    const resolvedMessage = message
+      ? fillInstructorWhatsAppTemplate(message.body, whatsAppPickerContact)
+      : "";
+    const link = toWhatsAppMessageLink(whatsAppPickerContact.phone, resolvedMessage);
+    if (!link) return;
+    window.open(link, "_blank", "noopener,noreferrer");
+    closeWhatsAppMessagePicker();
+  };
+
   const handleSelectOverviewSession = (session) => {
     setSelectedOverviewSessionKey(session.key);
     if (session.sessionType === "round") {
@@ -868,82 +1029,136 @@ const InstructorDashboard = () => {
     navigate("/login");
   };
 
+  const activeTabItem = TABS.find((tab) => tab.id === activeTab) || TABS[0];
+  const pageTitle = activeTabItem.label === "Overview" ? "Dashboard" : activeTabItem.label;
+
   /* ================================================================== */
   /*  RENDER                                                             */
   /* ================================================================== */
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#f8fafc] to-white flex flex-col font-sans">
-      {/* ===== Sticky Navbar ===== */}
-      <nav
-        className="sticky top-0 z-50 border-b border-white/10"
-        style={{
-          background: "linear-gradient(135deg, #071228 0%, #102a5a 50%, #1a3a6b 100%)",
-        }}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-16">
-            {/* Left: Logo */}
-            <Link to="/" className="flex items-center gap-3 shrink-0">
-              <img src="/logo-white.png" alt="Sparvi Lab" className="h-7" />
-              <span className="hidden md:inline text-xs font-semibold text-[#FBBF24] border border-[#FBBF24]/30 rounded-full px-2.5 py-0.5" style={{ background: "rgba(251,191,36,0.08)" }}>
-                Instructor
+    <div className="h-screen w-full overflow-hidden bg-[#f7f8f6] font-sans text-slate-900 [&_h1]:font-sans [&_h2]:font-sans [&_h3]:font-sans">
+      <div className="flex h-full w-full overflow-hidden bg-white">
+        <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white lg:flex lg:flex-col">
+          <div className="flex h-20 items-center border-b border-slate-200 px-6">
+            <Link to="/instructor" className="inline-flex min-w-0 items-center gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 ring-1 ring-emerald-100">
+                <img src="/icon.png" alt="Sparvi Lab" className="h-6 w-6 rounded-md object-contain" />
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate text-lg font-semibold text-slate-800">Sparvi Instructor</span>
+                <span className="block truncate text-xs font-semibold text-slate-400">Instructor Workspace</span>
               </span>
             </Link>
+          </div>
 
-            {/* Center: Tab Navigation */}
-            <div className="flex items-center gap-1">
+          <nav className="flex-1 overflow-y-auto px-4 py-5">
+            <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              Menu
+            </p>
+            <div className="space-y-1.5">
               {TABS.map((tab) => {
                 const isActive = activeTab === tab.id;
                 const TabIcon = tab.icon;
                 return (
                   <button
                     key={tab.id}
+                    type="button"
                     onClick={() => setActiveTab(tab.id)}
-                    className={`relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                    className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold transition-all ${
                       isActive
-                        ? "bg-white/15 text-white shadow-sm"
-                        : "text-white/50 hover:text-white/80 hover:bg-white/5"
+                        ? "bg-emerald-50 text-emerald-700"
+                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
                     }`}
                   >
-                    <TabIcon className="w-4 h-4" />
-                    <span className="hidden sm:inline">{tab.label}</span>
-                    {isActive && (
-                      <Motion.div
-                        layoutId="activeTabIndicator"
-                        className="absolute -bottom-[1px] left-3 right-3 h-0.5 bg-[#FBBF24] rounded-full"
-                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                      />
-                    )}
+                    <TabIcon className="h-4 w-4 shrink-0" />
+                    <span className="truncate">{tab.label}</span>
                   </button>
                 );
               })}
             </div>
+          </nav>
 
-            {/* Right: Actions */}
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                onClick={fetchDashboard}
-                disabled={isLoading}
-                className="flex items-center gap-1.5 text-xs text-white/60 hover:text-white px-2.5 py-2 rounded-xl hover:bg-white/5 transition-all"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
-                <span className="hidden sm:inline">Refresh</span>
-              </button>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-1.5 text-xs text-white/60 hover:text-white px-2.5 py-2 rounded-xl hover:bg-white/5 transition-all"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Sign Out</span>
-              </button>
-            </div>
+          <div className="border-t border-slate-200 px-4 py-5">
+            <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              Account
+            </p>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-slate-500 transition-all hover:bg-rose-50 hover:text-rose-700"
+            >
+              <LogOut className="h-4 w-4 shrink-0" />
+              Sign Out
+            </button>
           </div>
-        </div>
-      </nav>
+        </aside>
 
-      {/* ===== Main Content ===== */}
-      <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6">
-        <div className="max-w-7xl mx-auto space-y-6">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-[#f7f8f6]">
+          <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur sm:px-6">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex min-w-0 items-center gap-3">
+                <Link
+                  to="/instructor"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 ring-1 ring-emerald-100 lg:hidden"
+                >
+                  <img src="/icon.png" alt="Sparvi Lab" className="h-6 w-6 rounded-md object-contain" />
+                </Link>
+                <div className="min-w-0">
+                  <h1 className="truncate text-2xl font-semibold tracking-normal text-slate-800">
+                    {pageTitle}
+                  </h1>
+                  <p className="truncate text-xs font-medium text-slate-400">
+                    Instructor Workspace
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={fetchDashboard}
+                  disabled={isLoading}
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 disabled:opacity-60"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+                  <span className="hidden sm:inline">Refresh</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-slate-950 px-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-slate-800 lg:hidden"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span className="hidden sm:inline">Sign Out</span>
+                </button>
+              </div>
+            </div>
+
+            <nav className="mt-3 flex gap-2 overflow-x-auto pb-1 lg:hidden">
+              {TABS.map((tab) => {
+                const isActive = activeTab === tab.id;
+                const TabIcon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-xs font-bold transition-all ${
+                      isActive
+                        ? "bg-emerald-50 text-emerald-700"
+                        : "bg-white text-slate-500 ring-1 ring-slate-200 hover:text-slate-900"
+                    }`}
+                  >
+                    <TabIcon className="h-3.5 w-3.5" />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </nav>
+          </header>
+
+          <main className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+            <div className="w-full space-y-5">
           <AnimatePresence>
             {evaluationMessage && (
               <Motion.div
@@ -989,8 +1204,8 @@ const InstructorDashboard = () => {
                   onSubmit={handleLinkRound}
                   className="grid grid-cols-1 gap-2 lg:grid-cols-[180px_1fr_auto_auto] lg:items-center"
                 >
-                  <label className="flex items-center gap-3 text-sm font-bold text-[#102a5a]">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#102a5a]/7 text-[#0f3b82]">
+                  <label className="flex items-center gap-3 text-sm font-bold text-slate-700">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
                       <Link2 className="h-4 w-4" />
                     </span>
                     <span>Link New Round</span>
@@ -1000,12 +1215,12 @@ const InstructorDashboard = () => {
                     value={roundCode}
                     onChange={(e) => setRoundCode(e.target.value)}
                     placeholder="Enter code here"
-                    className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-800 shadow-inner outline-none placeholder:text-slate-400 focus:border-[#FBBF24] focus:ring-2 focus:ring-[#FBBF24]/40"
+                    className="h-11 rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-800 shadow-inner outline-none placeholder:text-slate-400 focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100"
                   />
                   <button
                     type="submit"
                     disabled={isLinking || !roundCode.trim()}
-                    className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#FBBF24] px-5 text-sm font-bold text-[#102a5a] shadow-sm transition-all hover:bg-[#F59E0B] disabled:opacity-50"
+                    className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 text-sm font-bold text-white shadow-sm transition-all hover:bg-emerald-700 disabled:opacity-50"
                   >
                     <Link2 className="h-4 w-4" />
                     {isLinking ? "Linking..." : "Link"}
@@ -1013,7 +1228,7 @@ const InstructorDashboard = () => {
                   <button
                     type="button"
                     onClick={() => setShowLinkedRounds((prev) => !prev)}
-                    className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-[#102a5a] transition-all hover:bg-slate-50"
+                    className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 transition-all hover:bg-slate-50 hover:text-slate-900"
                   >
                     <List className="h-4 w-4" />
                     {showLinkedRounds ? "Hide linked rounds" : "See all rounds linked"}
@@ -1025,12 +1240,12 @@ const InstructorDashboard = () => {
                 <div className="min-h-[520px] rounded-2xl border border-slate-200/80 bg-white shadow-sm">
                   <div className="flex items-center justify-between px-4 py-4">
                     <div className="flex items-center gap-3">
-                      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#102a5a]/7 text-[#0f3b82]">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
                         <CalendarClock className="h-4 w-4" />
                       </span>
                       <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-600">Upcoming Sessions</h2>
                     </div>
-                    <span className="inline-flex h-8 min-w-8 items-center justify-center rounded-full bg-[#FBBF24]/10 px-2 text-sm font-bold text-[#b45309]">
+                    <span className="inline-flex h-8 min-w-8 items-center justify-center rounded-lg bg-emerald-50 px-2 text-sm font-bold text-emerald-700">
                         {upcomingSessions.length}
                     </span>
                   </div>
@@ -1054,12 +1269,12 @@ const InstructorDashboard = () => {
                               onClick={() => handleSelectOverviewSession(session)}
                               className={`relative mx-1 w-[calc(100%-0.5rem)] rounded-xl border px-4 py-3 text-left transition-all ${
                                 isSelected
-                                  ? "border-[#FBBF24]/55 bg-[#FFF7DC] shadow-[inset_4px_0_0_#FBBF24]"
+                                  ? "border-emerald-200 bg-emerald-50/70 shadow-[inset_4px_0_0_#10b981]"
                                   : "border-transparent bg-white hover:border-slate-200 hover:bg-slate-50"
                               }`}
                             >
                               <div className="flex items-start gap-3">
-                                <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${isSelected ? "bg-[#FBBF24]/18 text-[#b45309]" : "bg-[#102a5a]/7 text-[#0f3b82]"}`}>
+                                <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${isSelected ? "bg-emerald-100 text-emerald-700" : "bg-emerald-50 text-emerald-600"}`}>
                                   <CalendarClock className="h-4 w-4" />
                                 </span>
                                 <div className="min-w-0 flex-1">
@@ -1103,7 +1318,7 @@ const InstructorDashboard = () => {
                                   onClick={() => setSelectedRoundId(roundId)}
                                   className={`rounded-xl border px-3 py-2 text-left text-xs font-semibold transition-all ${
                                     isSelectedRound
-                                      ? "border-[#FBBF24] bg-[#FBBF24]/10 text-[#102a5a]"
+                                      ? "border-emerald-300 bg-emerald-50 text-emerald-700"
                                       : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                                   }`}
                                 >
@@ -1126,7 +1341,7 @@ const InstructorDashboard = () => {
                         <div className="space-y-4">
                           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                             <div className="flex items-start gap-4">
-                              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#102a5a]/7 text-[#0f3b82]">
+                              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
                                 <CalendarClock className="h-5 w-5" />
                               </span>
                               <div>
@@ -1152,7 +1367,7 @@ const InstructorDashboard = () => {
                             <div className="overflow-hidden rounded-2xl border border-slate-100">
                               <div className="flex flex-col gap-3 border-b border-slate-100 p-4 md:flex-row md:items-center md:justify-between">
                                 <div>
-                                  <h3 className="text-sm font-semibold text-[#102a5a]">Attendance</h3>
+                                  <h3 className="text-sm font-semibold text-slate-700">Attendance</h3>
                                   <p className="text-xs text-slate-500">
                                     {overviewAttendanceCounts.present}/{overviewAttendanceCounts.total} marked present
                                   </p>
@@ -1201,7 +1416,7 @@ const InstructorDashboard = () => {
 
                                         return (
                                           <tr key={enrollmentId} className="hover:bg-slate-50/70">
-                                            <td className="px-4 py-3 font-medium text-[#102a5a]">
+                                            <td className="px-4 py-3 font-medium text-slate-800">
                                               {enrollment.childName || "-"}
                                             </td>
                                             <td className="px-4 py-3 text-slate-600">{enrollment.parentName || "-"}</td>
@@ -1236,18 +1451,31 @@ const InstructorDashboard = () => {
                               <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                                 <div>
                                   <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-600">Evaluation</h3>
-                                  <p className="mt-1 text-xs text-slate-500">
-                                    Fill child strengths and favorite project directly from this free session.
-                                  </p>
                                 </div>
                                 <button
                                   type="button"
                                   onClick={() => setActiveTab("evaluations")}
-                                  className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-[#102a5a] hover:bg-slate-50"
+                                  className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                                 >
                                   <span>Open all evaluations</span>
                                   <ExternalLink className="h-4 w-4" />
                                 </button>
+                                {selectedOverviewLead?.phone && (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      openWhatsAppMessagePicker({
+                                        ...selectedOverviewLead,
+                                        source: selectedOverviewLead.source || "Free Session",
+                                        sessionTitle: selectedOverviewSession.title,
+                                      })
+                                    }
+                                    className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-50"
+                                  >
+                                    <MessageCircle className="h-4 w-4" />
+                                    WhatsApp
+                                  </button>
+                                )}
                               </div>
 
                               {selectedOverviewLead ? (
@@ -1259,7 +1487,7 @@ const InstructorDashboard = () => {
                                   </p>
                                   <div className="mb-3 rounded-xl border border-slate-100 bg-slate-50/80 p-4">
                                     <div className="mb-3">
-                                      <p className="text-sm font-bold text-[#102a5a]">Did the kid show?</p>
+                                      <p className="text-sm font-bold text-slate-700">Did the kid show?</p>
                                       <p className="mt-1 text-xs text-slate-500">
                                         This will be included in the automated follow-up message.
                                       </p>
@@ -1309,7 +1537,7 @@ const InstructorDashboard = () => {
                                           handleEvaluationDraftChange(selectedOverviewLeadId, "strengths", e.target.value)
                                         }
                                         placeholder="Child strengths..."
-                                        className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-[#FBBF24] focus:ring-2 focus:ring-[#FBBF24]/40"
+                                        className="w-full rounded-lg border border-slate-200 bg-white py-3 pl-11 pr-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100"
                                       />
                                     </div>
                                     <div className="relative">
@@ -1321,7 +1549,7 @@ const InstructorDashboard = () => {
                                           handleEvaluationDraftChange(selectedOverviewLeadId, "favoriteProject", e.target.value)
                                         }
                                         placeholder="Favorite project..."
-                                        className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-[#FBBF24] focus:ring-2 focus:ring-[#FBBF24]/40"
+                                        className="w-full rounded-lg border border-slate-200 bg-white py-3 pl-11 pr-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100"
                                       />
                                     </div>
                                   </div>
@@ -1330,7 +1558,7 @@ const InstructorDashboard = () => {
                                       type="button"
                                       onClick={() => saveLeadEvaluation(selectedOverviewLeadId)}
                                       disabled={!selectedOverviewLeadId || isSavingEvaluationId === selectedOverviewLeadId}
-                                      className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#0B43C8] px-5 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#103a9b] disabled:opacity-50"
+                                      className="inline-flex h-10 items-center gap-2 rounded-lg bg-slate-950 px-5 text-sm font-bold text-white shadow-sm transition-all hover:bg-slate-800 disabled:opacity-50"
                                     >
                                       <Save className="h-4 w-4" />
                                       {isSavingEvaluationId === selectedOverviewLeadId ? "Saving..." : "Save Evaluation"}
@@ -1363,12 +1591,12 @@ const InstructorDashboard = () => {
               {/* Round Selector Bar */}
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                  <label className="text-sm font-bold text-[#102a5a] shrink-0">Select Round:</label>
+                  <label className="text-sm font-bold text-slate-700 shrink-0">Select Round:</label>
                   <div className="relative flex-1 max-w-md">
                     <select
                       value={selectedRoundId}
                       onChange={(e) => setSelectedRoundId(e.target.value)}
-                      className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50/50 pl-4 pr-10 py-2.5 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] cursor-pointer"
+                      className="w-full appearance-none rounded-lg border border-slate-200 bg-slate-50/50 pl-4 pr-10 py-2.5 text-sm font-medium text-slate-700 outline-none focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100 cursor-pointer"
                     >
                       {rounds.length === 0 ? (
                         <option value="">No rounds linked</option>
@@ -1391,9 +1619,9 @@ const InstructorDashboard = () => {
                   <div className="p-5 border-b border-slate-100">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                       <div>
-                        <h2 className="text-lg font-bold text-[#102a5a]">{selectedRound.name}</h2>
+                        <h2 className="text-lg font-bold text-slate-800">{selectedRound.name}</h2>
                         <div className="mt-1 flex items-center gap-2 text-sm text-slate-500">
-                          <span className="font-mono text-xs bg-[#102a5a]/5 px-2 py-0.5 rounded-lg border border-[#102a5a]/10">
+                          <span className="font-mono text-xs bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-200">
                             {selectedRound.code}
                           </span>
                           <span className="w-1 h-1 rounded-full bg-slate-300" />
@@ -1408,7 +1636,7 @@ const InstructorDashboard = () => {
                         <select
                           value={selectedSessionId}
                           onChange={(e) => setSelectedSessionId(e.target.value)}
-                          className="appearance-none min-w-[220px] rounded-xl border border-slate-200 bg-slate-50/50 pl-4 pr-10 py-2.5 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24] cursor-pointer"
+                          className="appearance-none min-w-[220px] rounded-lg border border-slate-200 bg-slate-50/50 pl-4 pr-10 py-2.5 text-sm font-medium text-slate-700 outline-none focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100 cursor-pointer"
                         >
                           {sessions.map((s) => (
                             <option key={s.id || s._id} value={s.id || s._id}>
@@ -1430,13 +1658,13 @@ const InstructorDashboard = () => {
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             placeholder="Search student…"
-                            className="w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24]"
+                            className="w-full rounded-lg border border-slate-200 bg-slate-50/50 pl-10 pr-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100"
                           />
                         </div>
                         <select
                           value={attendanceFilter}
                           onChange={(e) => setAttendanceFilter(e.target.value)}
-                          className="rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 cursor-pointer"
+                          className="rounded-lg border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-sm font-medium text-slate-700 outline-none focus:ring-4 focus:ring-emerald-100 cursor-pointer"
                         >
                           <option value="all">All</option>
                           <option value="present">Present</option>
@@ -1488,10 +1716,10 @@ const InstructorDashboard = () => {
                               <tr key={eId} className="group hover:bg-slate-50/50 transition-colors">
                                 <td className="whitespace-nowrap px-5 py-3.5">
                                   <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#102a5a] to-[#1a3a6b] flex items-center justify-center text-white font-bold text-xs shrink-0">
+                                    <div className="w-8 h-8 rounded-lg bg-slate-950 flex items-center justify-center text-white font-bold text-xs shrink-0">
                                       {(enrollment.childName || "?")[0].toUpperCase()}
                                     </div>
-                                    <span className="font-semibold text-[#102a5a]">
+                                    <span className="font-semibold text-slate-800">
                                       {enrollment.childName || "—"}
                                     </span>
                                   </div>
@@ -1500,7 +1728,30 @@ const InstructorDashboard = () => {
                                   {enrollment.parentName || "—"}
                                 </td>
                                 <td className="whitespace-nowrap px-5 py-3.5 text-slate-600 font-medium">
-                                  {enrollment.phone || "—"}
+                                  <span className="inline-flex items-center gap-2">
+                                    <span>{enrollment.phone || "—"}</span>
+                                    {enrollment.phone && (
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          openWhatsAppMessagePicker({
+                                            parentName: enrollment.parentName,
+                                            childName: enrollment.childName,
+                                            phone: enrollment.phone,
+                                            source: "Round",
+                                            sessionTitle:
+                                              sessions.find((session) => (session.id || session._id) === selectedSessionId)
+                                                ?.title || "",
+                                            roundName: selectedRound.name,
+                                          })
+                                        }
+                                        className="inline-flex h-7 items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2 text-[11px] font-bold text-emerald-700 hover:bg-emerald-50"
+                                      >
+                                        <MessageCircle className="h-3 w-3" />
+                                        WhatsApp
+                                      </button>
+                                    )}
+                                  </span>
                                 </td>
                                 <td className="whitespace-nowrap px-5 py-3.5 text-right">
                                   <label className="inline-flex items-center gap-3 cursor-pointer">
@@ -1529,7 +1780,7 @@ const InstructorDashboard = () => {
                         <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
                           <Users className="w-5 h-5 text-slate-400" />
                         </div>
-                        <h3 className="text-sm font-semibold text-[#102a5a]">No students found</h3>
+                        <h3 className="text-sm font-semibold text-slate-700">No students found</h3>
                         <p className="mt-1 text-sm text-slate-500">No students linked to this round yet.</p>
                       </div>
                     )}
@@ -1543,14 +1794,14 @@ const InstructorDashboard = () => {
                 </div>
               ) : (
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-14 text-center">
-                  <div className="w-14 h-14 rounded-2xl bg-[#FBBF24]/10 flex items-center justify-center mb-4 mx-auto">
-                    <ClipboardList className="w-6 h-6 text-[#FBBF24]" />
+                  <div className="w-14 h-14 rounded-xl bg-emerald-50 flex items-center justify-center mb-4 mx-auto">
+                    <ClipboardList className="w-6 h-6 text-emerald-600" />
                   </div>
-                  <h3 className="text-lg font-bold text-[#102a5a]">No Round Selected</h3>
+                  <h3 className="text-lg font-bold text-slate-800">No Round Selected</h3>
                   <p className="mt-2 text-sm text-slate-500">Link a round from the Overview tab to get started.</p>
                   <button
                     onClick={() => setActiveTab("overview")}
-                    className="mt-4 rounded-xl bg-[#102a5a] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#1a3a6b] transition-all"
+                    className="mt-4 rounded-lg bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 transition-all"
                   >
                     Go to Overview
                   </button>
@@ -1570,12 +1821,12 @@ const InstructorDashboard = () => {
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
                 <div className="flex items-center justify-between mb-5">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-[#FBBF24]/10 flex items-center justify-center">
-                      <CalendarClock className="w-4 h-4 text-[#FBBF24]" />
+                    <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center">
+                      <CalendarClock className="w-4 h-4 text-emerald-600" />
                     </div>
-                    <h2 className="text-base font-bold text-[#102a5a]">Upcoming Sessions</h2>
+                    <h2 className="text-base font-bold text-slate-800">Upcoming Sessions</h2>
                   </div>
-                  <span className="inline-flex items-center rounded-full bg-[#FBBF24]/10 px-2.5 py-0.5 text-xs font-bold text-[#92400e]">
+                  <span className="inline-flex items-center rounded-lg bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
                     {upcomingSessions.length} Visible
                   </span>
                 </div>
@@ -1601,11 +1852,11 @@ const InstructorDashboard = () => {
                           className={`rounded-2xl border p-4 text-left transition-all hover:shadow-md ${
                             session._type === "free"
                               ? "border-emerald-200 bg-emerald-50/50 hover:bg-white hover:border-emerald-300"
-                              : "border-slate-100 bg-slate-50/50 hover:bg-white hover:border-[#FBBF24]/30"
+                              : "border-slate-100 bg-slate-50/50 hover:bg-white hover:border-emerald-200"
                           }`}
                         >
                           <div className="mb-2 flex items-center justify-between gap-2">
-                            <p className="text-sm font-semibold text-[#102a5a]">
+                            <p className="text-sm font-semibold text-slate-800">
                               {session.title || "Untitled Session"}
                             </p>
                             <div className="flex items-center gap-1.5">
@@ -1632,21 +1883,59 @@ const InstructorDashboard = () => {
                           {session._type === "free" ? (
                             <div className="space-y-1.5 text-xs text-slate-600">
                               <div className="flex flex-wrap gap-x-3 gap-y-1">
-                                <span><b className="text-[#102a5a]">Parent:</b> {session.parentName || "-"}</span>
-                                <span><b className="text-[#102a5a]">Phone:</b> {session.phone || "-"}</span>
+                                <span><b className="text-slate-700">Parent:</b> {session.parentName || "-"}</span>
+                                <span><b className="text-slate-700">Phone:</b> {session.phone || "-"}</span>
                               </div>
                               <p>
-                                <b className="text-[#102a5a]">Child:</b> {session.childName || "-"}
+                                <b className="text-slate-700">Child:</b> {session.childName || "-"}
                                 {session.childAge ? ` (${session.childAge} yrs)` : ""}
                               </p>
+                              {session.phone && (
+                                <span className="pt-2 inline-flex">
+                                  <span
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      openWhatsAppMessagePicker({
+                                        parentName: session.parentName,
+                                        childName: session.childName,
+                                        childAge: session.childAge,
+                                        phone: session.phone,
+                                        status: session.leadStatus,
+                                        source: "Free Session",
+                                        sessionTitle: session.title,
+                                      });
+                                    }}
+                                    onKeyDown={(event) => {
+                                      if (event.key !== "Enter" && event.key !== " ") return;
+                                      event.preventDefault();
+                                      event.stopPropagation();
+                                      openWhatsAppMessagePicker({
+                                        parentName: session.parentName,
+                                        childName: session.childName,
+                                        childAge: session.childAge,
+                                        phone: session.phone,
+                                        status: session.leadStatus,
+                                        source: "Free Session",
+                                        sessionTitle: session.title,
+                                      });
+                                    }}
+                                    className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2.5 py-1 text-[11px] font-bold text-emerald-700 hover:bg-emerald-50"
+                                  >
+                                    <MessageCircle className="h-3 w-3" />
+                                    WhatsApp
+                                  </span>
+                                </span>
+                              )}
                             </div>
                           ) : (
-                            <div className="inline-flex items-center gap-1.5 rounded-xl border border-[#102a5a]/10 bg-[#102a5a]/5 px-2.5 py-1 text-xs text-[#102a5a]">
+                            <div className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-700">
                               <span className="max-w-[120px] truncate font-semibold">{session.roundName}</span>
                               {session.roundCode && (
                                 <>
-                                  <span className="text-[#102a5a]/30">-</span>
-                                  <span className="font-mono text-[#102a5a]/70">{session.roundCode}</span>
+                                  <span className="text-slate-300">-</span>
+                                  <span className="font-mono text-slate-500">{session.roundCode}</span>
                                 </>
                               )}
                             </div>
@@ -1671,12 +1960,12 @@ const InstructorDashboard = () => {
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
                 <div className="flex items-center justify-between mb-5">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-[#102a5a]/10 flex items-center justify-center">
-                      <Sparkles className="w-4 h-4 text-[#102a5a]" />
+                    <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center">
+                      <Sparkles className="w-4 h-4 text-emerald-600" />
                     </div>
-                    <h2 className="text-base font-bold text-[#102a5a]">Trial Session Evaluations</h2>
+                    <h2 className="text-base font-bold text-slate-800">Trial Session Evaluations</h2>
                   </div>
-                  <span className="inline-flex items-center rounded-full bg-[#102a5a]/10 px-2.5 py-0.5 text-xs font-bold text-[#102a5a]">
+                  <span className="inline-flex items-center rounded-lg bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
                     {trialLeads.length} Leads
                   </span>
                 </div>
@@ -1701,23 +1990,41 @@ const InstructorDashboard = () => {
                         >
                           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-3">
                             <div>
-                              <p className="text-sm font-semibold text-[#102a5a]">
+                              <p className="text-sm font-semibold text-slate-800">
                                 {lead.parentName} · {lead.childName}
                               </p>
                               <p className="text-xs text-slate-500">
                                 Status: {lead.status || "New"} · Phone: {lead.phone || "-"}
                               </p>
                             </div>
-                            <p className="text-[11px] text-slate-400">
-                              Last: {lead.trainerEvaluation?.updatedAt
-                                ? new Date(lead.trainerEvaluation.updatedAt).toLocaleString()
-                                : "-"}
-                            </p>
+                            <div className="flex flex-wrap items-center gap-2 md:justify-end">
+                              {lead.phone && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    openWhatsAppMessagePicker({
+                                      ...lead,
+                                      source: lead.source || "Free Session",
+                                      sessionTitle: "Trial Session Evaluation",
+                                    })
+                                  }
+                                  className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2.5 py-1.5 text-[11px] font-bold text-emerald-700 hover:bg-emerald-50"
+                                >
+                                  <MessageCircle className="h-3.5 w-3.5" />
+                                  WhatsApp
+                                </button>
+                              )}
+                              <p className="text-[11px] text-slate-400">
+                                Last: {lead.trainerEvaluation?.updatedAt
+                                  ? new Date(lead.trainerEvaluation.updatedAt).toLocaleString()
+                                  : "-"}
+                              </p>
+                            </div>
                           </div>
 
                           <div className="mb-3 rounded-xl border border-slate-100 bg-white p-4">
                             <div className="mb-3">
-                              <p className="text-sm font-bold text-[#102a5a]">Did the kid show?</p>
+                              <p className="text-sm font-bold text-slate-700">Did the kid show?</p>
                               <p className="text-[11px] text-slate-500">
                                 Included in the automated follow-up message.
                               </p>
@@ -1756,14 +2063,14 @@ const InstructorDashboard = () => {
                               value={draft.strengths}
                               onChange={(e) => handleEvaluationDraftChange(leadId, "strengths", e.target.value)}
                               placeholder="Child strengths..."
-                              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24]"
+                              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100"
                             />
                             <textarea
                               rows={2}
                               value={draft.favoriteProject}
                               onChange={(e) => handleEvaluationDraftChange(leadId, "favoriteProject", e.target.value)}
                               placeholder="Favorite project..."
-                              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]/50 focus:border-[#FBBF24]"
+                              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100"
                             />
                           </div>
 
@@ -1772,7 +2079,7 @@ const InstructorDashboard = () => {
                               type="button"
                               onClick={() => saveLeadEvaluation(leadId)}
                               disabled={isSavingEvaluationId === leadId}
-                              className="inline-flex items-center gap-2 rounded-xl bg-[#102a5a] px-4 py-2 text-xs font-semibold text-white hover:bg-[#1a3a6b] disabled:opacity-50 transition-all"
+                              className="inline-flex items-center gap-2 rounded-lg bg-slate-950 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-800 disabled:opacity-50 transition-all"
                             >
                               <Save className="w-3.5 h-3.5" />
                               {isSavingEvaluationId === leadId ? "Saving..." : "Save Evaluation"}
@@ -1787,6 +2094,139 @@ const InstructorDashboard = () => {
             </Motion.div>
           )}
 
+          {/* ===== TAB: CUSTOM MESSAGES ===== */}
+          {activeTab === "customMessages" && (
+            <Motion.div
+              key="custom-messages"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="grid grid-cols-1 gap-5 xl:grid-cols-[420px_minmax(0,1fr)]"
+            >
+              <form
+                onSubmit={addCustomWhatsAppMessage}
+                className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+              >
+                <div className="mb-5 flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                    <PlusCircle className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-semibold text-slate-800">Add Custom WhatsApp Message</h2>
+                    <p className="text-xs font-medium text-slate-400">
+                      Saved only for this instructor account.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-500">
+                      Message Name
+                    </label>
+                    <input
+                      type="text"
+                      value={customMessageForm.title}
+                      onChange={(event) => updateCustomMessageField("title", event.target.value)}
+                      placeholder="Example: Session reminder"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-300 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-500">
+                      WhatsApp Message
+                    </label>
+                    <textarea
+                      rows={8}
+                      value={customMessageForm.body}
+                      onChange={(event) => updateCustomMessageField("body", event.target.value)}
+                      placeholder="Hi {parentName}, this is your Sparvi Lab instructor..."
+                      className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-300 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+                    />
+                  </div>
+
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <p className="mb-2 text-xs font-bold text-slate-500">Available placeholders</p>
+                    <div className="flex flex-wrap gap-2">
+                      {INSTRUCTOR_MESSAGE_PLACEHOLDERS.map((placeholder) => (
+                        <button
+                          key={placeholder}
+                          type="button"
+                          onClick={() =>
+                            updateCustomMessageField(
+                              "body",
+                              `${customMessageForm.body}${customMessageForm.body ? " " : ""}${placeholder}`
+                            )
+                          }
+                          className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700"
+                        >
+                          {placeholder}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={!customMessageForm.title.trim() || !customMessageForm.body.trim()}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Save className="h-4 w-4" />
+                    Save Message
+                  </button>
+                </div>
+              </form>
+
+              <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="mb-5 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-500">
+                      <MessageSquareText className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h2 className="text-base font-semibold text-slate-800">Custom Messages</h2>
+                      <p className="text-xs font-medium text-slate-400">
+                        {sortedCustomWhatsAppMessages.length} saved message
+                        {sortedCustomWhatsAppMessages.length === 1 ? "" : "s"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {sortedCustomWhatsAppMessages.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-10 text-center">
+                    <MessageSquareText className="mx-auto mb-3 h-8 w-8 text-slate-300" />
+                    <p className="text-sm font-semibold text-slate-700">No custom messages yet.</p>
+                    <p className="mt-1 text-sm text-slate-500">Add your first reusable WhatsApp message.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {sortedCustomWhatsAppMessages.map((message) => (
+                      <article key={message.id} className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                        <div className="mb-3 flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <h3 className="truncate text-sm font-bold text-slate-800">{message.title}</h3>
+                            <p className="mt-1 text-[11px] font-medium text-slate-400">
+                              Added {formatCustomMessageDateTime(message.createdAt)}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => deleteCustomWhatsAppMessage(message.id)}
+                            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-rose-200 bg-white p-0 text-rose-600 transition-all hover:bg-rose-50"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                        <p className="whitespace-pre-wrap text-sm leading-6 text-slate-600">{message.body}</p>
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </section>
+            </Motion.div>
+          )}
+
           {/* ===== TAB: WORKING HOURS ===== */}
           {activeTab === "workingHours" && (
             <Motion.div
@@ -1798,11 +2238,11 @@ const InstructorDashboard = () => {
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-[#102a5a]/10 flex items-center justify-center">
-                      <Clock3 className="w-4 h-4 text-[#102a5a]" />
+                    <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center">
+                      <Clock3 className="w-4 h-4 text-emerald-600" />
                     </div>
                     <div>
-                      <h2 className="text-base font-bold text-[#102a5a]">Working Hours</h2>
+                      <h2 className="text-base font-bold text-slate-800">Working Hours</h2>
                       <p className="text-xs text-slate-500">
                         Choose your available hours each day. Sales can only book from these slots.
                       </p>
@@ -1812,7 +2252,7 @@ const InstructorDashboard = () => {
                     type="button"
                     onClick={saveWorkingHours}
                     disabled={isSavingWorkingHours}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#102a5a] px-4 py-2.5 text-xs font-semibold text-white hover:bg-[#1a3a6b] disabled:opacity-50 transition-all"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-xs font-semibold text-white hover:bg-slate-800 disabled:opacity-50 transition-all"
                   >
                     <Save className="w-3.5 h-3.5" />
                     {isSavingWorkingHours ? "Saving..." : "Save Working Hours"}
@@ -1844,7 +2284,7 @@ const InstructorDashboard = () => {
                             key={`hour-header-${column.hour}`}
                             className="border-b border-r border-slate-200 px-1.5 py-2 text-center"
                           >
-                            <p className="text-xs font-bold text-[#102a5a] leading-none">{column.numberLabel}</p>
+                            <p className="text-xs font-bold text-slate-700 leading-none">{column.numberLabel}</p>
                             <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
                               {column.periodLabel}
                             </p>
@@ -1862,7 +2302,7 @@ const InstructorDashboard = () => {
                         return (
                           <tr key={dayItem.key} className={dayItem.rowClass}>
                             <th className={`sticky left-0 z-10 w-[96px] min-w-[96px] max-w-[96px] border-b border-r border-slate-200 px-2 py-1.5 text-left align-top ${dayItem.stickyClass}`}>
-                              <p title={dayItem.label} className="truncate text-xs font-semibold text-[#102a5a]">
+                              <p title={dayItem.label} className="truncate text-xs font-semibold text-slate-700">
                                 {dayItem.label}
                               </p>
                               <label className="mt-0.5 inline-flex items-center gap-1 text-[9px] font-semibold text-slate-500">
@@ -1882,7 +2322,7 @@ const InstructorDashboard = () => {
                                   key={`${dayItem.key}-hour-${column.hour}`}
                                   className="border-b border-r border-slate-200 p-1 text-center"
                                 >
-                                  <label className={`mx-auto inline-flex h-6 w-6 items-center justify-center rounded-md transition-all ${checked ? dayItem.checkedCellClass : "border-slate-300 bg-white/80 hover:border-[#FBBF24]"}`}>
+                                  <label className={`mx-auto inline-flex h-6 w-6 items-center justify-center rounded-md transition-all ${checked ? dayItem.checkedCellClass : "border-slate-300 bg-white/80 hover:border-emerald-300"}`}>
                                     <input
                                       type="checkbox"
                                       checked={checked}
@@ -1902,15 +2342,82 @@ const InstructorDashboard = () => {
               </div>
             </Motion.div>
           )}
+            </div>
+          </main>
         </div>
-      </main>
+      </div>
 
-      {/* Footer */}
-      <footer className="py-5 text-center text-xs bg-[#071228] mt-auto">
-        <p className="text-slate-500">
-          © {new Date().getFullYear()} Sparvi Lab. All rights reserved.
-        </p>
-      </footer>
+      {whatsAppPickerContact && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <button
+            type="button"
+            aria-label="Close WhatsApp message picker"
+            onClick={closeWhatsAppMessagePicker}
+            className="absolute inset-0 bg-slate-950/45 backdrop-blur-[1px]"
+          />
+
+          <div className="relative w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+            <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4">
+              <div className="min-w-0">
+                <p className="text-xs font-bold uppercase tracking-wider text-emerald-600">
+                  WhatsApp Message
+                </p>
+                <h2 className="mt-1 truncate text-lg font-semibold text-slate-800">
+                  Choose message for {whatsAppPickerContact.parentName || "parent"}
+                </h2>
+                {whatsAppPickerContact.childName && (
+                  <p className="mt-1 truncate text-xs font-semibold text-slate-400">
+                    {whatsAppPickerContact.childName}
+                    {whatsAppPickerContact.sessionTitle ? ` - ${whatsAppPickerContact.sessionTitle}` : ""}
+                  </p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={closeWhatsAppMessagePicker}
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 p-0 text-slate-500 transition-all hover:bg-slate-100"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="max-h-[70vh] overflow-y-auto px-5 py-4">
+              {sortedCustomWhatsAppMessages.length === 0 ? (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
+                  No custom WhatsApp messages yet. Add one from Custom Messages.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {sortedCustomWhatsAppMessages.map((message) => (
+                    <button
+                      key={message.id}
+                      type="button"
+                      onClick={() => sendWhatsAppMessage(message)}
+                      className="block w-full rounded-xl border border-slate-200 bg-white p-4 text-left transition-all hover:border-emerald-200 hover:bg-emerald-50/50"
+                    >
+                      <span className="flex items-center justify-between gap-3">
+                        <span className="text-sm font-bold text-slate-800">{message.title}</span>
+                        <Send className="h-4 w-4 shrink-0 text-emerald-600" />
+                      </span>
+                      <span className="mt-2 block whitespace-pre-wrap text-xs leading-5 text-slate-500">
+                        {fillInstructorWhatsAppTemplate(message.body, whatsAppPickerContact)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => sendWhatsAppMessage(null)}
+                className="mt-4 inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition-all hover:bg-slate-50"
+              >
+                Open WhatsApp without message
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
