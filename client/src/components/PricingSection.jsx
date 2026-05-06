@@ -172,7 +172,7 @@ export default function PricingSection() {
                   {/* CTA Buttons */}
                   <div className="space-y-3 mt-auto">
                     <a
-                      href={`https://wa.me/201500077369?text=${encodeURIComponent(
+                      href={`https://web.whatsapp.com/send?phone=201500077369&text=${encodeURIComponent(
                         t("landing.pricing.wa_subscribe", {
                           plan: t(`landing.pricing.plans.${plan.key}.name`),
                           price: plan.price,
@@ -198,7 +198,7 @@ export default function PricingSection() {
                       </button>
                     </a>
                     <a
-                      href={`https://wa.me/201500077369?text=${encodeURIComponent(
+                      href={`https://web.whatsapp.com/send?phone=201500077369&text=${encodeURIComponent(
                         t("landing.pricing.wa_free")
                       )}`}
                       target="_blank"

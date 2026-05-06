@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { LEAD_STATUSES } from "../salesHelpers";
+import { LEAD_STATUSES, normalizeLeadStatus, parseDashboardDateTimeInput } from "../salesHelpers";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -100,7 +100,7 @@ export const useSalesDashboard = () => {
   const groupedLeads = useMemo(
     () =>
       LEAD_STATUSES.reduce((acc, status) => {
-        acc[status] = leads.filter((lead) => (lead.status || "New") === status);
+        acc[status] = leads.filter((lead) => normalizeLeadStatus(lead.status) === status);
         return acc;
       }, {}),
     [leads]
@@ -179,16 +179,20 @@ export const useSalesDashboard = () => {
       lostReason = reason.trim();
     }
 
-    if (status === "Busy Call Later" && !callLaterAt) {
+    if ((status === "Reserved Later" || status === "Busy Call Later") && !callLaterAt) {
       const scheduledAt = window.prompt(
-        "Enter the next call date/time (example: 2026-06-26T14:00):",
+        "Enter the reminder date/time (dd/mm/yyyy HH:mm):",
         ""
       );
       if (!scheduledAt || !scheduledAt.trim()) {
-        toast.error("Call time is required.");
+        toast.error("Reminder time is required.");
         return;
       }
-      callLaterAt = scheduledAt.trim();
+      callLaterAt = parseDashboardDateTimeInput(scheduledAt.trim());
+      if (!callLaterAt) {
+        toast.error("Please use dd/mm/yyyy HH:mm.");
+        return;
+      }
     }
 
     try {
@@ -227,7 +231,7 @@ export const useSalesDashboard = () => {
     }
   };
 
-  const scheduleBusyCallLater = async (lead, callLaterAt) => {
+  const scheduleBusyCallLater = async (lead, callLaterAt, status = "Busy Call Later") => {
     const token = checkAuth();
     if (!token) return null;
 
@@ -244,7 +248,7 @@ export const useSalesDashboard = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ callLaterAt }),
+        body: JSON.stringify({ callLaterAt, status }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -252,7 +256,7 @@ export const useSalesDashboard = () => {
       }
 
       upsertLead(data);
-      toast.success("Call reminder scheduled for sales");
+      toast.success(`${status} reminder scheduled for sales`);
       fetchDashboard();
       return data;
     } catch (err) {

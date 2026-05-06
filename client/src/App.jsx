@@ -71,6 +71,7 @@ const SalesPipelinePage = lazy(() => import("./pages/sales/SalesPipelinePage"));
 const SalesNewLeadPage = lazy(() => import("./pages/sales/SalesNewLeadPage"));
 const SalesFollowUpsPage = lazy(() => import("./pages/sales/SalesFollowUpsPage"));
 const SalesClosedDealsPage = lazy(() => import("./pages/sales/SalesClosedDealsPage"));
+const SalesCustomMessagesPage = lazy(() => import("./pages/sales/SalesCustomMessagesPage"));
 // import { EmailVerificationPage } from "./pages/EmailVerification";
 
 function App() {
@@ -152,6 +153,7 @@ function App() {
               <Route path="new" element={<SalesNewLeadPage />} />
               <Route path="follow-ups" element={<SalesFollowUpsPage />} />
               <Route path="closed" element={<SalesClosedDealsPage />} />
+              <Route path="custom-messages" element={<SalesCustomMessagesPage />} />
             </Route>
           </Route>
           <Route element={<ProtectedRoute allowedRole={"parent"} />} >

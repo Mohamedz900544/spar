@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 export const LEAD_STATUSES = [
   "New",
   "Contacted",
+  "Reserved Later",
   "Demo Booked",
   "Follow-up",
   "Busy Call Later",

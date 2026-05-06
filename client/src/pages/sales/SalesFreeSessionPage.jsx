@@ -14,7 +14,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { formatDateTime, toWhatsAppLink } from "./salesHelpers";
+import { formatDate, formatDateTime, formatTime, toWhatsAppLink } from "./salesHelpers";
 
 const WEEK_DAYS = [
   "sunday",
@@ -137,27 +137,13 @@ const normalizeWorkingHours = (workingHours) => {
   };
 };
 
-const formatSlotDate = (date) =>
-  new Intl.DateTimeFormat("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  }).format(date);
+const formatSlotDate = (date) => formatDate(date);
 
-const formatSlotTime = (date) =>
-  new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(date);
+const formatSlotTime = (date) => formatTime(date);
 
 const formatSessionRange = (range) => {
   if (!range) return "-";
-  const date = new Intl.DateTimeFormat("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  }).format(range.startDate);
-  return `${date}, ${formatSlotTime(range.startDate)} - ${formatSlotTime(range.endDate)}`;
+  return `${formatDate(range.startDate)}, ${formatTime(range.startDate)} - ${formatTime(range.endDate)}`;
 };
 
 const resolveLeadSessionRange = (lead, fallbackDurationMinutes = 60) => {
@@ -662,15 +648,14 @@ const SalesFreeSessionPage = () => {
                         </button>
                       )}
                       {waLink && (
-                        <a
-                          href={waLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
+                          type="button"
+                          onClick={() => sales.openWhatsAppMessagePicker(lead)}
                           className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-white px-2.5 py-1 text-[11px] font-bold text-emerald-700 hover:bg-emerald-50"
                         >
                           <MessageCircle className="w-3 h-3" />
                           WhatsApp
-                        </a>
+                        </button>
                       )}
                       <span
                         className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold border ${

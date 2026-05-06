@@ -52,6 +52,8 @@ const WEEKDAY_NAME_TO_KEY = {
 };
 
 const assertValidStatus = (status) => LEAD_STATUSES.includes(status);
+const isReminderStatus = (status) =>
+  status === "Reserved Later" || status === "Busy Call Later";
 
 const toMinutes = (timeValue) => {
   const [hours, minutes] = timeValue.split(":").map(Number);
@@ -124,10 +126,10 @@ const parseDateTimeInTimeZone = (value, timeZone = FREE_SESSION_TIMEZONE) => {
 const parseCallLaterAt = (value) => {
   const scheduledAt = parseDateTimeInTimeZone(value);
   if (Number.isNaN(scheduledAt.getTime())) {
-    return { error: "Valid call later date/time is required" };
+    return { error: "Valid reminder date/time is required" };
   }
   if (scheduledAt.getTime() <= Date.now()) {
-    return { error: "Call later date/time must be in the future" };
+    return { error: "Reminder date/time must be in the future" };
   }
   return { scheduledAt };
 };
@@ -379,7 +381,7 @@ router.post("/whatsapp/automation-test", authRequired, agentOrAdmin, async (req,
     if (result?.reason === "missing_busy_call_template_env") {
       return res.status(400).json({
         message:
-          "Missing WHATSAPP_TEMPLATE_BUSY_CALL_REMINDER env for busy call reminder",
+          "Missing WHATSAPP_TEMPLATE_BUSY_CALL_REMINDER env for reserved later reminder",
         details: result,
       });
     }
@@ -569,8 +571,7 @@ router.patch("/leads/:id/status", authRequired, agentOrAdmin, async (req, res) =
         .json({ message: "lostReason is required for Closed - Lost" });
     }
 
-    const callLaterParse =
-      status === "Busy Call Later" ? parseCallLaterAt(callLaterAt) : null;
+    const callLaterParse = isReminderStatus(status) ? parseCallLaterAt(callLaterAt) : null;
     if (callLaterParse?.error) {
       return res.status(400).json({ message: callLaterParse.error });
     }
@@ -585,7 +586,7 @@ router.patch("/leads/:id/status", authRequired, agentOrAdmin, async (req, res) =
       lostReason: status === "Closed - Lost" ? lostReason.trim() : "",
     };
 
-    if (status === "Busy Call Later") {
+    if (isReminderStatus(status)) {
       updatePayload["callLater.scheduledAt"] = callLaterParse.scheduledAt;
       updatePayload["callLater.scheduledBy"] = req.user._id;
       updatePayload["callLater.scheduledByName"] = req.user.name || "";
@@ -649,7 +650,13 @@ router.patch("/leads/:id/status", authRequired, agentOrAdmin, async (req, res) =
 
 router.patch("/leads/:id/call-later", authRequired, agentOrAdmin, async (req, res) => {
   try {
-    const { callLaterAt } = req.body;
+    const { callLaterAt, status = "Busy Call Later" } = req.body;
+    if (!isReminderStatus(status)) {
+      return res
+        .status(400)
+        .json({ message: "Status must be Reserved Later or Busy Call Later" });
+    }
+
     const parsed = parseCallLaterAt(callLaterAt);
     if (parsed.error) {
       return res.status(400).json({ message: parsed.error });
@@ -661,7 +668,7 @@ router.patch("/leads/:id/call-later", authRequired, agentOrAdmin, async (req, re
     }
 
     const updatePayload = {
-      status: "Busy Call Later",
+      status,
       lostReason: "",
       "callLater.scheduledAt": parsed.scheduledAt,
       "callLater.scheduledBy": req.user._id,

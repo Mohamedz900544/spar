@@ -1,10 +1,10 @@
 import { useMemo } from "react";
 import { useOutletContext } from "react-router-dom";
 import { MessageCircle, Save } from "lucide-react";
-import { LEAD_STATUSES, formatDateTime, toWhatsAppLink } from "./salesHelpers";
+import { LEAD_STATUSES, formatDateTime, normalizeLeadStatus, toWhatsAppLink } from "./salesHelpers";
 import LeadNotesList from "./components/LeadNotesList";
 
-const focusStatuses = ["Demo Booked", "Follow-up", "Contacted"];
+const focusStatuses = ["Demo Booked", "Follow-up", "Reserved Later", "Busy Call Later", "Contacted"];
 
 const SalesFollowUpsPage = () => {
   const sales = useOutletContext();
@@ -12,7 +12,7 @@ const SalesFollowUpsPage = () => {
   const leads = useMemo(
     () =>
       (sales.leads || [])
-        .filter((lead) => focusStatuses.includes(lead.status || "New"))
+        .filter((lead) => focusStatuses.includes(normalizeLeadStatus(lead.status)))
         .sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0)),
     [sales.leads]
   );
@@ -48,7 +48,7 @@ const SalesFollowUpsPage = () => {
 
                   <div className="flex items-center gap-2">
                     <select
-                      value={lead.status || "New"}
+                      value={normalizeLeadStatus(lead.status)}
                       onChange={(e) => sales.updateLeadStatus(lead, e.target.value)}
                       className="rounded-lg border border-slate-200 px-2.5 py-2 text-xs bg-white outline-none focus:ring-2 focus:ring-[#FBBF24]/40"
                     >
@@ -58,19 +58,19 @@ const SalesFollowUpsPage = () => {
                         </option>
                       ))}
                     </select>
-                    <a
-                      href={waLink || "#"}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      type="button"
+                      onClick={() => sales.openWhatsAppMessagePicker(lead)}
+                      disabled={!waLink}
                       className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-2 text-xs font-semibold ${
                         waLink
                           ? "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
-                          : "bg-slate-50 border-slate-200 text-slate-400 pointer-events-none"
+                          : "bg-slate-50 border-slate-200 text-slate-400"
                       }`}
                     >
                       <MessageCircle className="w-3.5 h-3.5" />
                       WhatsApp
-                    </a>
+                    </button>
                   </div>
                 </div>
 

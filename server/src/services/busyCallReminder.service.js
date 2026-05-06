@@ -3,7 +3,7 @@ import { notifySalesBusyCallReminder } from "./leadNotifications.service.js";
 
 export const processBusyCallReminders = async (now = new Date()) => {
   const candidates = await Lead.find({
-    status: "Busy Call Later",
+    status: { $in: ["Reserved Later", "Busy Call Later"] },
     "callLater.scheduledAt": { $ne: null, $lte: now },
     $or: [
       { "callLater.reminderSentAt": { $in: [null, undefined] } },
