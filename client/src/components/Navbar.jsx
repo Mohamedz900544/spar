@@ -99,6 +99,7 @@ const Navbar = () => {
       <div
         className={[
           "max-w-7xl mx-auto px-4 md:px-8 flex items-center justify-between",
+          isLanding && i18n.language === "ar" ? "flex-row-reverse" : "",
           "transition-all duration-500",
           effectiveScrolled ? "py-2 md:py-3" : "py-3 md:py-5",
         ].join(" ")}
