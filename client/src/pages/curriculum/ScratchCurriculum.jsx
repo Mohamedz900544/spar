@@ -68,12 +68,12 @@ export default function ScratchCurriculum() {
             <div className="overflow-hidden rounded-[1.6rem] bg-slate-900 shadow-[0_16px_45px_rgba(15,23,42,0.16)]">
               <div className="relative aspect-square min-h-[320px]">
                 <img
-                  src="https://i.ibb.co/WpyQyJ6f/Gemini-Generated-Image-7xuf9f7xuf9f7xuf.webp"
+                  src="https://i.ibb.co/xSg1Jtq5/Chat-GPT-Image-May-8-2026-06-44-09-PM.webp"
                   alt={text.title}
                   className="h-full w-full object-cover opacity-85 blur-[1px] scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-[#102a5a]/10 via-[#071228]/40 to-[#071228]/90" />
-                <div className="absolute inset-x-0 bottom-0 px-7 pb-10 text-center">
+                 
+                {/* <div className="absolute inset-x-0 bottom-0 px-7 pb-10 text-center">
                   <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-3xl bg-[#FBBF24]/20 text-6xl font-black text-[#FBBF24] shadow-[0_0_45px_rgba(251,191,36,0.55)]">
                     S
                   </div>
@@ -82,7 +82,7 @@ export default function ScratchCurriculum() {
                     <br />
                     {isArabic ? "سكراتش" : "Curriculum"}
                   </h2>
-                </div>
+                </div> */}
               </div>
             </div>
 

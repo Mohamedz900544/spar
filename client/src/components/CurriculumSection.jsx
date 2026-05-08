@@ -28,7 +28,7 @@ const ageGroupsRaw = [
 
 const courses6to8Raw = [
   { icon: MonitorSmartphone, image: "https://i.ibb.co/8Lwh85JC/image-2.jpg" },
-  { icon: Blocks, image: "https://i.ibb.co/WpyQyJ6f/Gemini-Generated-Image-7xuf9f7xuf9f7xuf.webp", href: "/courses/scratch" },
+  { icon: Blocks, image: "https://i.ibb.co/xSg1Jtq5/Chat-GPT-Image-May-8-2026-06-44-09-PM.webp", href: "/courses/scratch" },
   { icon: Gamepad, image: "https://i.ibb.co/M41wcFG/25645686.webp" },
 ];
 
