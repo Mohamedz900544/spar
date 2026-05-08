@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   Cpu,
@@ -27,7 +28,7 @@ const ageGroupsRaw = [
 
 const courses6to8Raw = [
   { icon: MonitorSmartphone, image: "https://i.ibb.co/8Lwh85JC/image-2.jpg" },
-  { icon: Blocks, image: "https://i.ibb.co/WpyQyJ6f/Gemini-Generated-Image-7xuf9f7xuf9f7xuf.webp" },
+  { icon: Blocks, image: "https://i.ibb.co/WpyQyJ6f/Gemini-Generated-Image-7xuf9f7xuf9f7xuf.webp", href: "/courses/scratch" },
   { icon: Gamepad, image: "https://i.ibb.co/M41wcFG/25645686.webp" },
 ];
 
@@ -91,13 +92,22 @@ function ContentPanel({ selectedAge, tracksForSelectedAge, t, i18n }) {
                     <p className="text-sm font-medium text-slate-500 leading-relaxed group-hover:text-slate-700 transition-colors">
                       {t(`courses.c6to8.${idx}.desc`)}
                     </p>
-                    <button
-                      type="button"
-                      disabled
-                      className="mt-5 w-full rounded-xl bg-slate-100 px-4 py-3 text-sm font-extrabold text-slate-400 cursor-not-allowed"
-                    >
-                      {t("courses.explore_curriculum")}
-                    </button>
+                    {course.href ? (
+                      <Link
+                        to={course.href}
+                        className="mt-5 block w-full rounded-xl bg-[#FBBF24] px-4 py-3 text-center text-sm font-extrabold text-slate-950 transition-all duration-300 hover:bg-amber-300 hover:-translate-y-0.5"
+                      >
+                        {t("courses.explore_curriculum")}
+                      </Link>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled
+                        className="mt-5 w-full rounded-xl bg-slate-100 px-4 py-3 text-sm font-extrabold text-slate-400 cursor-not-allowed"
+                      >
+                        {t("courses.explore_curriculum")}
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}

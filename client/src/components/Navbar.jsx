@@ -15,6 +15,7 @@ const Navbar = () => {
   const { t, i18n } = useTranslation();
   const location = useLocation();
   const isLanding = location.pathname === "/";
+  const forceWhiteNavbarPage = location.pathname === "/courses/scratch";
 
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -63,7 +64,7 @@ const Navbar = () => {
 
   /* ================= CORE STYLE LOGIC ================= */
   const forceWhiteNavbar = open && scrolled;
-  const effectiveScrolled = scrolled || forceWhiteNavbar;
+  const effectiveScrolled = scrolled || forceWhiteNavbar || forceWhiteNavbarPage;
 
   /* ================= STYLES ================= */
   const linkBase =
