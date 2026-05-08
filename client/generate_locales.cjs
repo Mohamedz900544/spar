@@ -45,10 +45,10 @@ const faqs = [
         arA: "نحن نتابع التقدم باستخدام معالم قائمة على المهارات، وليس فقط الدروس المكتملة. نركز على كيفية تحسن الطفل في مجالات مثل استراتيجية حل المشكلات، والمنطق، وقدرة التصحيح، والإبداع في الحلول."
     },
     {
-        enQ: "Is SP School online, in-person, or both?",
-        enA: "SP School can be delivered online and in-person depending on your location and the program schedule. Online sessions are interactive and hands-on, not passive watching. In-person sessions follow the same curriculum, with more physical collaboration. When you enroll, we confirm the available format options and schedules for your area.",
-        arQ: "هل دراسة SP School عبر الإنترنت أم حضوريًا أم كلاهما؟",
-        arA: "يمكن تقديم برامج SP School عبر الإنترنت أو حضوريًا بناءً على موقعك وجدول البرنامج. الجلسات عبر الإنترنت تفاعلية وعملية."
+        enQ: "Is SP School online only?",
+        enA: "SP School programs are delivered online only. Online sessions are interactive and hands-on, not passive watching.",
+        arQ: "هل دراسة SP School عبر الإنترنت فقط؟",
+        arA: "يمكن تقديم برامج SP School عبر الإنترنت فقط. الجلسات عبر الإنترنت تفاعلية وعملية."
     },
     {
         enQ: "How are lessons taught to match different learning styles?",

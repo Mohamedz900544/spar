@@ -11,7 +11,6 @@ const plans = [
       "totalSessions",
       "sessionLength",
       "courseSessions",
-      "skillsSessions",
     ],
   },
   {
@@ -23,7 +22,6 @@ const plans = [
       "totalSessionsOneMonth",
       "sessionLength",
       "courseSessionsOneMonth",
-      "skillsSessionOneMonth",
     ],
   },
 ];
@@ -82,9 +80,9 @@ export default function PricingSection() {
             const accent = accentColors[plan.key];
             const features = [
               t(`landing.pricing.plans.${plan.key}.sessionType`),
-              ...plan.features.map((feature) =>
-                t(`landing.pricing.features.${feature}`)
-              ),
+              ...plan.features
+                .filter(Boolean)
+                .map((feature) => t(`landing.pricing.features.${feature}`)),
             ];
 
             return (

@@ -58,7 +58,7 @@
       "title1": "Building the",
       "title2": "Next Generation’s",
       "title3": "Minds",
-      "subtitle": "Live, instructor-led STEM sessions for ages 6–17. Kids learn electronics, coding, robotics, and AI through structured hands-on projects — online and in-person.",
+      "subtitle": "Live, instructor-led online STEM sessions for ages 6–17. Kids learn electronics, coding, robotics, and AI through structured hands-on projects.",
       "cta_primary": "Secure your seat!",
       "cta_secondary": "Ask about the free session",
       "seo_text": "SP School — Live STEM Education for Kids Ages 6–17. Coding, electronics, robotics, and AI through structured hands-on sessions."
@@ -129,8 +129,8 @@
         "a": "We track progress using skill-based milestones, not just completed lessons. We focus on how the child is improving in areas such as problem-solving strategy, logical reasoning, debugging ability, creativity in solutions, and confidence during challenges. Parents receive progress updates that highlight strengths and what to work on next. This makes learning measurable and shows real growth, not just finished projects."
       },
       "q6": {
-        "q": "Is SP School online, in-person, or both?",
-        "a": "SP School can be delivered online and in-person depending on your location and the program schedule. Online sessions are interactive and hands-on, not passive watching. In-person sessions follow the same curriculum, with more physical collaboration. When you enroll, we confirm the available format options and schedules for your area."
+        "q": "Is SP School online only?",
+        "a": "SP School programs are delivered online only. Online sessions are interactive and hands-on, not passive watching."
       },
       "q7": {
         "q": "How are lessons taught to match different learning styles?",
@@ -240,9 +240,7 @@
         "totalSessionsOneMonth": "5 total sessions",
         "sessionLength": "Each session is 2 hours",
         "courseSessions": "12 sessions for course content",
-        "courseSessionsOneMonth": "4 sessions for course content",
-        "skillsSessionOneMonth": "1 varied skills session",
-        "skillsSessions": "3 varied skills sessions: time management, negotiation skills, and logical thinking"
+        "courseSessionsOneMonth": "4 sessions for course content"
       }
     }
   },
