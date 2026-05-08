@@ -39,6 +39,9 @@ const WEEK_DAYS = [
 ];
 const TIME_RANGE_REGEX = /^(?:([01]\d|2[0-3]):([0-5]\d)|24:00)$/;
 const FREE_SESSION_TIMEZONE = "Africa/Cairo";
+const PUBLIC_FREE_SESSION_DAYS_AHEAD = 3;
+const PUBLIC_FREE_SESSION_MIN_LEAD_MINUTES = 120;
+const PUBLIC_FREE_SESSION_MAX_SLOTS = 180;
 const LOCAL_DATE_TIME_REGEX =
   /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d{1,3})?)?$/;
 const WEEKDAY_NAME_TO_KEY = {
@@ -269,6 +272,564 @@ const hasParentWelcomeBeenSent = async (phone) => {
     (lead) => normalizePhoneForWhatsApp(lead.phone || "") === normalizedPhone
   );
 };
+
+const clampInteger = (value, fallback, min, max) => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(max, Math.max(min, Math.round(parsed)));
+};
+
+const getPublicFreeSessionDaysAhead = () =>
+  clampInteger(
+    process.env.FREE_SESSION_PUBLIC_DAYS_AHEAD,
+    PUBLIC_FREE_SESSION_DAYS_AHEAD,
+    1,
+    60
+  );
+
+const getPublicFreeSessionMinLeadMinutes = () =>
+  clampInteger(
+    process.env.FREE_SESSION_PUBLIC_MIN_LEAD_MINUTES,
+    PUBLIC_FREE_SESSION_MIN_LEAD_MINUTES,
+    0,
+    24 * 60
+  );
+
+const padDatePart = (value) => String(value).padStart(2, "0");
+
+const getDateFieldsInTimeZone = (value, timeZone = FREE_SESSION_TIMEZONE) => {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+
+  const fields = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  })
+    .formatToParts(date)
+    .reduce((acc, part) => {
+      if (part.type !== "literal") acc[part.type] = part.value;
+      return acc;
+    }, {});
+
+  return {
+    year: Number(fields.year),
+    month: Number(fields.month),
+    day: Number(fields.day),
+  };
+};
+
+const addDaysToDateFields = (dateFields, dayOffset) => {
+  const utcDate = new Date(
+    Date.UTC(
+      Number(dateFields.year),
+      Number(dateFields.month) - 1,
+      Number(dateFields.day) + dayOffset
+    )
+  );
+
+  return {
+    year: utcDate.getUTCFullYear(),
+    month: utcDate.getUTCMonth() + 1,
+    day: utcDate.getUTCDate(),
+  };
+};
+
+const getDateKeyFromFields = (dateFields) =>
+  `${dateFields.year}-${padDatePart(dateFields.month)}-${padDatePart(
+    dateFields.day
+  )}`;
+
+const getWeekdayKeyFromDateFields = (dateFields) => {
+  const utcDate = new Date(
+    Date.UTC(dateFields.year, dateFields.month - 1, dateFields.day)
+  );
+  return WEEK_DAYS[utcDate.getUTCDay()] || "";
+};
+
+const getPublicSlotParts = (value, timeZone = FREE_SESSION_TIMEZONE) => {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+
+  const fields = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    weekday: "long",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+    .formatToParts(date)
+    .reduce((acc, part) => {
+      if (part.type !== "literal") acc[part.type] = part.value;
+      return acc;
+    }, {});
+
+  return {
+    localDate: `${fields.year}-${fields.month}-${fields.day}`,
+    localTime: `${fields.hour}:${fields.minute}`,
+    weekdayKey: WEEKDAY_NAME_TO_KEY[(fields.weekday || "").toLowerCase()] || "",
+  };
+};
+
+const stringifyId = (value) => {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  if (value.toHexString) return value.toHexString();
+  if (value._id && value._id !== value) return stringifyId(value._id);
+  if (value.toString) return value.toString();
+  return `${value}`;
+};
+
+const buildBusyRangesByInstructor = (
+  assignedSessions,
+  fallbackDurationMinutes,
+  excludedLeadId = ""
+) => {
+  const rangesByInstructor = new Map();
+
+  for (const lead of assignedSessions || []) {
+    const leadId = stringifyId(lead._id || lead.id);
+    if (excludedLeadId && leadId === excludedLeadId) continue;
+
+    const instructorId = stringifyId(lead.freeSession?.instructor);
+    if (!instructorId) continue;
+
+    const range = resolveFreeSessionRange(
+      lead.freeSession,
+      fallbackDurationMinutes
+    );
+    if (!range) continue;
+
+    if (!rangesByInstructor.has(instructorId)) {
+      rangesByInstructor.set(instructorId, []);
+    }
+    rangesByInstructor.get(instructorId).push({ leadId, ...range });
+  }
+
+  return rangesByInstructor;
+};
+
+const isAlignedToWorkingHoursSlot = (
+  scheduledDate,
+  durationMinutes,
+  workingHours
+) => {
+  const scheduledParts = getDateTimePartsInTimeZone(
+    scheduledDate,
+    workingHours?.timezone || FREE_SESSION_TIMEZONE
+  );
+  if (!scheduledParts) return false;
+
+  const daySlots = workingHours?.days?.[scheduledParts.dayKey] || [];
+  if (!daySlots.length) return false;
+
+  const startMinutes = scheduledParts.hours * 60 + scheduledParts.minutes;
+  const endMinutes = startMinutes + durationMinutes;
+  const slotStep = Number(workingHours?.slotDurationMinutes) || durationMinutes;
+
+  return daySlots.some((slot) => {
+    const slotStart = toMinutes(slot.start);
+    const slotEnd = toMinutes(slot.end);
+    return (
+      startMinutes >= slotStart &&
+      endMinutes <= slotEnd &&
+      (startMinutes - slotStart) % slotStep === 0
+    );
+  });
+};
+
+const getAvailableInstructorsForScheduledDate = ({
+  scheduledDate,
+  instructors,
+  assignedSessions,
+  durationMinutes,
+  excludedLeadId = "",
+}) => {
+  const targetRange = {
+    startDate: scheduledDate,
+    endDate: new Date(scheduledDate.getTime() + durationMinutes * 60 * 1000),
+  };
+  const busyRangesByInstructor = buildBusyRangesByInstructor(
+    assignedSessions,
+    durationMinutes,
+    excludedLeadId
+  );
+
+  return (instructors || []).reduce((available, instructor) => {
+    const instructorId = stringifyId(instructor._id || instructor.id);
+    if (!instructorId) return available;
+
+    const normalizedWorkingHours = normalizeInstructorWorkingHours(
+      instructor.workingHours
+    );
+    if (
+      !isAlignedToWorkingHoursSlot(
+        scheduledDate,
+        durationMinutes,
+        normalizedWorkingHours
+      )
+    ) {
+      return available;
+    }
+
+    const hasConflict = (busyRangesByInstructor.get(instructorId) || []).some(
+      (busyRange) => rangesOverlap(targetRange, busyRange)
+    );
+    if (hasConflict) return available;
+
+    available.push({
+      ...instructor,
+      workingHours: normalizedWorkingHours,
+    });
+    return available;
+  }, []);
+};
+
+const formatPublicSlot = (scheduledDate) => {
+  const parts = getPublicSlotParts(scheduledDate, FREE_SESSION_TIMEZONE);
+  if (!parts) return null;
+
+  return {
+    id: scheduledDate.toISOString(),
+    scheduledAt: scheduledDate.toISOString(),
+    startsAt: scheduledDate.getTime(),
+    ...parts,
+  };
+};
+
+const buildPublicFreeSessionDays = (now = new Date()) => {
+  const todayFields = getDateFieldsInTimeZone(now, FREE_SESSION_TIMEZONE);
+  if (!todayFields) return [];
+
+  return Array.from({ length: getPublicFreeSessionDaysAhead() }, (_, dayOffset) => {
+    const dateFields = addDaysToDateFields(todayFields, dayOffset);
+    const localDate = getDateKeyFromFields(dateFields);
+    return {
+      localDate,
+      dayOffset,
+      weekdayKey: getWeekdayKeyFromDateFields(dateFields),
+    };
+  });
+};
+
+const buildPublicFreeSessionSlots = ({
+  instructors,
+  assignedSessions,
+  now = new Date(),
+}) => {
+  const durationMinutes = getFreeSessionDurationMinutes();
+  const minLeadMinutes = getPublicFreeSessionMinLeadMinutes();
+  const minStartMs = now.getTime() + minLeadMinutes * 60 * 1000;
+  const daysAhead = getPublicFreeSessionDaysAhead();
+  const busyRangesByInstructor = buildBusyRangesByInstructor(
+    assignedSessions,
+    durationMinutes
+  );
+  const slotsByStart = new Map();
+
+  for (const instructor of instructors || []) {
+    const instructorId = stringifyId(instructor._id || instructor.id);
+    if (!instructorId) continue;
+
+    const normalizedWorkingHours = normalizeInstructorWorkingHours(
+      instructor.workingHours
+    );
+    const todayFields = getDateFieldsInTimeZone(
+      now,
+      normalizedWorkingHours.timezone
+    );
+    if (!todayFields) continue;
+
+    for (let dayOffset = 0; dayOffset < daysAhead; dayOffset += 1) {
+      const dateFields = addDaysToDateFields(todayFields, dayOffset);
+      const dateKey = getDateKeyFromFields(dateFields);
+      const dayKey = getWeekdayKeyFromDateFields(dateFields);
+      const daySlots = normalizedWorkingHours.days?.[dayKey] || [];
+
+      for (const slotRange of daySlots) {
+        const startMinutes = toMinutes(slotRange.start);
+        const endMinutes = toMinutes(slotRange.end);
+        const slotStep = normalizedWorkingHours.slotDurationMinutes;
+
+        for (
+          let minuteCursor = startMinutes;
+          minuteCursor + durationMinutes <= endMinutes;
+          minuteCursor += slotStep
+        ) {
+          const localDateTime = `${dateKey}T${padDatePart(
+            Math.floor(minuteCursor / 60)
+          )}:${padDatePart(minuteCursor % 60)}:00`;
+          const scheduledDate = parseDateTimeInTimeZone(
+            localDateTime,
+            normalizedWorkingHours.timezone
+          );
+          if (Number.isNaN(scheduledDate.getTime())) continue;
+          if (scheduledDate.getTime() < minStartMs) continue;
+
+          const targetRange = {
+            startDate: scheduledDate,
+            endDate: new Date(
+              scheduledDate.getTime() + durationMinutes * 60 * 1000
+            ),
+          };
+          const hasConflict = (
+            busyRangesByInstructor.get(instructorId) || []
+          ).some((busyRange) => rangesOverlap(targetRange, busyRange));
+          if (hasConflict) continue;
+
+          const slotKey = scheduledDate.toISOString();
+          if (!slotsByStart.has(slotKey)) {
+            const slot = formatPublicSlot(scheduledDate);
+            if (!slot) continue;
+            slotsByStart.set(slotKey, { ...slot, instructorIds: new Set() });
+          }
+          slotsByStart.get(slotKey).instructorIds.add(instructorId);
+        }
+      }
+    }
+  }
+
+  return Array.from(slotsByStart.values())
+    .map(({ instructorIds, ...slot }) => ({
+      ...slot,
+      instructorCount: instructorIds.size,
+    }))
+    .sort((first, second) => first.startsAt - second.startsAt)
+    .slice(0, PUBLIC_FREE_SESSION_MAX_SLOTS);
+};
+
+const loadFreeSessionBookingData = () =>
+  Promise.all([
+    User.find({ role: "instructor" })
+      .select("name email phone campusCode workingHours")
+      .lean(),
+    Lead.find({
+      "freeSession.isAssigned": true,
+      "freeSession.scheduledAt": { $ne: null },
+    })
+      .select("parentName childName freeSession")
+      .lean(),
+  ]);
+
+const pickRandomItem = (items) =>
+  items[Math.floor(Math.random() * items.length)];
+
+const sanitizePublicText = (value, maxLength = 200) =>
+  `${value || ""}`.trim().slice(0, maxLength);
+
+const normalizeEgyptMobilePhone = (value) => {
+  const rawDigits = `${value || ""}`.replace(/\D/g, "");
+  let localDigits = rawDigits;
+
+  if (localDigits.startsWith("0020")) {
+    localDigits = `0${localDigits.slice(4)}`;
+  } else if (localDigits.startsWith("20")) {
+    localDigits = `0${localDigits.slice(2)}`;
+  }
+
+  return /^(010|011|012|015)\d{8}$/.test(localDigits) ? localDigits : "";
+};
+
+const isValidEmail = (value) =>
+  !value || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+router.get("/public/free-session/slots", async (_req, res) => {
+  try {
+    const [instructors, assignedSessions] = await loadFreeSessionBookingData();
+    const durationMinutes = getFreeSessionDurationMinutes();
+    const minLeadMinutes = getPublicFreeSessionMinLeadMinutes();
+    const days = buildPublicFreeSessionDays();
+    const slots = buildPublicFreeSessionSlots({
+      instructors,
+      assignedSessions,
+    });
+
+    return res.json({
+      timezone: FREE_SESSION_TIMEZONE,
+      durationMinutes,
+      minLeadMinutes,
+      days,
+      slots,
+    });
+  } catch (err) {
+    console.error("Public free-session slots error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.post("/public/free-session/book", async (req, res) => {
+  try {
+    const childName = sanitizePublicText(
+      req.body?.childName || req.body?.studentName
+    );
+    const parentEmail = sanitizePublicText(req.body?.email, 200).toLowerCase();
+    const phone = normalizeEgyptMobilePhone(req.body?.phone);
+    const parsedAge = Number(req.body?.childAge || req.body?.studentAge);
+    const scheduledAt = req.body?.scheduledAt;
+
+    if (!childName) {
+      return res.status(400).json({ message: "Student name is required" });
+    }
+    if (
+      !Number.isInteger(parsedAge) ||
+      parsedAge < 6 ||
+      parsedAge > 17
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Student age must be between 6 and 17" });
+    }
+    if (!phone) {
+      return res
+        .status(400)
+        .json({ message: "A valid Egyptian mobile number is required" });
+    }
+    if (!parentEmail || !isValidEmail(parentEmail)) {
+      return res.status(400).json({ message: "Valid email is required" });
+    }
+    if (req.body?.deviceConfirmed !== true) {
+      return res.status(400).json({
+        message:
+          "Please confirm that the student has a laptop or computer with camera and microphone",
+      });
+    }
+
+    const scheduledDate = parseDateTimeInTimeZone(
+      scheduledAt,
+      FREE_SESSION_TIMEZONE
+    );
+    if (Number.isNaN(scheduledDate.getTime())) {
+      return res.status(400).json({ message: "Invalid scheduledAt date" });
+    }
+
+    const minLeadMinutes = getPublicFreeSessionMinLeadMinutes();
+    const minStartMs = Date.now() + minLeadMinutes * 60 * 1000;
+    if (scheduledDate.getTime() < minStartMs) {
+      return res.status(400).json({
+        message: `Please choose a time at least ${minLeadMinutes} minutes from now`,
+      });
+    }
+
+    const durationMinutes = getFreeSessionDurationMinutes();
+    const followUpDelayMinutes = getFreeSessionFollowUpDelayMinutes();
+    const [instructors, assignedSessions] = await loadFreeSessionBookingData();
+    const availableInstructors = getAvailableInstructorsForScheduledDate({
+      scheduledDate,
+      instructors,
+      assignedSessions,
+      durationMinutes,
+    });
+
+    if (!availableInstructors.length) {
+      return res.status(409).json({
+        message:
+          "Selected time is no longer available. Please choose another slot.",
+      });
+    }
+
+    const instructor = pickRandomItem(availableInstructors);
+    const endsAt = new Date(
+      scheduledDate.getTime() + durationMinutes * 60 * 1000
+    );
+    const followUpDueAt = new Date(
+      endsAt.getTime() + followUpDelayMinutes * 60 * 1000
+    );
+    const shouldSendParentWelcome = !(await hasParentWelcomeBeenSent(phone));
+
+    const lead = await Lead.create({
+      parentName: `ولي أمر ${childName}`,
+      parentEmail,
+      childName,
+      childAge: parsedAge,
+      phone,
+      source: "Free Session",
+      status: "Demo Booked",
+      notes: parentEmail
+        ? [
+            {
+              text: `Email: ${parentEmail}`,
+              createdByName: "Public booking",
+              createdByRole: "public",
+            },
+          ]
+        : [],
+      freeSession: {
+        requested: true,
+        isAssigned: true,
+        scheduledAt: scheduledDate,
+        durationMinutes,
+        endsAt,
+        followUpDueAt,
+        movedToFollowUpAt: null,
+        instructor: instructor._id,
+        instructorName: instructor.name || "",
+        assignedByName: "Public booking",
+        assignedAt: new Date(),
+        reminderSentAt: null,
+        parentWelcomeSentAt: null,
+        parentAssignmentNotifiedAt: null,
+        parentReminderSentAt: null,
+      },
+    });
+
+    const [notificationResult, parentNotificationResult] = await Promise.all([
+      notifyInstructorFreeSessionAssigned({
+        lead: lead.toObject(),
+        instructor,
+      }),
+      notifyParentFreeSessionAssigned({
+        lead: lead.toObject(),
+        shouldSendWelcome: shouldSendParentWelcome,
+      }),
+    ]);
+
+    const notificationUpdates = {};
+    const notificationTimestamp = new Date();
+    if (parentNotificationResult?.welcomeSent) {
+      notificationUpdates["freeSession.parentWelcomeSentAt"] =
+        notificationTimestamp;
+    }
+    if (parentNotificationResult?.assignmentSent) {
+      notificationUpdates["freeSession.parentAssignmentNotifiedAt"] =
+        notificationTimestamp;
+    }
+    if (Object.keys(notificationUpdates).length) {
+      await Lead.updateOne({ _id: lead._id }, { $set: notificationUpdates });
+      Object.assign(lead.freeSession, {
+        ...(notificationUpdates["freeSession.parentWelcomeSentAt"]
+          ? { parentWelcomeSentAt: notificationTimestamp }
+          : {}),
+        ...(notificationUpdates["freeSession.parentAssignmentNotifiedAt"]
+          ? { parentAssignmentNotifiedAt: notificationTimestamp }
+          : {}),
+      });
+    }
+
+    if (!notificationResult?.whatsappSent) {
+      console.warn(
+        "[sales][public-free-session] instructor whatsapp notification failed"
+      );
+    }
+
+    return res.status(201).json({
+      lead: lead.toJSON(),
+      notificationResult,
+      parentNotificationResult,
+      assignedInstructor: {
+        id: stringifyId(instructor._id),
+        name: instructor.name || "",
+      },
+    });
+  } catch (err) {
+    console.error("Public free-session booking error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
 
 router.get("/dashboard", authRequired, agentOrAdmin, async (_req, res) => {
   try {

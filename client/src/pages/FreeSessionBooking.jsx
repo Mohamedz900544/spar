@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
-  Award,
   CalendarDays,
   Check,
   ChevronDown,
@@ -16,7 +15,8 @@ import EgyptPhoneInput from "../components/EgyptPhoneInput";
 const HERO_IMAGE_URL =
   "https://res.cloudinary.com/dipzvlfnt/image/upload/f_auto,q_auto,w_900/v1772832876/Robot_l1b0pg.webp";
 
-const AGE_OPTIONS = Array.from({ length: 13 }, (_, index) => index + 6);
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+const AGE_OPTIONS = Array.from({ length: 12 }, (_, index) => index + 6);
 
 const content = {
   ar: {
@@ -27,16 +27,20 @@ const content = {
     visualLabel: "طلاب يتعلمون التقنية",
     formTitle: "احجز حصتك المجانية",
     studentName: "اسم الطالب",
+    studentNameRequired: "يرجى كتابة اسم الطالب",
     studentAge: "عمر الطالب",
     studentAgeRequired: "يرجى اختيار عمر الطالب",
     email: "البريد الإلكتروني",
+    emailRequired: "يرجى كتابة البريد الإلكتروني",
+    emailInvalid: "يرجى كتابة بريد إلكتروني صحيح",
     phone: "رقم الهاتف",
     phonePlaceholder: "0100 123 4567",
+    phoneRequired: "يرجى كتابة رقم موبايل مصري صحيح",
     chooseTime: "اختر الموعد",
     trusted: "موثوق من أكثر من 130,000 ولي أمر حول العالم",
     years: "سنة",
     benefits: [
-      "من سن 6 - 18 سنة",
+      "من سن 6 - 17 سنة",
       "برنامج مخصص يناسب كل فئة عمرية",
       "جلسة فردية بين الطالب والمدرس فقط",
     ],
@@ -45,10 +49,18 @@ const content = {
     timezone: "المنطقة الزمنية",
     timezoneValue: "القاهرة، مصر",
     day: "اليوم",
+    loadingSlots: "جاري تحميل المواعيد المتاحة...",
+    slotsError: "تعذر تحميل المواعيد المتاحة. حاول مرة أخرى.",
+    noSlots: "لا توجد مواعيد متاحة حاليا. حاول مرة أخرى لاحقا.",
+    noDaySlots: "لا توجد مواعيد متاحة في هذا اليوم.",
+    chooseSlotRequired: "يرجى اختيار موعد متاح",
+    tryAgain: "إعادة المحاولة",
     device: "لدي جهاز لابتوب أو كمبيوتر مع كاميرا وميكروفون",
     deviceRequired: "يرجى تأكيد توفر جهاز مناسب قبل تأكيد الموعد",
     confirm: "تأكيد",
-    confirmed: "تم اختيار الموعد مؤقتا",
+    booking: "جاري الحجز...",
+    confirmed: "تم حجز حصتك المجانية",
+    bookingFailed: "تعذر إتمام الحجز. حاول اختيار موعد آخر.",
     monthNames: [
       "يناير",
       "فبراير",
@@ -81,16 +93,20 @@ const content = {
     visualLabel: "Students learning technology",
     formTitle: "Book your free class",
     studentName: "Student name",
+    studentNameRequired: "Please enter the student name",
     studentAge: "Student age",
     studentAgeRequired: "Please choose the student's age",
     email: "Email address",
+    emailRequired: "Please enter an email address",
+    emailInvalid: "Please enter a valid email address",
     phone: "Phone number",
     phonePlaceholder: "0100 123 4567",
+    phoneRequired: "Please enter a valid Egyptian mobile number",
     chooseTime: "Choose appointment",
     trusted: "Trusted by 130,000+ parents around the world",
     years: "years old",
     benefits: [
-      "Ages 6 - 18",
+      "Ages 6 - 17",
       "A tailored program for every age group",
       "One-to-one session between student and teacher",
     ],
@@ -99,10 +115,18 @@ const content = {
     timezone: "Time zone",
     timezoneValue: "Cairo, Egypt",
     day: "Day",
+    loadingSlots: "Loading available appointments...",
+    slotsError: "Could not load available appointments. Please try again.",
+    noSlots: "No appointments are available right now. Please try again later.",
+    noDaySlots: "No appointments are available on this day.",
+    chooseSlotRequired: "Please choose an available appointment",
+    tryAgain: "Try again",
     device: "I have a laptop or computer with camera and microphone",
     deviceRequired: "Please confirm that a suitable device is available before confirming",
     confirm: "Confirm",
-    confirmed: "Appointment selected for now",
+    booking: "Booking...",
+    confirmed: "Your free class has been booked",
+    bookingFailed: "Could not complete the booking. Please choose another slot.",
     monthNames: [
       "January",
       "February",
@@ -129,35 +153,61 @@ const content = {
   },
 };
 
-const makeDays = (lang) => {
-  const labels = content[lang];
-  const today = new Date();
+const isValidEgyptPhone = (value) =>
+  /^(010|011|012|015)\d{8}$/.test(`${value || ""}`.replace(/\D/g, ""));
 
-  return Array.from({ length: 3 }, (_, index) => {
-    const date = new Date(today);
-    date.setDate(today.getDate() + index);
+const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
-    return {
-      id: date.toISOString(),
-      weekday: labels.weekDays[date.getDay()],
-      day: date.getDate(),
-      month: labels.monthNames[date.getMonth()],
-    };
-  });
+const parseLocalDateKey = (dateKey) => {
+  const [year, month, day] = `${dateKey || ""}`.split("-").map(Number);
+  if (!year || !month || !day) return null;
+  return new Date(Date.UTC(year, month - 1, day));
 };
 
-const formatTime = (time, lang) => (lang === "ar" ? `PM ${time}` : `${time} PM`);
+const getDayInfo = (dateKey, labels) => {
+  const date = parseLocalDateKey(dateKey);
+  if (!date) return { weekday: "", day: "", month: "" };
+
+  return {
+    weekday: labels.weekDays[date.getUTCDay()],
+    day: date.getUTCDate(),
+    month: labels.monthNames[date.getUTCMonth()],
+  };
+};
+
+const formatSlotTime = (localTime, lang) => {
+  const [hourValue, minuteValue] = `${localTime || ""}`.split(":").map(Number);
+  if (!Number.isFinite(hourValue) || !Number.isFinite(minuteValue)) return "";
+
+  const hour12 = hourValue % 12 || 12;
+  const minute = String(minuteValue).padStart(2, "0");
+  const suffix =
+    lang === "ar" ? (hourValue >= 12 ? "م" : "ص") : hourValue >= 12 ? "PM" : "AM";
+
+  return `${hour12}:${minute} ${suffix}`;
+};
+
+const getApiUrl = (path) => `${API_BASE_URL}${path}`;
 
 const FreeSessionBooking = () => {
   const [lang, setLang] = useState("ar");
   const [step, setStep] = useState("form");
-  const [selectedDay, setSelectedDay] = useState(0);
-  const [selectedTime, setSelectedTime] = useState("9:00");
+  const [slots, setSlots] = useState([]);
+  const [availableDays, setAvailableDays] = useState([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [slotsError, setSlotsError] = useState("");
+  const [selectedDayKey, setSelectedDayKey] = useState("");
+  const [selectedSlotId, setSelectedSlotId] = useState("");
   const [deviceReady, setDeviceReady] = useState(false);
   const [deviceError, setDeviceError] = useState(false);
+  const [slotError, setSlotError] = useState(false);
   const [agePickerOpen, setAgePickerOpen] = useState(false);
   const [ageError, setAgeError] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
+  const [confirmedSlotLabel, setConfirmedSlotLabel] = useState("");
+  const [booking, setBooking] = useState(false);
+  const [bookingError, setBookingError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
   const [formData, setFormData] = useState({
     studentName: "",
     studentAge: "",
@@ -168,8 +218,70 @@ const FreeSessionBooking = () => {
   const copy = content[lang];
   const isRTL = lang === "ar";
   const direction = isRTL ? "rtl" : "ltr";
-  const days = useMemo(() => makeDays(lang), [lang]);
   const displayName = formData.studentName.trim() || copy.fallbackName;
+  const slotDays = useMemo(() => {
+    const grouped = new Map();
+
+    for (const day of availableDays) {
+      if (!day?.localDate) continue;
+      grouped.set(day.localDate, {
+        key: day.localDate,
+        ...getDayInfo(day.localDate, copy),
+        slots: [],
+      });
+    }
+
+    for (const slot of slots) {
+      if (!slot?.localDate) continue;
+      if (!grouped.has(slot.localDate)) {
+        grouped.set(slot.localDate, {
+          key: slot.localDate,
+          ...getDayInfo(slot.localDate, copy),
+          slots: [],
+        });
+      }
+      grouped.get(slot.localDate).slots.push(slot);
+    }
+
+    return Array.from(grouped.values()).sort((first, second) =>
+      first.key.localeCompare(second.key)
+    );
+  }, [availableDays, copy, slots]);
+  const selectedDay = slotDays.find((day) => day.key === selectedDayKey);
+  const selectedSlot = (selectedDay?.slots || []).find(
+    (slot) => slot.id === selectedSlotId
+  );
+  const selectedSlotLabel =
+    selectedDay && selectedSlot
+      ? `${selectedDay.weekday} ${selectedDay.day} ${selectedDay.month} - ${formatSlotTime(
+          selectedSlot.localTime,
+          lang
+        )}`
+      : "";
+
+  const fetchSlots = useCallback(async () => {
+    try {
+      setSlotsLoading(true);
+      setSlotsError("");
+
+      const response = await fetch(
+        getApiUrl("/api/sales/public/free-session/slots")
+      );
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to load available slots");
+      }
+
+      setSlots(Array.isArray(data.slots) ? data.slots : []);
+      setAvailableDays(Array.isArray(data.days) ? data.days : []);
+    } catch (error) {
+      console.error("Free session slots error:", error);
+      setSlotsError(error.message || "Failed to load available slots");
+    } finally {
+      setSlotsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     document.title = isRTL
@@ -179,24 +291,77 @@ const FreeSessionBooking = () => {
     document.documentElement.lang = lang;
   }, [direction, isRTL, lang]);
 
+  useEffect(() => {
+    fetchSlots();
+  }, [fetchSlots]);
+
+  useEffect(() => {
+    if (!slotDays.length) {
+      setSelectedDayKey("");
+      setSelectedSlotId("");
+      return;
+    }
+
+    const currentDay = slotDays.find((day) => day.key === selectedDayKey);
+    if (!currentDay) {
+      const firstDay = slotDays[0];
+      setSelectedDayKey(firstDay.key);
+      setSelectedSlotId(firstDay.slots[0]?.id || "");
+      return;
+    }
+
+    if (!currentDay.slots.some((slot) => slot.id === selectedSlotId)) {
+      setSelectedSlotId(currentDay.slots[0]?.id || "");
+    }
+  }, [selectedDayKey, selectedSlotId, slotDays]);
+
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    setFieldErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const handleChooseTime = (event) => {
     event.preventDefault();
+
+    const nextErrors = {};
+    if (!formData.studentName.trim()) {
+      nextErrors.studentName = copy.studentNameRequired;
+    }
     if (!formData.studentAge) {
+      nextErrors.studentAge = copy.studentAgeRequired;
+    }
+    if (!formData.email.trim()) {
+      nextErrors.email = copy.emailRequired;
+    } else if (!isValidEmail(formData.email.trim())) {
+      nextErrors.email = copy.emailInvalid;
+    }
+    if (!isValidEgyptPhone(formData.phone)) {
+      nextErrors.phone = copy.phoneRequired;
+    }
+
+    setFieldErrors(nextErrors);
+    if (nextErrors.studentAge) {
       setAgeError(true);
       setAgePickerOpen(true);
+    } else {
+      setAgePickerOpen(false);
+      setAgeError(false);
+    }
+
+    if (Object.keys(nextErrors).length) {
       return;
     }
 
-    setAgePickerOpen(false);
-    setAgeError(false);
     setStep("schedule");
     setConfirmed(false);
+    setConfirmedSlotLabel("");
     setDeviceError(false);
+    setSlotError(false);
+    setBookingError("");
+    if (!slots.length && !slotsLoading) {
+      fetchSlots();
+    }
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -205,24 +370,70 @@ const FreeSessionBooking = () => {
     setAgePickerOpen(false);
     setAgeError(false);
     setConfirmed(false);
+    setConfirmedSlotLabel("");
     setDeviceError(false);
+    setSlotError(false);
+    setBookingError("");
+    setFieldErrors({});
   };
 
   const handleAgeSelect = (age) => {
     setFormData((prev) => ({ ...prev, studentAge: String(age) }));
+    setFieldErrors((prev) => ({ ...prev, studentAge: "" }));
     setAgeError(false);
     setAgePickerOpen(false);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!deviceReady) {
       setDeviceError(true);
       setConfirmed(false);
       return;
     }
+    if (!selectedSlot) {
+      setSlotError(true);
+      setConfirmed(false);
+      return;
+    }
 
     setDeviceError(false);
-    setConfirmed(true);
+    setSlotError(false);
+    setBookingError("");
+    setBooking(true);
+
+    try {
+      const response = await fetch(
+        getApiUrl("/api/sales/public/free-session/book"),
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            childName: formData.studentName.trim(),
+            childAge: Number(formData.studentAge),
+            email: formData.email.trim(),
+            phone: formData.phone,
+            scheduledAt: selectedSlot.scheduledAt,
+            deviceConfirmed: true,
+          }),
+        }
+      );
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.message || copy.bookingFailed);
+      }
+
+      setConfirmedSlotLabel(selectedSlotLabel);
+      setConfirmed(true);
+      fetchSlots();
+    } catch (error) {
+      console.error("Free session booking error:", error);
+      setConfirmed(false);
+      setBookingError(error.message || copy.bookingFailed);
+      fetchSlots();
+    } finally {
+      setBooking(false);
+    }
   };
 
   if (step === "schedule") {
@@ -235,7 +446,10 @@ const FreeSessionBooking = () => {
               onClick={() => {
                 setStep("form");
                 setConfirmed(false);
+                setConfirmedSlotLabel("");
                 setDeviceError(false);
+                setSlotError(false);
+                setBookingError("");
               }}
               className="inline-flex items-center gap-2 rounded-lg p-0 text-sm font-bold text-[#102a5a] transition hover:text-[#FBBF24]"
             >
@@ -284,56 +498,97 @@ const FreeSessionBooking = () => {
 
             <div className="mt-8">
               <p className="mb-4 text-start text-base font-extrabold text-slate-700">{copy.day}</p>
-              <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
-                {days.map((day, index) => {
-                  const active = selectedDay === index;
-                  return (
-                    <button
-                      key={day.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedDay(index);
-                        setConfirmed(false);
-                      }}
-                      className={[
-                        "flex h-28 w-[90px] flex-col items-center justify-center rounded-lg border-2 px-3 py-3 text-center transition",
-                        active
-                          ? "border-[#FBBF24] bg-[#FFF9E6] text-[#102a5a] shadow-[0_8px_18px_rgba(251,191,36,0.22)]"
-                          : "border-slate-300 bg-white text-slate-700 hover:border-[#FBBF24]",
-                      ].join(" ")}
-                    >
-                      <span className="text-sm font-bold">{day.weekday}</span>
-                      <span className="mt-1 text-3xl font-black leading-none">{day.day}</span>
-                      <span className="mt-2 text-xs font-bold">{day.month}</span>
-                    </button>
-                  );
-                })}
-              </div>
+              {slotsLoading ? (
+                <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-5 text-center text-sm font-bold text-slate-500">
+                  {copy.loadingSlots}
+                </p>
+              ) : slotsError ? (
+                <div className="rounded-lg border border-red-100 bg-red-50 px-4 py-5 text-center">
+                  <p className="text-sm font-bold text-red-600">{copy.slotsError}</p>
+                  <button
+                    type="button"
+                    onClick={fetchSlots}
+                    className="mt-3 rounded-lg bg-[#102a5a] px-4 py-2 text-sm font-black text-white transition hover:bg-[#0a1a38]"
+                  >
+                    {copy.tryAgain}
+                  </button>
+                </div>
+              ) : slotDays.length === 0 ? (
+                <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-5 text-center text-sm font-bold text-slate-500">
+                  {copy.noSlots}
+                </p>
+              ) : (
+                <>
+                  <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
+                    {slotDays.map((day) => {
+                      const active = selectedDayKey === day.key;
+                      return (
+                        <button
+                          key={day.key}
+                          type="button"
+                          onClick={() => {
+                            setSelectedDayKey(day.key);
+                            setSelectedSlotId(day.slots[0]?.id || "");
+                            setConfirmed(false);
+                            setConfirmedSlotLabel("");
+                            setSlotError(false);
+                            setBookingError("");
+                          }}
+                          className={[
+                            "flex h-28 w-[90px] flex-col items-center justify-center rounded-lg border-2 px-3 py-3 text-center transition",
+                            active
+                              ? "border-[#FBBF24] bg-[#FFF9E6] text-[#102a5a] shadow-[0_8px_18px_rgba(251,191,36,0.22)]"
+                              : "border-slate-300 bg-white text-slate-700 hover:border-[#FBBF24]",
+                          ].join(" ")}
+                        >
+                          <span className="text-sm font-bold">{day.weekday}</span>
+                          <span className="mt-1 text-3xl font-black leading-none">{day.day}</span>
+                          <span className="mt-2 text-xs font-bold">{day.month}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="mt-5 flex flex-wrap justify-center gap-2">
+                    {(selectedDay?.slots || []).map((slot) => {
+                      const active = selectedSlotId === slot.id;
+                      return (
+                        <button
+                          key={slot.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedSlotId(slot.id);
+                            setConfirmed(false);
+                            setConfirmedSlotLabel("");
+                            setSlotError(false);
+                            setBookingError("");
+                          }}
+                          className={[
+                            "min-w-[112px] rounded-lg border-2 px-5 py-3 text-sm font-black transition",
+                            active
+                              ? "border-[#FBBF24] bg-[#FFF9E6] text-[#102a5a] shadow-[0_8px_18px_rgba(251,191,36,0.22)]"
+                              : "border-slate-200 bg-white text-slate-500 hover:border-[#FBBF24]",
+                          ].join(" ")}
+                        >
+                          {formatSlotTime(slot.localTime, lang)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {selectedDay && selectedDay.slots.length === 0 && (
+                    <p className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-4 text-center text-sm font-bold text-slate-500">
+                      {copy.noDaySlots}
+                    </p>
+                  )}
+                </>
+              )}
             </div>
 
-            <div className="mt-5 flex flex-wrap justify-center gap-2">
-              {["9:00", "8:00", "7:00"].map((time) => {
-                const active = selectedTime === time;
-                return (
-                  <button
-                    key={time}
-                    type="button"
-                    onClick={() => {
-                      setSelectedTime(time);
-                      setConfirmed(false);
-                    }}
-                    className={[
-                      "min-w-[112px] rounded-lg border-2 px-5 py-3 text-sm font-black transition",
-                      active
-                        ? "border-[#FBBF24] bg-[#FFF9E6] text-[#102a5a] shadow-[0_8px_18px_rgba(251,191,36,0.22)]"
-                        : "border-slate-200 bg-white text-slate-500 hover:border-[#FBBF24]",
-                    ].join(" ")}
-                  >
-                    {formatTime(time, lang)}
-                  </button>
-                );
-              })}
-            </div>
+            {slotError && (
+              <p className="mt-2 text-center text-xs font-bold text-red-500">
+                {copy.chooseSlotRequired}
+              </p>
+            )}
 
             <button
               type="button"
@@ -342,6 +597,7 @@ const FreeSessionBooking = () => {
                 setDeviceReady(nextDeviceReady);
                 if (nextDeviceReady) setDeviceError(false);
                 setConfirmed(false);
+                setConfirmedSlotLabel("");
               }}
               className={[
                 "mt-6 flex w-full items-center justify-between rounded-lg border bg-[#FFF9E6] px-4 py-4 text-start text-sm font-extrabold text-[#102a5a] transition hover:border-[#FBBF24]",
@@ -370,15 +626,21 @@ const FreeSessionBooking = () => {
             <button
               type="button"
               onClick={handleConfirm}
-              className="mt-5 w-full rounded-lg bg-[#102a5a] px-5 py-3.5 text-center text-lg font-black text-white shadow-[0_14px_28px_rgba(16,42,90,0.24)] transition hover:bg-[#0a1a38]"
+              disabled={booking || confirmed || slotsLoading || !slotDays.length}
+              className="mt-5 w-full rounded-lg bg-[#102a5a] px-5 py-3.5 text-center text-lg font-black text-white shadow-[0_14px_28px_rgba(16,42,90,0.24)] transition hover:bg-[#0a1a38] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {copy.confirm}
+              {booking ? copy.booking : copy.confirm}
             </button>
+
+            {bookingError && (
+              <p className="mt-3 text-center text-sm font-bold text-red-500">
+                {bookingError || copy.bookingFailed}
+              </p>
+            )}
 
             {confirmed && (
               <p className="mt-4 text-center text-sm font-bold text-[#102a5a]">
-                {copy.confirmed}: {days[selectedDay].weekday} {days[selectedDay].day}{" "}
-                {days[selectedDay].month} - {formatTime(selectedTime, lang)}
+                {copy.confirmed}: {confirmedSlotLabel || selectedSlotLabel}
               </p>
             )}
           </section>
@@ -423,9 +685,18 @@ const FreeSessionBooking = () => {
                   value={formData.studentName}
                   onChange={handleChange}
                   placeholder={copy.studentName}
-                  className={`h-12 w-full rounded-lg border-2 border-slate-200 bg-white text-start text-sm font-semibold text-slate-700 outline-none transition placeholder:text-slate-500 focus:border-[#FBBF24] ${isRTL ? "pr-11 pl-4" : "pl-11 pr-4"}`}
+                  aria-invalid={Boolean(fieldErrors.studentName)}
+                  aria-describedby={fieldErrors.studentName ? "student-name-error" : undefined}
+                  className={`h-12 w-full rounded-lg border-2 bg-white text-start text-sm font-semibold text-slate-700 outline-none transition placeholder:text-slate-500 focus:border-[#FBBF24] ${
+                    fieldErrors.studentName ? "border-red-400" : "border-slate-200"
+                  } ${isRTL ? "pr-11 pl-4" : "pl-11 pr-4"}`}
                 />
               </label>
+              {fieldErrors.studentName && (
+                <p id="student-name-error" className="-mt-3 text-start text-xs font-bold text-red-500">
+                  {fieldErrors.studentName}
+                </p>
+              )}
 
               <div className="relative">
                 <button
@@ -508,14 +779,27 @@ const FreeSessionBooking = () => {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder={copy.email}
-                  className={`h-12 w-full rounded-lg border-2 border-slate-200 bg-white text-start text-sm font-semibold text-slate-700 outline-none transition placeholder:text-slate-500 focus:border-[#FBBF24] ${isRTL ? "pr-11 pl-4" : "pl-11 pr-4"}`}
+                  aria-invalid={Boolean(fieldErrors.email)}
+                  aria-describedby={fieldErrors.email ? "student-email-error" : undefined}
+                  className={`h-12 w-full rounded-lg border-2 bg-white text-start text-sm font-semibold text-slate-700 outline-none transition placeholder:text-slate-500 focus:border-[#FBBF24] ${
+                    fieldErrors.email ? "border-red-400" : "border-slate-200"
+                  } ${isRTL ? "pr-11 pl-4" : "pl-11 pr-4"}`}
                 />
               </label>
+              {fieldErrors.email && (
+                <p id="student-email-error" className="-mt-3 text-start text-xs font-bold text-red-500">
+                  {fieldErrors.email}
+                </p>
+              )}
 
               <div dir="ltr">
                 <EgyptPhoneInput
                   value={formData.phone}
-                  onChange={(phone) => setFormData((prev) => ({ ...prev, phone }))}
+                  onChange={(phone) => {
+                    setFormData((prev) => ({ ...prev, phone }));
+                    setFieldErrors((prev) => ({ ...prev, phone: "" }));
+                  }}
+                  error={fieldErrors.phone}
                   name="phone"
                   placeholder={copy.phonePlaceholder}
                   aria-label={copy.phone}
@@ -545,8 +829,7 @@ const FreeSessionBooking = () => {
               copy.title
             )}
           </h1>
-          <p className="mt-3 text-sm font-bold text-[#102a5a]/70">{copy.visualLabel}</p>
-
+ 
           <div className="mx-auto mt-6 max-w-[560px] overflow-hidden rounded-lg lg:mx-0">
             <img
               src={HERO_IMAGE_URL}

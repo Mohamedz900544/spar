@@ -24,6 +24,13 @@ const noteSchema = new mongoose.Schema(
 const leadSchema = new mongoose.Schema(
   {
     parentName: { type: String, required: true, trim: true, maxlength: 200 },
+    parentEmail: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      maxlength: 200,
+      default: "",
+    },
     childName: { type: String, required: true, trim: true, maxlength: 200 },
     childAge: { type: Number, min: 3, max: 18 },
     phone: { type: String, required: true, trim: true, maxlength: 30 },
