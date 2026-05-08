@@ -355,16 +355,13 @@
     "select_age_title": "Select Age Group",
     "empty_state": "Please select an age group above to view the curriculum.",
     "foundation_badge": "Early Learners",
-    "foundation_title": "Foundation Stage",
-    "foundation_desc": "A dedicated phase for our youngest learners featuring specialized courses designed to introduce technology in a fun, engaging, and play-based way.",
-    "stage_courses_title": "Courses in this Stage",
-    "stage_courses_desc": "During the foundation stage, learners rotate through these themed courses to build strong math and tech basics.",
     "standard_badge": "The Journey",
     "standard_title": "Your Learning Path",
     "standard_desc": "Students go through a 3-month exploration phase to try out different tracks, followed by 3 months of deep specialization based on their passion.",
     "what_to_expect": "What to Expect",
     "available_tracks_title": "Available Tracks for Specialization",
     "available_tracks_desc": "During Phase 2, you will choose one of these tracks for your age group to master.",
+    "explore_curriculum": "Explore Curriculum",
     "coming_soon": "Tracks for this age group are coming soon.",
     "ages": {
       "a0": "Ages 6-7-8",
@@ -372,41 +369,19 @@
       "a2": "Ages 12-13-14",
       "a3": "Ages 15-16-17"
     },
-    "fc": [
+    "c6to8": [
       {
-        "name": "Tech Discovery",
-        "duration": "Foundation Curriculum",
-        "highlights": [
-          "Identify tech types in daily life",
-          "Explain daily tech benefits and uses",
-          "Spot computer parts and components",
-          "Hands-on interactive learning"
-        ]
+        "name": "Technology Around Us",
+        "desc": "Explore everyday devices and learn how technology helps us solve real problems."
       },
       {
-        "name": "Creative Logic",
-        "duration": "Foundation Curriculum",
-        "highlights": [
-          "Apply basic logic and sequences",
-          "Play-based problem solving",
-          "Introduction to visual block coding",
-          "Build early digital confidence"
-        ]
+        "name": "Scratch",
+        "desc": "Create animations, stories, and simple games using visual block coding."
+      },
+      {
+        "name": "Coding With Minecraft",
+        "desc": "Learn logic, sequencing, and problem solving through Minecraft-inspired coding challenges."
       }
-    ],
-    "c6to8": [
-      "Technology Around Us",
-      "Creative Computing",
-      "STEM Projects",
-      "Coding With Minecraft",
-      "Space Exploration with Minecraft",
-      "Computational Thinking",
-      "Visual Algebra",
-      "Arithmetic Thinking",
-      "Coordinate Plane",
-      "Proportional Reasoning",
-      "Introduction to Functions",
-      "Foundations for Algebra"
     ],
     "tracks": {
       "gamedev": {

@@ -1,12 +1,9 @@
 import React, { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ChevronDown,
   Cpu,
   Code,
-  CheckCircle2,
   Gamepad,
-  Compass,
   Target,
   Blocks,
   Activity,
@@ -15,8 +12,6 @@ import {
   GraduationCap,
   Lightbulb,
   MonitorSmartphone,
-  BrainCircuit,
-  Zap,
 } from "lucide-react";
 
 /* -------------------------------------------------------
@@ -30,25 +25,10 @@ const ageGroupsRaw = [
   { id: "15-17", key: "3", icon: GraduationCap, color: "#f472b6", image: "https://i.ibb.co/9mKPdGGF/Gemini-Generated-Image-sgpceusgpceusgpc.webp" },
 ];
 
-const foundationCoursesRaw = [
-  { color: "#2dd4bf", icon: Compass },
-  { color: "#FBBF24", icon: Blocks },
-];
-
-// detailed list of courses for 6–8
 const courses6to8Raw = [
-  { icon: MonitorSmartphone, color: "#2dd4bf" },
-  { icon: BrainCircuit, color: "#a78bfa" },
-  { icon: Rocket, color: "#FBBF24" },
-  { icon: Gamepad, color: "#f472b6" },
-  { icon: Compass, color: "#60a5fa" },
-  { icon: BrainCircuit, color: "#2dd4bf" },
-  { icon: Blocks, color: "#a78bfa" },
-  { icon: Lightbulb, color: "#FBBF24" },
-  { icon: Target, color: "#f472b6" },
-  { icon: Activity, color: "#60a5fa" },
-  { icon: Code, color: "#2dd4bf" },
-  { icon: Zap, color: "#FBBF24" },
+  { icon: MonitorSmartphone, image: "https://i.ibb.co/8Lwh85JC/image-2.jpg" },
+  { icon: Blocks, image: "https://i.ibb.co/WpyQyJ6f/Gemini-Generated-Image-7xuf9f7xuf9f7xuf.webp" },
+  { icon: Gamepad, image: "https://i.ibb.co/M41wcFG/25645686.webp" },
 ];
 
 // tracks per age-range for the specialization phase
@@ -72,116 +52,55 @@ const ageTracksRaw = {
 /* -------------------------------------------------------
    CONTENT PANEL (shared between mobile inline + desktop)
 --------------------------------------------------------*/
-function ContentPanel({ selectedAge, tracksForSelectedAge, openFoundation, setOpenFoundation, t, i18n }) {
+function ContentPanel({ selectedAge, tracksForSelectedAge, t, i18n }) {
   return (
     <div className="px-1 mt-8">
       {/* FOUNDATION STAGE (AGES 6-8) */}
       {selectedAge === "6-8" && (
         <>
           <div className="text-center mb-10">
-            
-            <h2 className="text-3xl font-extrabold text-slate-900 mb-3 tracking-tight">
-              {t("courses.foundation_title")}
-            </h2>
-            <p className="text-slate-500 font-medium max-w-xl mx-auto text-base leading-relaxed">
-              {t("courses.foundation_desc")}
-            </p>
+            <h3 className="text-2xl font-extrabold text-slate-800 tracking-tight">
+              {t("courses.available_tracks_title")}
+            </h3>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-14">
-            {foundationCoursesRaw.map((course, idx) => {
-              const isOpen = openFoundation === idx;
-              return (
+          <div className="flex flex-wrap justify-center gap-6 md:gap-8">
+              {courses6to8Raw.map((course, idx) => (
                 <div
-                  key={course.icon.displayName || idx}
-                  className={`relative bg-white rounded-[2rem] overflow-hidden transition-all duration-300 cursor-pointer border-2 hover:-translate-y-1
-                    ${isOpen
-                      ? "shadow-[0_20px_40px_rgba(0,0,0,0.08)] border-transparent"
-                      : "border-slate-100 shadow-sm hover:shadow-xl hover:border-slate-200"
-                    }`}
-                  style={{
-                    borderColor: isOpen ? course.color : undefined,
-                  }}
-                  onClick={() => setOpenFoundation(isOpen ? null : idx)}
+                  key={idx}
+                  className="w-full max-w-[320px] bg-white rounded-3xl overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.04)] border border-slate-100 hover:shadow-[0_20px_40px_rgba(37,99,235,0.1)] hover:border-blue-200 transition-all duration-300 group flex flex-col hover:-translate-y-2"
                 >
-                  <div
-                    className="h-2 w-full"
-                    style={{ background: `linear-gradient(90deg, ${course.color}, ${course.color}90)` }}
-                  />
-                  <div className="p-6 md:p-8">
-                    <div className="flex items-center gap-5 mb-2">
-                      <div
-                        className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
-                        style={{
-                          background: `linear-gradient(135deg, ${course.color}25, ${course.color}10)`,
-                          boxShadow: `0 8px 20px ${course.color}20`,
-                          border: `1px solid ${course.color}30`,
-                        }}
-                      >
-                        <course.icon className="w-7 h-7" style={{ color: course.color }} />
+                  <div className="relative h-52 overflow-hidden bg-slate-100">
+                    <img
+                      src={course.image}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                      alt={t(`courses.c6to8.${idx}.name`)}
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-transparent" />
+                    <div className={`absolute bottom-5 ${i18n.language === "ar" ? "right-5" : "left-5"} flex items-center gap-3.5`}>
+                      <div className="w-10 h-10 rounded-xl bg-amber-400 backdrop-blur-md flex items-center justify-center shadow-lg border border-amber-300 group-hover:bg-amber-300 transition-colors">
+                        <course.icon className="w-5 h-5 text-amber-900" />
                       </div>
-                      <div className="text-start flex-1">
-                        <h3 className="text-xl font-extrabold text-slate-800 leading-tight mb-1">
-                          {t(`courses.fc.${idx}.name`)}
-                        </h3>
-                        <p className="text-sm font-bold opacity-80" style={{ color: course.color }}>
-                          {t(`courses.fc.${idx}.duration`)}
-                        </p>
-                      </div>
-                      <div
-                        className="shrink-0 w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100 transition-transform duration-300"
-                        style={{ transform: isOpen ? "rotate(180deg)" : "rotate(0deg)" }}
-                      >
-                        <ChevronDown className="w-4 h-4 text-slate-400" />
-                      </div>
-                    </div>
-                    <div
-                      className={`overflow-hidden transition-all duration-400 ease-in-out ${
-                        isOpen ? "max-h-96 opacity-100 mt-6" : "max-h-0 opacity-0 mt-0"
-                      }`}
-                    >
-                      <div className="pt-4 border-t border-slate-100">
-                        <ul className="space-y-3.5">
-                          {[0, 1, 2, 3].map((i) => (
-                            <li key={i} className="flex gap-3 items-start text-sm md:text-base text-slate-600 font-medium text-start">
-                              <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" style={{ color: course.color }} />
-                              {t(`courses.fc.${idx}.highlights.${i}`)}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                      <span className="text-white font-extrabold text-base tracking-wide drop-shadow-md text-start leading-tight">
+                        {t(`courses.c6to8.${idx}.name`)}
+                      </span>
                     </div>
                   </div>
+                  <div className="p-6 text-start bg-gradient-to-b from-white to-slate-50 flex-1">
+                    <p className="text-sm font-medium text-slate-500 leading-relaxed group-hover:text-slate-700 transition-colors">
+                      {t(`courses.c6to8.${idx}.desc`)}
+                    </p>
+                    <button
+                      type="button"
+                      disabled
+                      className="mt-5 w-full rounded-xl bg-slate-100 px-4 py-3 text-sm font-extrabold text-slate-400 cursor-not-allowed"
+                    >
+                      {t("courses.explore_curriculum")}
+                    </button>
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-
-          <div className="max-w-4xl mx-auto bg-white rounded-[2rem] p-0 md:p-10 shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-slate-100">
-            <h3 className="text-xl font-extrabold text-slate-800 mb-2 p-3 text-center">
-              {t("courses.stage_courses_title")}
-            </h3>
-            <p className="text-sm md:text-base font-medium text-slate-500 text-center mb-8 p-3 max-w-2xl mx-auto">
-              {t("courses.stage_courses_desc")}
-            </p>
-            <div className="flex flex-wrap justify-center p-3 gap-3 md:gap-4">
-              {courses6to8Raw.map((course, idx) => (
-                <span
-                  key={idx}
-                  className="inline-flex items-center gap-2 text-xs md:text-sm font-semibold px-4 py-2.5 rounded-full border bg-white transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-default"
-                  style={{
-                    borderColor: `${course.color}40`,
-                    boxShadow: `0 4px 10px ${course.color}10`,
-                    color: "#334155",
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.backgroundColor = `${course.color}08`}
-                  onMouseLeave={e => e.currentTarget.style.backgroundColor = 'white'}
-                >
-                  <course.icon className="w-4 h-4" style={{ color: course.color }} />
-                  {t(`courses.c6to8.${idx}`)}
-                </span>
               ))}
-            </div>
           </div>
         </>
       )}
@@ -224,6 +143,13 @@ function ContentPanel({ selectedAge, tracksForSelectedAge, openFoundation, setOp
                     <p className="text-sm font-medium text-slate-500 leading-relaxed group-hover:text-slate-700 transition-colors">
                       {t(`courses.tracks.${track.id}.desc`)}
                     </p>
+                    <button
+                      type="button"
+                      disabled
+                      className="mt-5 w-full rounded-xl bg-slate-100 px-4 py-3 text-sm font-extrabold text-slate-400 cursor-not-allowed"
+                    >
+                      {t("courses.explore_curriculum")}
+                    </button>
                   </div>
                 </div>
               ))}
@@ -246,7 +172,6 @@ function ContentPanel({ selectedAge, tracksForSelectedAge, openFoundation, setOp
 export default function CurriculumSection() {
   const { t, i18n } = useTranslation();
   const [selectedAge, setSelectedAge] = useState(null);
-  const [openFoundation, setOpenFoundation] = useState(null);
   const contentRef = useRef(null);
 
   const tracksForSelectedAge =
@@ -268,7 +193,6 @@ export default function CurriculumSection() {
                 <button
                   onClick={() => {
                     setSelectedAge(isActive ? null : age.id);
-                    setOpenFoundation(null);
                     if (!isActive) {
                       setTimeout(() => {
                         contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -297,8 +221,6 @@ export default function CurriculumSection() {
                     <ContentPanel
                       selectedAge={selectedAge}
                       tracksForSelectedAge={tracksForSelectedAge}
-                      openFoundation={openFoundation}
-                      setOpenFoundation={setOpenFoundation}
                       t={t}
                       i18n={i18n}
                     />
@@ -316,8 +238,6 @@ export default function CurriculumSection() {
           <ContentPanel
             selectedAge={selectedAge}
             tracksForSelectedAge={tracksForSelectedAge}
-            openFoundation={openFoundation}
-            setOpenFoundation={setOpenFoundation}
             t={t}
             i18n={i18n}
           />
