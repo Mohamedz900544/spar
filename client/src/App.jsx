@@ -56,6 +56,7 @@ const Contact = lazy(() => import("./pages/Contact"));
 const Courses = lazy(() => import("./pages/Courses"));
 const ScratchCurriculum = lazy(() => import("./pages/curriculum/ScratchCurriculum"));
 const Pricing = lazy(() => import("./pages/Pricing"));
+const FreeSessionBooking = lazy(() => import("./pages/FreeSessionBooking"));
 const BlocksHome = lazy(() => import("./pages/blocks/BlocksHome"));
 const BlocksPlayground = lazy(() => import("./pages/blocks/BlocksPlayground"));
 const PublicPreview = lazy(() => import("./pages/blocks/PublicPreview"));
@@ -143,6 +144,7 @@ function App() {
           <Route path="/courses" element={<Courses />} />
           <Route path="/courses/scratch" element={<ScratchCurriculum />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/free-session" element={<FreeSessionBooking />} />
           <Route path="*" element={<NotFound />} />
           <Route element={<ProtectedRoute allowedRole={"instructor"} redirectTo="/login" />}>
             <Route path="/instructor" element={<InstructorDashboard />} />
