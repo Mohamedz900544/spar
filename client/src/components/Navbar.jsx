@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Globe, Menu, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 const navLinks = [
@@ -157,16 +157,29 @@ const Navbar = () => {
           </button>
         </nav>
 
-        {/* MOBILE BUTTON */}
-        <button
-          onClick={() => setOpen(true)}
-          className={[
-            "md:hidden p-2 rounded-md transition",
-            effectiveScrolled ? "text-[#102a5a]" : "text-white",
-          ].join(" ")}
-        >
-          <Menu size={24} />
-        </button>
+        {/* MOBILE BUTTONS */}
+        <div className="md:hidden flex items-center gap-1" dir="ltr">
+          <button
+            onClick={toggleLanguage}
+            className={[
+              "p-2 rounded-md transition",
+              effectiveScrolled ? "text-[#102a5a]" : "text-white",
+            ].join(" ")}
+            aria-label="Toggle Language"
+          >
+            <Globe size={22} />
+          </button>
+          <button
+            onClick={() => setOpen(true)}
+            className={[
+              "p-2 rounded-md transition",
+              effectiveScrolled ? "text-[#102a5a]" : "text-white",
+            ].join(" ")}
+            aria-label="Open menu"
+          >
+            <Menu size={24} />
+          </button>
+        </div>
       </div>
 
       {/* ================= MOBILE MENU ================= */}
