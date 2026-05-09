@@ -37,8 +37,8 @@ const allowedOrigins = [
   "http://localhost:5173",
   "https://sparvilab.com",
   "https://www.sparvilab.com",
-  "https://spchool.online",
-  "https://www.spchool.online",
+  "https://spschool.online",
+  "https://www.spschool.online",
   process.env.CLIENT_URL
 ];
 
