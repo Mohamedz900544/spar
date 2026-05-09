@@ -485,17 +485,7 @@ const FreeSessionBooking = () => {
               </div>
             </div>
 
-            <div className="mt-10">
-              <label className="mb-3 block text-start text-base font-extrabold text-slate-700">
-                {copy.timezone}
-              </label>
-              <input
-                readOnly
-                value={copy.timezoneValue}
-                className="h-12 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 text-start text-sm font-semibold text-slate-400 outline-none"
-              />
-            </div>
-
+          
             <div className="mt-8">
               <p className="mb-4 text-start text-base font-extrabold text-slate-700">{copy.day}</p>
               {slotsLoading ? (
