@@ -4,16 +4,11 @@ import en from "./locales/en.json";
 import ar from "./locales/ar.json";
 
 const savedLanguage = localStorage.getItem("sparvi_lang");
-const migratedDefaultLanguage = localStorage.getItem("sparvi_lang_default_migrated");
 
-let initialLanguage = savedLanguage || "en";
+const initialLanguage = savedLanguage || "ar";
 
-if (savedLanguage === "ar" && migratedDefaultLanguage !== "true") {
-  initialLanguage = "en";
-  localStorage.setItem("sparvi_lang", "en");
-  localStorage.setItem("sparvi_lang_default_migrated", "true");
-} else if (!migratedDefaultLanguage) {
-  localStorage.setItem("sparvi_lang_default_migrated", "true");
+if (!savedLanguage) {
+  localStorage.setItem("sparvi_lang", "ar");
 }
 
 i18n.use(initReactI18next).init({
