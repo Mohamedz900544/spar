@@ -11,6 +11,11 @@ import {
   User,
 } from "lucide-react";
 import EgyptPhoneInput from "../components/EgyptPhoneInput";
+import {
+  initMetaPixel,
+  trackMetaPixelCustomEvent,
+  trackMetaPixelEvent,
+} from "../helpers/metaPixel";
 
 const HERO_IMAGE_URL =
   "https://res.cloudinary.com/dipzvlfnt/image/upload/f_auto,q_auto,w_900/v1772832876/Robot_l1b0pg.webp";
@@ -292,6 +297,18 @@ const FreeSessionBooking = () => {
   }, [direction, isRTL, lang]);
 
   useEffect(() => {
+    initMetaPixel();
+    trackMetaPixelEvent("PageView");
+    trackMetaPixelEvent("ViewContent", {
+      content_name: "Free Session Booking Page",
+      content_category: "Free Session",
+    });
+    trackMetaPixelCustomEvent("FreeSessionPageView", {
+      page_path: "/free-session",
+    });
+  }, []);
+
+  useEffect(() => {
     fetchSlots();
   }, [fetchSlots]);
 
@@ -425,6 +442,20 @@ const FreeSessionBooking = () => {
 
       setConfirmedSlotLabel(selectedSlotLabel);
       setConfirmed(true);
+      trackMetaPixelEvent("Lead", {
+        content_name: "Free Session Booking",
+        content_category: "Free Session",
+        status: "booked",
+      });
+      trackMetaPixelEvent("Schedule", {
+        content_name: "Free Session Booking",
+        content_category: "Free Session",
+        status: "booked",
+      });
+      trackMetaPixelCustomEvent("FreeSessionBooked", {
+        child_age: Number(formData.studentAge),
+        scheduled_at: selectedSlot.scheduledAt,
+      });
       fetchSlots();
     } catch (error) {
       console.error("Free session booking error:", error);
