@@ -15,7 +15,17 @@ const Navbar = () => {
   const { t, i18n } = useTranslation();
   const location = useLocation();
   const isLanding = location.pathname === "/";
-  const forceWhiteNavbarPage = location.pathname === "/courses/scratch";
+  const forceWhiteNavbarPage = [
+    "/courses/scratch",
+    "/courses/gen-ai",
+    "/courses/mobile-app",
+    "/courses/electronics-robotics",
+    "/courses/ui-ux",
+    "/courses/automation",
+    "/courses/data-ai",
+    "/courses/web-development",
+    "/courses/tech-around-us",
+  ].includes(location.pathname);
 
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);

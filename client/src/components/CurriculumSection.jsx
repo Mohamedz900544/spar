@@ -27,7 +27,7 @@ const ageGroupsRaw = [
 ];
 
 const courses6to8Raw = [
-  { icon: MonitorSmartphone, image: "https://i.ibb.co/8Lwh85JC/image-2.jpg" },
+  { icon: MonitorSmartphone, image: "https://i.ibb.co/8Lwh85JC/image-2.jpg", href: "/courses/tech-around-us" },
   { icon: Blocks, image: "https://i.ibb.co/xSg1Jtq5/Chat-GPT-Image-May-8-2026-06-44-09-PM.webp", href: "/courses/scratch" },
   { icon: Gamepad, image: "https://i.ibb.co/M41wcFG/25645686.webp" },
 ];
@@ -36,17 +36,17 @@ const courses6to8Raw = [
 const ageTracksRaw = {
   "9-11": [
     { id: "gamedev", icon: Gamepad, image: "https://i.ibb.co/M41wcFG/25645686.webp" },
-    { id: "genai", icon: Cpu, image: "https://i.ibb.co/2YYjyHp0/Gemini-Generated-Image-u6v74du6v74du6v7.webp" },
-    { id: "uiux", icon: Blocks, image: "https://i.ibb.co/8Lwh85JC/image-2.jpg" },
+    { id: "genai", icon: Cpu, image: "https://i.ibb.co/2YYjyHp0/Gemini-Generated-Image-u6v74du6v74du6v7.webp", href: "/courses/gen-ai" },
+    { id: "uiux", icon: Blocks, image: "https://i.ibb.co/8Lwh85JC/image-2.jpg", href: "/courses/ui-ux" },
   ],
   "12-14": [
-    { id: "mobileapp", icon: Code, image: "https://i.ibb.co/gMkpy95d/image-3.jpg" },
-    { id: "electronics-robotics", icon: Cpu, image: "https://i.ibb.co/27z9vNB0/Gemini-Generated-Image-jvudr8jvudr8jvud.webp" },
-    { id: "webdev", icon: Code, image: "https://i.ibb.co/WpyQyJ6f/Gemini-Generated-Image-7xuf9f7xuf9f7xuf.webp" },
+    { id: "mobileapp", icon: Code, image: "https://i.ibb.co/gMkpy95d/image-3.jpg", href: "/courses/mobile-app" },
+    { id: "electronics-robotics", icon: Cpu, image: "https://i.ibb.co/27z9vNB0/Gemini-Generated-Image-jvudr8jvudr8jvud.webp", href: "/courses/electronics-robotics" },
+    { id: "webdev", icon: Code, image: "https://i.ibb.co/WpyQyJ6f/Gemini-Generated-Image-7xuf9f7xuf9f7xuf.webp", href: "/courses/web-development" },
   ],
   "15-17": [
-    { id: "data-ai", icon: Activity, image: "https://i.ibb.co/H6zN2Wb/846545.webp" },
-    { id: "automation", icon: Target, image: "https://i.ibb.co/xVTp1PK/2962489.webp" },
+    { id: "data-ai", icon: Activity, image: "https://i.ibb.co/H6zN2Wb/846545.webp", href: "/courses/data-ai" },
+    { id: "automation", icon: Target, image: "https://i.ibb.co/xVTp1PK/2962489.webp", href: "/courses/automation" },
   ],
 };
 
@@ -153,13 +153,22 @@ function ContentPanel({ selectedAge, tracksForSelectedAge, t, i18n }) {
                     <p className="text-sm font-medium text-slate-500 leading-relaxed group-hover:text-slate-700 transition-colors">
                       {t(`courses.tracks.${track.id}.desc`)}
                     </p>
-                    <button
-                      type="button"
-                      disabled
-                      className="mt-5 w-full rounded-xl bg-slate-100 px-4 py-3 text-sm font-extrabold text-slate-400 cursor-not-allowed"
-                    >
-                      {t("courses.explore_curriculum")}
-                    </button>
+                    {track.href ? (
+                      <Link
+                        to={track.href}
+                        className="mt-5 block w-full rounded-xl bg-[#FBBF24] px-4 py-3 text-center text-sm font-extrabold text-slate-950 transition-all duration-300 hover:bg-amber-300 hover:-translate-y-0.5"
+                      >
+                        {t("courses.explore_curriculum")}
+                      </Link>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled
+                        className="mt-5 w-full rounded-xl bg-slate-100 px-4 py-3 text-sm font-extrabold text-slate-400 cursor-not-allowed"
+                      >
+                        {t("courses.explore_curriculum")}
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}

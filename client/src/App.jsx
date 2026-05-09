@@ -55,6 +55,14 @@ const OurStory = lazy(() => import("./pages/OurStory"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Courses = lazy(() => import("./pages/Courses"));
 const ScratchCurriculum = lazy(() => import("./pages/curriculum/ScratchCurriculum"));
+const GenAICurriculum = lazy(() => import("./pages/curriculum/GenAICurriculum"));
+const MobileAppCurriculum = lazy(() => import("./pages/curriculum/MobileAppCurriculum"));
+const ElectronicsRoboticsCurriculum = lazy(() => import("./pages/curriculum/ElectronicsRoboticsCurriculum"));
+const UIUXCurriculum = lazy(() => import("./pages/curriculum/UIUXCurriculum"));
+const AutomationCurriculum = lazy(() => import("./pages/curriculum/AutomationCurriculum"));
+const DataAICurriculum = lazy(() => import("./pages/curriculum/DataAICurriculum"));
+const WebDevelopmentCurriculum = lazy(() => import("./pages/curriculum/WebDevelopmentCurriculum"));
+const TechAroundUsCurriculum = lazy(() => import("./pages/curriculum/TechAroundUsCurriculum"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const FreeSessionBooking = lazy(() => import("./pages/FreeSessionBooking"));
 const BlocksHome = lazy(() => import("./pages/blocks/BlocksHome"));
@@ -143,6 +151,14 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/courses" element={<Courses />} />
           <Route path="/courses/scratch" element={<ScratchCurriculum />} />
+          <Route path="/courses/gen-ai" element={<GenAICurriculum />} />
+          <Route path="/courses/mobile-app" element={<MobileAppCurriculum />} />
+          <Route path="/courses/electronics-robotics" element={<ElectronicsRoboticsCurriculum />} />
+          <Route path="/courses/ui-ux" element={<UIUXCurriculum />} />
+          <Route path="/courses/automation" element={<AutomationCurriculum />} />
+          <Route path="/courses/data-ai" element={<DataAICurriculum />} />
+          <Route path="/courses/web-development" element={<WebDevelopmentCurriculum />} />
+          <Route path="/courses/tech-around-us" element={<TechAroundUsCurriculum />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/free-session" element={<FreeSessionBooking />} />
           <Route path="*" element={<NotFound />} />
