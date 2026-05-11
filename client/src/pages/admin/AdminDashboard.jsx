@@ -128,7 +128,7 @@ const AdminDashboard = () => {
   }
 
   return (
-    < >
+    <>
       <UpdateSessionForm
         handleUpdateSession={handleUpdateSession}
         openForm={openForm}
@@ -136,15 +136,13 @@ const AdminDashboard = () => {
         session={sessionToUpdate}
         setSession={setSessionToUpdate}
       />
-      <main className="flex-1 px-4 pt-5 pb-10 md:pt-8">
-        <div className="max-w-7xl mx-auto">
+      <div className="space-y-5">
           {loadError && (
-            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs md:text-sm text-red-700">
+            <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
               {loadError}
             </div>
           )}
 
-          {/* Tabs */}
           <Tabs
             activeTab={activeTab}
             setActiveTab={handleTabChange}
@@ -700,12 +698,8 @@ const AdminDashboard = () => {
               </MotionContainer>
             )}
           </AnimatePresence>
-        </div>
-      </main>
+      </div>
 
-      <footer className="py-5 text-center text-xs text-slate-400 bg-white border-t border-slate-100">
-        © {new Date().getFullYear()} SP School · Admin Dashboard
-      </footer>
     </>
   );
 };

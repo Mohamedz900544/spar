@@ -127,11 +127,11 @@ export const RoundStudentsPage = ({ searchValue }) => {
     }
 
     return (
-        <div className="mt-8 px-4 md:px-10">
-            <div className="py-5 flex justify-between items-center">
+        <div className="space-y-5">
+            <div className="flex items-center justify-between gap-4">
                 <div className="">
-                    <h2 className="text-black font-bold text-2xl flex items-center gap-2">
-                        <MessageSquare className="w-6 h-6 text-blue-600" />
+                    <h2 className="flex items-center gap-2 text-2xl font-semibold tracking-normal text-slate-800">
+                        <MessageSquare className="w-6 h-6 text-emerald-600" />
                         Student Feedback & Ratings
                     </h2>
                     <p className="text-slate-500 text-sm mt-1">
@@ -139,13 +139,13 @@ export const RoundStudentsPage = ({ searchValue }) => {
                     </p>
                 </div>
                 <div>
-                    <button className="flex p-2 border-blue-600 text-black" onClick={() => {
+                    <button className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 shadow-sm transition-all hover:bg-slate-50" onClick={() => {
                         setSort(!sort)
                     }}>Sort {sort ? <SortDesc /> : <SortAsc />}</button>
                 </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-[#dbeafe] shadow-sm overflow-hidden">
+            <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                 {finalStudents.map((student, index) => {
                     const totalRating = student.ratings?.reduce((acc, curr) => acc + curr.rating, 0) || 0;
                     const avgRating = student.ratings?.length
@@ -241,7 +241,7 @@ export const RoundStudentsPage = ({ searchValue }) => {
                                         Activity Gallery ({student.childPhotos.length})
                                     </h4>
 
-                                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                                    <div className="hide-scrollbar flex gap-3 overflow-x-auto pb-2">
                                         {student.childPhotos.map((photo, i) => (
                                             <div
                                                 key={photo._id || i}

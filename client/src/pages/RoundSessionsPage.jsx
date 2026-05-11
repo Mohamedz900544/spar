@@ -105,26 +105,26 @@ const RoundSessionsPage = () => {
 
     const { deleteSessions, handleUpdateSession } = useAdminDashboard()
     return (
-        <div className='bg-[#f5f7ff] min-h-screen relative'>
+        <div className="space-y-5">
             {isLoading ?
-                <p>Loading data</p>
+                <p className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-500 shadow-sm">Loading data...</p>
                 :
                 <>
                     <UpdateSessionForm handleUpdateSession={handleUpdateSession} openForm={openForm} setOpenForm={setOpenForm} session={session} setSession={setSession} />
-                    <div className=' px-40'>
+                    <div className="space-y-5">
 
                         {/* round title */}
-                        <div className=' py-5'>
-                            <h2 className='text-black font-bold text-2xl'>{roundDetails?.name} </h2>
-                            <p className='text-[#333] text-md'>{roundDetails?.level}</p>
+                        <div>
+                            <h2 className="text-2xl font-semibold tracking-normal text-slate-800">{roundDetails?.name} </h2>
+                            <p className="text-sm font-medium text-slate-500">{roundDetails?.level}</p>
                         </div>
                         <form
                             onSubmit={handleCreateCustomSession}
-                            className="mb-5 rounded-2xl border border-[#dbeafe] bg-white p-5 shadow-sm"
+                            className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
                         >
                             <div className="mb-4 flex items-center gap-2">
-                                <Plus className="h-4 w-4 text-[#102a5a]" />
-                                <h3 className="text-sm font-bold text-[#102a5a]">
+                                <Plus className="h-4 w-4 text-emerald-600" />
+                                <h3 className="text-sm font-bold text-slate-700">
                                     Add custom session
                                 </h3>
                             </div>
@@ -137,7 +137,7 @@ const RoundSessionsPage = () => {
                                         type="text"
                                         value={newSession.title}
                                         onChange={(e) => handleNewSessionChange("title", e.target.value)}
-                                        className="w-full rounded-xl border border-[#e2e8f0] bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
+                                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition-all focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100"
                                         placeholder="Extra revision session"
                                     />
                                 </div>
@@ -149,7 +149,7 @@ const RoundSessionsPage = () => {
                                         type="date"
                                         value={newSession.date}
                                         onChange={(e) => handleNewSessionChange("date", e.target.value)}
-                                        className="w-full rounded-xl border border-[#e2e8f0] bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
+                                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition-all focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100"
                                     />
                                 </div>
                                 <div>
@@ -160,7 +160,7 @@ const RoundSessionsPage = () => {
                                         type="time"
                                         value={newSession.time}
                                         onChange={(e) => handleNewSessionChange("time", e.target.value)}
-                                        className="w-full rounded-xl border border-[#e2e8f0] bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
+                                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition-all focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100"
                                     />
                                 </div>
                                 <div>
@@ -172,7 +172,7 @@ const RoundSessionsPage = () => {
                                         min={1}
                                         value={newSession.capacity}
                                         onChange={(e) => handleNewSessionChange("capacity", Number(e.target.value))}
-                                        className="w-full rounded-xl border border-[#e2e8f0] bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
+                                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition-all focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100"
                                     />
                                 </div>
                                 <div>
@@ -183,7 +183,7 @@ const RoundSessionsPage = () => {
                                         type="text"
                                         value={newSession.campus}
                                         onChange={(e) => handleNewSessionChange("campus", e.target.value)}
-                                        className="w-full rounded-xl border border-[#e2e8f0] bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
+                                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition-all focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100"
                                         placeholder={roundDetails?.campus || "Campus"}
                                     />
                                 </div>
@@ -194,7 +194,7 @@ const RoundSessionsPage = () => {
                                     <textarea
                                         value={newSession.description}
                                         onChange={(e) => handleNewSessionChange("description", e.target.value)}
-                                        className="w-full rounded-xl border border-[#e2e8f0] bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
+                                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition-all focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100"
                                         placeholder="Optional notes for this custom session"
                                         rows={2}
                                     />
@@ -203,13 +203,13 @@ const RoundSessionsPage = () => {
                             <button
                                 type="submit"
                                 disabled={isCreatingSession}
-                                className="mt-4 inline-flex items-center justify-center rounded-full bg-[#102a5a] px-5 py-2 text-sm font-semibold text-white hover:bg-[#1a3a6b] disabled:opacity-60"
+                                className="mt-4 inline-flex items-center justify-center rounded-lg bg-slate-950 px-5 py-2 text-sm font-semibold text-white transition-all hover:bg-slate-800 disabled:opacity-60"
                             >
                                 {isCreatingSession ? "Adding..." : "Add session"}
                             </button>
                         </form>
                         {/* sessions */}
-                        <div className="overflow-x-auto bg-white rounded-2xl border border-[#dbeafe] p-5 shadow-sm">
+                        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                             <table className="min-w-full text-xs md:text-sm p-2 bg-white rounded-xl">
                                 <thead>
                                     <tr className="border-b border-[#e5e7eb] text-slate-500">

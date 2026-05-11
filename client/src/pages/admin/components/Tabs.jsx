@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { motion } from "framer-motion";
 import {
   CalendarClock,
   Image as ImageIcon,
@@ -23,55 +22,86 @@ const ADMIN_TABS = [
   { id: "full-overview", label: "Full Overview & Visitors", icon: Eye },
 ];
 
-const Tabs = ({ activeTab, setActiveTab, tabButtonBase, newMessagesCount }) => {
-  const [portalTarget, setPortalTarget] = useState(null);
+const Tabs = ({ activeTab, setActiveTab, newMessagesCount }) => {
+  const [portalTargets, setPortalTargets] = useState({
+    sidebar: null,
+    mobile: null,
+  });
 
   useEffect(() => {
-    setPortalTarget(document.getElementById("admin-header-tabs-slot"));
+    setPortalTargets({
+      sidebar: document.getElementById("admin-sidebar-tabs-slot"),
+      mobile: document.getElementById("admin-mobile-tabs-slot"),
+    });
   }, []);
 
-  const tabsContent = (
-    <nav className="w-full">
-      <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide py-1">
-        {ADMIN_TABS.map((tab) => {
-          const isActive = activeTab === tab.id;
-          const TabIcon = tab.icon;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap shrink-0 ${
-                isActive
-                  ? "bg-white/15 text-white shadow-sm"
-                  : "text-white/60 hover:text-white/85 hover:bg-white/5"
-              }`}
-            >
-              <TabIcon className="w-4 h-4" />
-              <span className="hidden sm:inline">{tab.label}</span>
-              <span className="sm:hidden">{tab.label.split(" ")[0]}</span>
+  const renderBadge = (isActive) =>
+    newMessagesCount > 0 && (
+      <span
+        className={`inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold leading-none ${
+          isActive ? "bg-white/70 text-emerald-700" : "bg-emerald-600 text-white"
+        }`}
+      >
+        {newMessagesCount}
+      </span>
+    );
 
-              {tab.id === "messages" && newMessagesCount > 0 && (
-                <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#FBBF24] text-[10px] font-bold text-[#102a5a] leading-none">
-                  {newMessagesCount}
-                </span>
-              )}
-
-              {isActive && (
-                <motion.div
-                  layoutId="adminTabIndicator"
-                  className="absolute bottom-0 left-3 right-3 h-0.5 bg-[#FBBF24] rounded-full"
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                />
-              )}
-            </button>
-          );
-        })}
-      </div>
-    </nav>
+  const desktopTabs = (
+    <div className="space-y-1.5">
+      {ADMIN_TABS.map((tab) => {
+        const isActive = activeTab === tab.id;
+        const TabIcon = tab.icon;
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold transition-all ${
+              isActive
+                ? "bg-emerald-50 text-emerald-700"
+                : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+            }`}
+          >
+            <TabIcon className="h-4 w-4 shrink-0" />
+            <span className="min-w-0 flex-1 truncate">{tab.label}</span>
+            {tab.id === "messages" && renderBadge(isActive)}
+          </button>
+        );
+      })}
+    </div>
   );
 
-  if (!portalTarget) return null;
-  return createPortal(tabsContent, portalTarget);
+  const mobileTabs = (
+    <>
+      {ADMIN_TABS.map((tab) => {
+        const isActive = activeTab === tab.id;
+        const TabIcon = tab.icon;
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id)}
+            className={`inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-xs font-bold transition-all ${
+              isActive
+                ? "bg-emerald-50 text-emerald-700"
+                : "bg-white text-slate-500 ring-1 ring-slate-200 hover:text-slate-900"
+            }`}
+          >
+            <TabIcon className="h-3.5 w-3.5" />
+            <span>{tab.label}</span>
+            {tab.id === "messages" && renderBadge(isActive)}
+          </button>
+        );
+      })}
+    </>
+  );
+
+  return (
+    <>
+      {portalTargets.sidebar && createPortal(desktopTabs, portalTargets.sidebar)}
+      {portalTargets.mobile && createPortal(mobileTabs, portalTargets.mobile)}
+    </>
+  );
 };
 
 export default Tabs;
