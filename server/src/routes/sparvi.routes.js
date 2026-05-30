@@ -3,6 +3,11 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import { authRequired, adminOnly } from "../middleware/auth.js";
 import {
+  downloadSPRecordingLessonFile,
+  getPublicSPRecordingCourse,
+  listPublicSPRecordingCourses,
+} from "../controllers/spRecording.controller.js";
+import {
   constantTimeSecretEquals,
   getSparviInstructorAccessSummary,
   rotateSparviInstructorPassword,
@@ -36,6 +41,40 @@ const requireSparviSharedSecretIfConfigured = (req, res, next) => {
     return res.status(401).json({
       ok: false,
       message: "Missing Sparvi server authorization",
+    });
+  }
+
+  if (!constantTimeSecretEquals(providedToken, expectedSecret)) {
+    return res.status(403).json({
+      ok: false,
+      message: "Forbidden",
+    });
+  }
+
+  return next();
+};
+
+const requireSPRecordingApiKey = (req, res, next) => {
+  const expectedSecret =
+    process.env.SP_RECORDING_API_KEY ||
+    process.env.SPARVI_SERVER_SHARED_SECRET ||
+    "";
+
+  if (!expectedSecret) {
+    return res.status(500).json({
+      ok: false,
+      message: "SP recording API key is not configured",
+    });
+  }
+
+  const providedToken =
+    extractBearerToken(req.headers.authorization || "") ||
+    `${req.headers["x-sp-recording-api-key"] || ""}`.trim();
+
+  if (!providedToken) {
+    return res.status(401).json({
+      ok: false,
+      message: "Missing SP recording authorization",
     });
   }
 
@@ -122,6 +161,18 @@ router.post(
       });
     }
   }
+);
+
+router.get("/recordings", requireSPRecordingApiKey, listPublicSPRecordingCourses);
+router.get(
+  "/recordings/:courseId",
+  requireSPRecordingApiKey,
+  getPublicSPRecordingCourse
+);
+router.get(
+  "/recordings/:courseId/lessons/:lessonId/download",
+  requireSPRecordingApiKey,
+  downloadSPRecordingLessonFile
 );
 
 router.get("/pointer/download", (req, res) => {

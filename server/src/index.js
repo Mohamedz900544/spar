@@ -16,6 +16,7 @@ import instructorRoutes from "./routes/instructor.routes.js";
 import salesRoutes from "./routes/sales.routes.js";
 import whatsappWebhookRoutes from "./routes/whatsappWebhook.routes.js";
 import sparviRoutes from "./routes/sparvi.routes.js";
+import spRecordingRoutes from "./routes/spRecording.routes.js";
 // import "./config/cloudinary.js";
 import "./automatingUpdatingStatusOfSession.js"
 import "./automatingLeadFollowUpStatus.js";
@@ -79,6 +80,7 @@ app.use('/api/admin/rounds', roundRoutes)
 app.use('/api/admin/sessions', sessionRoutes)
 app.use('/api/admin/enrollments', enrollmentRoutes)
 app.use('/api/admin/gallery', galleryRoutes)
+app.use('/api/admin/sp-recordings', spRecordingRoutes)
 app.use("/api/instructor", instructorRoutes);
 app.use("/api/sales", salesRoutes);
 app.use("/api/sparvi", sparviRoutes);

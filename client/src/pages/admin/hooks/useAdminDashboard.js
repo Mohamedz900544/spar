@@ -8,6 +8,19 @@ import { getTokenOrRedirect } from "../../../helpers/helpers.js";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+const clearStoredAuth = () => {
+  [
+    "sparvi_token",
+    "sparvi_role",
+    "sparvi_user",
+    "sparvi_user_email",
+    "sparvi_user_name",
+    "token",
+    "role",
+    "user",
+  ].forEach((key) => localStorage.removeItem(key));
+};
+
 const parseResponseOrThrow = async (res, fallbackMessage = "Request failed") => {
   const raw = await res.text();
   let data = {};
@@ -752,6 +765,12 @@ export const useAdminDashboard = () => {
 
   const loadDashboard = async () => {
     const token = localStorage.getItem("sparvi_token");
+    if (!token) {
+      clearStoredAuth();
+      navigate("/login");
+      return;
+    }
+
     try {
       setIsLoading(true);
       setLoadError("");
@@ -770,6 +789,15 @@ export const useAdminDashboard = () => {
           res.status,
           text
         );
+
+        if (res.status === 401 || res.status === 403) {
+          clearStoredAuth();
+          setLoadError("Your admin session expired. Please log in again.");
+          toast.error("Please log in again to continue.");
+          navigate("/login");
+          return;
+        }
+
         setLoadError(
           "Could not load admin data from server (dashboard API)."
         );

@@ -8,6 +8,7 @@ import {
   BarChart3,
   GraduationCap,
   Eye,
+  FileArchive,
 } from "lucide-react";
 
 const ADMIN_TABS = [
@@ -17,6 +18,7 @@ const ADMIN_TABS = [
   { id: "enrollments", label: "Enrollments", icon: Users },
   { id: "instructors", label: "Instructors", icon: GraduationCap },
   { id: "users", label: "Users", icon: Users },
+  { id: "sp-recording", label: "SP Recording", icon: FileArchive },
   { id: "gallery", label: "Gallery", icon: ImageIcon },
   { id: "messages", label: "Messages", icon: Inbox },
   { id: "full-overview", label: "Full Overview & Visitors", icon: Eye },
@@ -29,10 +31,14 @@ const Tabs = ({ activeTab, setActiveTab, newMessagesCount }) => {
   });
 
   useEffect(() => {
-    setPortalTargets({
-      sidebar: document.getElementById("admin-sidebar-tabs-slot"),
-      mobile: document.getElementById("admin-mobile-tabs-slot"),
+    const frameId = window.requestAnimationFrame(() => {
+      setPortalTargets({
+        sidebar: document.getElementById("admin-sidebar-tabs-slot"),
+        mobile: document.getElementById("admin-mobile-tabs-slot"),
+      });
     });
+
+    return () => window.cancelAnimationFrame(frameId);
   }, []);
 
   const renderBadge = (isActive) =>

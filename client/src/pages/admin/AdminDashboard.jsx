@@ -27,6 +27,7 @@ import { RoundsTab } from "./components/Tabs/RoundsTab";
 import { SessionsTab } from "./components/Tabs/SessionsTab";
 import { EnrollmentsTab } from "./components/Tabs/EnrollmentsTab";
 import { UsersTab } from "./components/Tabs/UsersTab";
+import { SPRecordingTab } from "./components/Tabs/SPRecordingTab";
 import SparviInstructorAccessCard from "./components/SparviInstructorAccessCard";
 import EgyptPhoneInput from "../../components/EgyptPhoneInput";
 
@@ -217,6 +218,8 @@ const AdminDashboard = () => {
                 blockProjectsByUser={blockProjectsByUser}
               />
             )}
+
+            {activeTab === "sp-recording" && <SPRecordingTab />}
 
             {activeTab === "instructors" && (
               <div className="space-y-6">
