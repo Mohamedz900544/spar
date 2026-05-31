@@ -47,6 +47,7 @@ function SuspenseFallback() {
 const Landing = lazy(() => import("./pages/Landing"));
 const SignUp = lazy(() => import("./pages/SignUp"));
 const Login = lazy(() => import("./pages/Login"));
+const DesktopAuth = lazy(() => import("./pages/DesktopAuth"));
 const ParentDashboard = lazy(() => import("./pages/ParentDashboard"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminOverview = lazy(() => import("./pages/admin/OverviewPage"));
@@ -135,6 +136,7 @@ function App() {
           {/* <Route path="/verify-email" element={<EmailVerificationPage />} /> */}
           <Route path="/signup" element={<SignUp />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/desktop-auth" element={<DesktopAuth />} />
           <Route element={<ParentHeader data={userData} />
           }>
             <Route path="/parent" element={<ParentDashboard parent={userData} setParent={setUserData} />} />

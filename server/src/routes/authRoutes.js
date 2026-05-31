@@ -1,7 +1,9 @@
 import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import User from "../models/User.js";
+import DesktopAuthCode from "../models/DesktopAuthCode.js";
 import { authRequired } from "../middleware/auth.js";
 import { upload2 } from "../config/multer.js";
 import { body, validationResult } from 'express-validator'
@@ -10,6 +12,13 @@ import jsonwebtoken from 'jsonwebtoken'
 const router = express.Router();
 
 const JWT_SECRET = process.env.JWT_SECRET || "change_this_in_env";
+const DESKTOP_AUTH_CODE_TTL_MS = 2 * 60 * 1000;
+const DEFAULT_DESKTOP_REDIRECT_PREFIXES = [
+  "sparvi-library://auth/callback",
+  "sparvi://auth/callback",
+  "http://127.0.0.1:",
+  "http://localhost:",
+];
 
 // ✅ نولّد توكن بالطريقة اللي الميدل وير متوقعها
 const generateToken = (user) => {
@@ -36,6 +45,28 @@ const buildSafeUser = (user) => ({
   campusCode: user.campusCode || null,
   photoUrl: user.photoUrl,
 });
+
+const getDesktopRedirectPrefixes = () => {
+  const configured = (process.env.DESKTOP_AUTH_ALLOWED_REDIRECT_URIS || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  return configured.length > 0 ? configured : DEFAULT_DESKTOP_REDIRECT_PREFIXES;
+};
+
+const isAllowedDesktopRedirectUri = (redirectUri = "") => {
+  if (!redirectUri || typeof redirectUri !== "string") return false;
+
+  return getDesktopRedirectPrefixes().some((allowedPrefix) =>
+    redirectUri.startsWith(allowedPrefix)
+  );
+};
+
+const createDesktopCode = () => crypto.randomBytes(32).toString("base64url");
+
+const hashDesktopCode = (code = "") =>
+  crypto.createHash("sha256").update(String(code)).digest("hex");
 
 // ===================================
 // SIGNUP
@@ -212,6 +243,88 @@ router.get("/me", authRequired, async (req, res) => {
   } catch (err) {
     console.error("Me error:", err.message);
     return res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.post("/desktop/authorize", authRequired, async (req, res) => {
+  try {
+    const redirectUri = `${req.body?.redirectUri || ""}`.trim();
+    const state = `${req.body?.state || ""}`.trim();
+
+    if (!isAllowedDesktopRedirectUri(redirectUri)) {
+      return res.status(400).json({
+        ok: false,
+        message: "Desktop redirect URI is not allowed",
+      });
+    }
+
+    const code = createDesktopCode();
+    const expiresAt = new Date(Date.now() + DESKTOP_AUTH_CODE_TTL_MS);
+
+    await DesktopAuthCode.create({
+      codeHash: hashDesktopCode(code),
+      user: req.user._id,
+      redirectUri,
+      state,
+      expiresAt,
+    });
+
+    return res.status(201).json({
+      ok: true,
+      code,
+      state,
+      expiresInSeconds: Math.floor(DESKTOP_AUTH_CODE_TTL_MS / 1000),
+    });
+  } catch (err) {
+    console.error("Desktop authorize error:", err);
+    return res.status(500).json({ ok: false, message: "Server error" });
+  }
+});
+
+router.post("/desktop/exchange", async (req, res) => {
+  try {
+    const code = `${req.body?.code || ""}`.trim();
+    const state = `${req.body?.state || ""}`.trim();
+
+    if (!code) {
+      return res.status(400).json({ ok: false, message: "Code is required" });
+    }
+
+    const authCode = await DesktopAuthCode.findOneAndUpdate(
+      {
+        codeHash: hashDesktopCode(code),
+        usedAt: null,
+        expiresAt: { $gt: new Date() },
+      },
+      { $set: { usedAt: new Date() } },
+      { new: false }
+    ).populate("user");
+
+    if (!authCode?.user) {
+      return res.status(401).json({
+        ok: false,
+        message: "Desktop auth code is invalid or expired",
+      });
+    }
+
+    if (authCode.state && state && authCode.state !== state) {
+      return res.status(400).json({
+        ok: false,
+        message: "Desktop auth state mismatch",
+      });
+    }
+
+    const token = generateToken(authCode.user);
+    const safeUser = buildSafeUser(authCode.user);
+
+    return res.json({
+      ok: true,
+      token,
+      user: safeUser,
+    });
+  } catch (err) {
+    console.error("Desktop exchange error:", err);
+    return res.status(500).json({ ok: false, message: "Server error" });
   }
 });
 

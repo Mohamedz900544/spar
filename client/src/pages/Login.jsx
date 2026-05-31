@@ -4,10 +4,15 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { motion } from "framer-motion";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import axios, { AxiosError } from "axios";
 import { Mail, Lock, ArrowRight, Sparkles, Zap, Shield } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import {
+  buildDesktopAuthSearch,
+  completeDesktopAuth,
+  getDesktopAuthParams,
+} from "../helpers/desktopAuth";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -24,8 +29,11 @@ const schema = yup.object().shape({
 });
 
 /* ========= Floating shape component ========= */
+const MotionDiv = motion.div;
+const MotionButton = motion.button;
+
 const FloatingShape = ({ className, delay = 0, duration = 6 }) => (
-  <motion.div
+  <MotionDiv
     className={className}
     animate={{ y: [0, -15, 0], opacity: [0.5, 1, 0.5] }}
     transition={{ duration, delay, repeat: Infinity, ease: "easeInOut" }}
@@ -35,17 +43,57 @@ const FloatingShape = ({ className, delay = 0, duration = 6 }) => (
 const Login = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [serverError, setServerError] = useState("");
+  const desktopAuthParams = getDesktopAuthParams(searchParams);
+  const desktopAuthSearch = buildDesktopAuthSearch(desktopAuthParams);
+
+  const finishDesktopAuth = async (token) => {
+    try {
+      await completeDesktopAuth({
+        token,
+        redirectUri: desktopAuthParams.redirectUri,
+        state: desktopAuthParams.state,
+      });
+    } catch (err) {
+      console.error("Desktop auth error:", err);
+      setServerError(err.message || "Could not return to the desktop app");
+    }
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("sparvi_token");
     const role = localStorage.getItem("sparvi_role");
-    if (!token || !role) return;
-    if (role === "admin") navigate("/admin");
-    else if (role === "instructor") navigate("/instructor");
-    else if (role === "agent") navigate("/sales");
-    else navigate("/parent");
-  }, [navigate]);
+    if (!token) return;
+    if (desktopAuthParams.enabled) {
+      const frameId = window.requestAnimationFrame(() => {
+        completeDesktopAuth({
+          token,
+          redirectUri: desktopAuthParams.redirectUri,
+          state: desktopAuthParams.state,
+        }).catch((err) => {
+          console.error("Desktop auth error:", err);
+          setServerError(err.message || "Could not return to the desktop app");
+        });
+      });
+      return () => window.cancelAnimationFrame(frameId);
+    }
+    if (!role) return;
+    if (role === "admin") {
+      navigate("/admin");
+    } else if (role === "instructor") {
+      navigate("/instructor");
+    } else if (role === "agent") {
+      navigate("/sales");
+    } else {
+      navigate("/parent");
+    }
+  }, [
+    navigate,
+    desktopAuthParams.enabled,
+    desktopAuthParams.redirectUri,
+    desktopAuthParams.state,
+  ]);
 
   const hasCompletedProfile = (user) => {
     const firstChild = user?.children?.[0];
@@ -83,6 +131,11 @@ const Login = () => {
       localStorage.setItem("sparvi_user", JSON.stringify(res.data.user || {}));
       localStorage.setItem("user", JSON.stringify(res.data.user || {}));
 
+      if (desktopAuthParams.enabled) {
+        await finishDesktopAuth(res.data.token);
+        return;
+      }
+
       if (role === "admin") navigate("/admin");
       else if (role === "instructor") navigate("/instructor");
       else if (role === "agent") navigate("/sales");
@@ -110,7 +163,7 @@ const Login = () => {
   return (
     <div className="min-h-screen flex">
       {/* ===== LEFT — Navy immersive panel ===== */}
-      <motion.div
+      <MotionDiv
         className="hidden lg:flex lg:w-[45%] relative overflow-hidden flex-col justify-between"
         style={{
           background: "linear-gradient(135deg, #071228 0%, #102a5a 50%, #1a3a6b 100%)",
@@ -151,7 +204,7 @@ const Login = () => {
         {/* Content */}
         <div className="relative z-10 flex flex-col justify-center flex-1 px-12 xl:px-16" dir={i18n.language === "ar" ? "rtl" : "ltr"}>
           {/* Logo / brand */}
-          <motion.div
+          <MotionDiv
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.6 }}
@@ -160,9 +213,9 @@ const Login = () => {
 
               <img src="/logo-white.png" alt="SP School" className="h-12" />
             </Link>
-          </motion.div>
+          </MotionDiv>
 
-          <motion.div
+          <MotionDiv
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.7 }}
@@ -179,10 +232,10 @@ const Login = () => {
             <p className="text-slate-300 text-base leading-relaxed max-w-sm text-start">
               {t("login.description")}
             </p>
-          </motion.div>
+          </MotionDiv>
 
           {/* Feature badges */}
-          <motion.div
+          <MotionDiv
             className="mt-10 space-y-4"
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -200,7 +253,7 @@ const Login = () => {
                 <span className="text-sm text-slate-300">{item.text}</span>
               </div>
             ))}
-          </motion.div>
+          </MotionDiv>
         </div>
 
         {/* Bottom branding */}
@@ -209,7 +262,7 @@ const Login = () => {
             © {new Date().getFullYear()} SP School. {t("login.rights")}.
           </p>
         </div>
-      </motion.div>
+      </MotionDiv>
 
       {/* ===== RIGHT — Login Form ===== */}
       <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-[#f8fafc] px-5 py-10 relative overflow-hidden" dir={i18n.language === "ar" ? "rtl" : "ltr"}>
@@ -219,7 +272,7 @@ const Login = () => {
           backgroundSize: "24px 24px",
         }} />
 
-        <motion.div
+        <MotionDiv
           className="relative z-10 w-full max-w-md"
           initial={{ y: 30, opacity: 0, scale: 0.98 }}
           animate={{ y: 0, opacity: 1, scale: 1 }}
@@ -245,7 +298,7 @@ const Login = () => {
 
             {/* Server error */}
             {serverError && (
-              <motion.div
+              <MotionDiv
                 className="mb-5 bg-red-50 border border-red-100 rounded-2xl p-4"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -253,7 +306,7 @@ const Login = () => {
                 <p className="text-xs text-red-600 text-center font-medium">
                   {serverError}
                 </p>
-              </motion.div>
+              </MotionDiv>
             )}
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -312,7 +365,7 @@ const Login = () => {
               </div>
 
               {/* Submit */}
-              <motion.button
+              <MotionButton
                 type="submit"
                 disabled={isSubmitting}
                 className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#FBBF24] hover:bg-[#F59E0B] text-[#102a5a] font-bold py-3.5 shadow-[0_8px_25px_rgba(251,191,36,0.3)] hover:shadow-[0_12px_35px_rgba(251,191,36,0.4)] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
@@ -327,7 +380,7 @@ const Login = () => {
                     <ArrowRight className={`w-4 h-4 ${i18n.language === "ar" ? "rotate-180" : ""}`} />
                   </>
                 )}
-              </motion.button>
+              </MotionButton>
             </form>
 
             {/* Divider */}
@@ -335,7 +388,11 @@ const Login = () => {
               <p className="text-sm text-slate-500">
                 {t("login.new_user")}{" "}
                 <Link
-                  to="/signup"
+                  to={
+                    desktopAuthParams.enabled
+                      ? `/signup?${desktopAuthSearch}`
+                      : "/signup"
+                  }
                   className="text-[#102a5a] font-semibold hover:text-[#FBBF24] transition-colors"
                 >
                   {t("login.create_account")}
@@ -343,7 +400,7 @@ const Login = () => {
               </p>
             </div>
           </div>
-        </motion.div>
+        </MotionDiv>
       </div>
     </div>
   );

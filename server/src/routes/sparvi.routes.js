@@ -1,7 +1,9 @@
 import express from "express";
 import fs from "fs";
+import jwt from "jsonwebtoken";
 import { fileURLToPath } from "url";
 import { authRequired, adminOnly } from "../middleware/auth.js";
+import User from "../models/User.js";
 import {
   downloadSPRecordingLessonFile,
   getPublicSPRecordingCourse,
@@ -15,6 +17,7 @@ import {
 } from "../services/sparviAccess.service.js";
 
 const router = express.Router();
+const JWT_SECRET = process.env.JWT_SECRET;
 const pointerInstallerPath = fileURLToPath(
   new URL("../SPpointer/Sparvi Desktop Student.exe", import.meta.url)
 );
@@ -28,6 +31,16 @@ const extractBearerToken = (authorizationHeader = "") => {
     return "";
   }
   return token.trim();
+};
+
+const authenticateSparviUserToken = async (token = "") => {
+  if (!token || !JWT_SECRET) return null;
+
+  const payload = jwt.verify(token, JWT_SECRET);
+  const userId = payload.id || payload._id || payload.userId || payload.sub;
+  if (!userId) return null;
+
+  return User.findById(userId).select("-passwordHash");
 };
 
 const requireSparviSharedSecretIfConfigured = (req, res, next) => {
@@ -54,38 +67,40 @@ const requireSparviSharedSecretIfConfigured = (req, res, next) => {
   return next();
 };
 
-const requireSPRecordingApiKey = (req, res, next) => {
+const requireSPRecordingAccess = async (req, res, next) => {
   const expectedSecret =
     process.env.SP_RECORDING_API_KEY ||
     process.env.SPARVI_SERVER_SHARED_SECRET ||
     "";
 
-  if (!expectedSecret) {
-    return res.status(500).json({
-      ok: false,
-      message: "SP recording API key is not configured",
-    });
+  const bearerToken = extractBearerToken(req.headers.authorization || "");
+  const headerApiKey = `${req.headers["x-sp-recording-api-key"] || ""}`.trim();
+  const providedApiKey = headerApiKey || bearerToken;
+
+  if (
+    expectedSecret &&
+    providedApiKey &&
+    constantTimeSecretEquals(providedApiKey, expectedSecret)
+  ) {
+    return next();
   }
 
-  const providedToken =
-    extractBearerToken(req.headers.authorization || "") ||
-    `${req.headers["x-sp-recording-api-key"] || ""}`.trim();
-
-  if (!providedToken) {
-    return res.status(401).json({
-      ok: false,
-      message: "Missing SP recording authorization",
-    });
+  if (bearerToken) {
+    try {
+      const user = await authenticateSparviUserToken(bearerToken);
+      if (user) {
+        req.user = user;
+        return next();
+      }
+    } catch (err) {
+      console.warn("[sparvi-recordings] JWT auth failed:", err.message);
+    }
   }
 
-  if (!constantTimeSecretEquals(providedToken, expectedSecret)) {
-    return res.status(403).json({
-      ok: false,
-      message: "Forbidden",
-    });
-  }
-
-  return next();
+  return res.status(bearerToken || headerApiKey ? 403 : 401).json({
+    ok: false,
+    message: "Missing or invalid SP recording authorization",
+  });
 };
 
 router.get("/access", authRequired, adminOnly, async (req, res) => {
@@ -163,15 +178,15 @@ router.post(
   }
 );
 
-router.get("/recordings", requireSPRecordingApiKey, listPublicSPRecordingCourses);
+router.get("/recordings", requireSPRecordingAccess, listPublicSPRecordingCourses);
 router.get(
   "/recordings/:courseId",
-  requireSPRecordingApiKey,
+  requireSPRecordingAccess,
   getPublicSPRecordingCourse
 );
 router.get(
   "/recordings/:courseId/lessons/:lessonId/download",
-  requireSPRecordingApiKey,
+  requireSPRecordingAccess,
   downloadSPRecordingLessonFile
 );
 
