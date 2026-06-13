@@ -1,5 +1,18 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+export const clearStoredAuth = () => {
+  [
+    "sparvi_token",
+    "sparvi_role",
+    "sparvi_user",
+    "sparvi_user_email",
+    "sparvi_user_name",
+    "token",
+    "role",
+    "user",
+  ].forEach((key) => localStorage.removeItem(key));
+};
+
 export const getDesktopAuthParams = (searchParams) => {
   const redirectUri = searchParams.get("redirect_uri") || "";
   const state = searchParams.get("state") || "";
@@ -51,7 +64,9 @@ export const completeDesktopAuth = async ({ token, redirectUri, state }) => {
 
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    throw new Error(data.message || "Could not authorize desktop app");
+    const error = new Error(data.message || "Could not authorize desktop app");
+    error.status = res.status;
+    throw error;
   }
 
   window.location.href = buildCallbackUrl({

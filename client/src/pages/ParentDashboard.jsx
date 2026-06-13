@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import {
@@ -20,6 +20,8 @@ import {
   BookOpen,
   Settings,
   Play,
+  Camera,
+  Loader2,
 } from "lucide-react";
 import { FaAndroid, FaApple, FaWindows } from "react-icons/fa";
 import toast from "react-hot-toast";
@@ -227,6 +229,9 @@ const ParentDashboard = ({ parent, setParent }) => {
   const [isEnrollingChild, setIsEnrollingChild] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedOverviewSessionKey, setSelectedOverviewSessionKey] = useState(null);
+  const [isPhotoUploading, setIsPhotoUploading] = useState(false);
+  const [profilePhotoPreview, setProfilePhotoPreview] = useState("");
+  const profilePhotoInputRef = useRef(null);
 
   const getToken = () =>
     typeof window !== "undefined" ? localStorage.getItem("sparvi_token") : null;
@@ -242,6 +247,12 @@ const ParentDashboard = ({ parent, setParent }) => {
     const interval = setInterval(() => setNow(new Date()), 30000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (profilePhotoPreview) URL.revokeObjectURL(profilePhotoPreview);
+    };
+  }, [profilePhotoPreview]);
 
   const loadDashboard = async () => {
     const token = getToken();
@@ -476,8 +487,62 @@ const ParentDashboard = ({ parent, setParent }) => {
     navigate("/login");
   };
 
+  const handleProfilePhotoChange = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file.");
+      return;
+    }
+
+    const token = getToken();
+    if (!token || getRole() !== "parent") { navigate("/login"); return; }
+
+    const previewUrl = URL.createObjectURL(file);
+    setProfilePhotoPreview(previewUrl);
+    setIsPhotoUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("profilePhoto", file);
+
+      const res = await fetch(`${API_BASE_URL}/api/parent/profile`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.message || "Could not update profile photo.");
+
+      const updatedUser = json.user || {};
+      setParent((prev) => ({ ...prev, ...updatedUser }));
+
+      if (typeof window !== "undefined") {
+        let storedUser = {};
+        try {
+          storedUser = JSON.parse(localStorage.getItem("sparvi_user") || "{}");
+        } catch {
+          storedUser = {};
+        }
+        localStorage.setItem("sparvi_user", JSON.stringify({ ...storedUser, ...updatedUser }));
+      }
+
+      toast.success("Profile photo updated.");
+    } catch (err) {
+      setProfilePhotoPreview("");
+      toast.error(err.message || "Could not update profile photo.");
+    } finally {
+      setIsPhotoUploading(false);
+      setProfilePhotoPreview("");
+    }
+  };
+
   const activeTabConfig = TABS.find((tab) => tab.id === activeTab) || TABS[0];
   const pageTitle = activeTab === "overview" ? "Dashboard" : activeTabConfig.label;
+  const sidebarPhotoUrl = profilePhotoPreview || parent?.photoUrl || "";
+  const parentInitial = parent?.name?.trim()?.charAt(0)?.toUpperCase() || "P";
 
   /* ================================================================== */
   return (
@@ -497,6 +562,46 @@ const ParentDashboard = ({ parent, setParent }) => {
           </div>
 
           <nav className="flex-1 overflow-y-auto px-4 py-5">
+            <div className="mb-6 px-3">
+              <input
+                ref={profilePhotoInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleProfilePhotoChange}
+              />
+              <button
+                type="button"
+                onClick={() => profilePhotoInputRef.current?.click()}
+                disabled={isPhotoUploading}
+                aria-label="Change profile photo"
+                title="Change profile photo"
+                className="group flex w-full flex-col items-center rounded-lg py-2 text-center transition-all hover:bg-slate-50 disabled:cursor-wait disabled:opacity-75"
+              >
+                <span className="relative">
+                  <span className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-slate-100 text-3xl font-bold text-slate-400 shadow-sm ring-1 ring-slate-200 transition-all group-hover:ring-emerald-200">
+                    {sidebarPhotoUrl ? (
+                      <img src={sidebarPhotoUrl} alt="Profile" className="h-full w-full object-cover" />
+                    ) : (
+                      <span>{parentInitial}</span>
+                    )}
+                  </span>
+                  <span className="absolute bottom-1 right-1 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg ring-2 ring-white transition-all group-hover:bg-emerald-700">
+                    {isPhotoUploading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Camera className="h-4 w-4" />
+                    )}
+                  </span>
+                </span>
+                <span className="mt-3 block max-w-full truncate text-sm font-semibold text-slate-800">
+                  {parent?.name || "Parent"}
+                </span>
+                <span className="mt-0.5 text-[11px] font-semibold text-emerald-600">
+                  {isPhotoUploading ? "Updating photo" : "Change photo"}
+                </span>
+              </button>
+            </div>
             <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
               Menu
             </p>
@@ -1212,6 +1317,7 @@ const ParentDashboard = ({ parent, setParent }) => {
 ParentDashboard.propTypes = {
   parent: PropTypes.shape({
     name: PropTypes.string.isRequired,
+    photoUrl: PropTypes.string,
     children: PropTypes.arrayOf(
       PropTypes.shape({
         name: PropTypes.string,

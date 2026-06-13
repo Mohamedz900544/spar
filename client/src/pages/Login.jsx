@@ -10,6 +10,7 @@ import { Mail, Lock, ArrowRight, Sparkles, Zap, Shield } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
   buildDesktopAuthSearch,
+  clearStoredAuth,
   completeDesktopAuth,
   getDesktopAuthParams,
 } from "../helpers/desktopAuth";
@@ -73,6 +74,10 @@ const Login = () => {
           state: desktopAuthParams.state,
         }).catch((err) => {
           console.error("Desktop auth error:", err);
+          if (err.status === 401 || err.status === 403) {
+            clearStoredAuth();
+            return;
+          }
           setServerError(err.message || "Could not return to the desktop app");
         });
       });

@@ -333,19 +333,38 @@ export const rateSession = async (req, res) => {
     }
 }
 
+const buildParentProfileResponse = (user) => ({
+    id: user._id.toString(),
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    phone: user.phone || "",
+    role: user.role,
+    children: user.children || [],
+    campusCode: user.campusCode || "",
+    photoUrl: user.photoUrl || "",
+});
+
 export const getParentProfile = async (req, res) => {
     const { name, phone, children: childrenStr, campusCode } = req.body
 
-    const children = childrenStr ? JSON.parse(childrenStr) : undefined
+    let children;
+    if (childrenStr) {
+        try {
+            children = JSON.parse(childrenStr);
+        } catch {
+            return res.status(400).json({ message: "Invalid children data" });
+        }
+    }
 
-    const userDoc = await User.findById(req.user._id, "-__v -createdAt -updatedAt -children -linkedRounds -linkedRoundCodes -role")
+    const userDoc = await User.findById(req.user._id)
+    if (!userDoc) return res.status(404).json({ message: "User not found" });
 
-    userDoc.name = name || userDoc.name;
-    userDoc.phone = phone || userDoc.phone;
-    userDoc.campusCode = campusCode ?? userDoc.campusCode;
-    userDoc.children = children || userDoc.children
+    if (name) userDoc.name = name;
+    if (phone) userDoc.phone = phone;
+    if (campusCode !== undefined) userDoc.campusCode = campusCode;
+    if (children) userDoc.children = children;
 
-    // debugger
     if (req.file) {
         try {
             const result = await uploadFromStream(req.file.buffer)
@@ -355,7 +374,7 @@ export const getParentProfile = async (req, res) => {
         }
     }
 
-    const user = (await userDoc.save()).toObject()
+    const user = await userDoc.save()
 
-    return res.json({ user, message: "User Updated Successfully" })
+    return res.json({ user: buildParentProfileResponse(user), message: "User Updated Successfully" })
 }

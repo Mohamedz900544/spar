@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { MonitorCheck } from "lucide-react";
 import {
   buildDesktopAuthSearch,
+  clearStoredAuth,
   completeDesktopAuth,
   getDesktopAuthParams,
 } from "../helpers/desktopAuth";
@@ -38,6 +39,12 @@ const DesktopAuth = () => {
         });
       } catch (err) {
         console.error("Desktop auth error:", err);
+        if (err.status === 401 || err.status === 403) {
+          clearStoredAuth();
+          const nextSearch = buildDesktopAuthSearch({ redirectUri, state });
+          navigate(`/login?${nextSearch}`, { replace: true });
+          return;
+        }
         setError(err.message || "Could not connect the desktop app.");
         setStatus("");
       }
