@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { Fragment, useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import {
@@ -17,7 +17,6 @@ import {
   User,
   LayoutDashboard,
   RefreshCw,
-  BookOpen,
   Settings,
   Play,
   Camera,
@@ -38,7 +37,7 @@ const TOOL_SYSTEMS = [
     description:
       "Install the Windows companion used during live sessions and interactive classroom activities.",
     icon: FaWindows,
-    iconClass: "bg-slate-950 text-white shadow-slate-950/20",
+    iconClass: "bg-slate-100 text-slate-900 ring-slate-200",
     cardClass: "border-slate-200 bg-white",
     badgeClass: "border-emerald-200 bg-emerald-50 text-emerald-700",
     buttonClass: "bg-slate-950 text-white hover:bg-slate-800",
@@ -55,7 +54,7 @@ const TOOL_SYSTEMS = [
     description:
       "The macOS version is being prepared. Parents can use the Windows or Android version for now.",
     icon: FaApple,
-    iconClass: "bg-slate-900 text-white shadow-slate-900/20",
+    iconClass: "bg-zinc-100 text-zinc-700 ring-zinc-200",
     cardClass: "border-slate-200 bg-white",
     badgeClass: "border-amber-200 bg-amber-50 text-amber-700",
     buttonClass: "bg-slate-100 text-slate-500",
@@ -71,13 +70,13 @@ const TOOL_SYSTEMS = [
     description:
       "Download the Android APK and install it on a supported Android device for Sparvi activities.",
     icon: FaAndroid,
-    iconClass: "bg-emerald-600 text-white shadow-emerald-600/20",
+    iconClass: "bg-emerald-50 text-emerald-700 ring-emerald-100",
     cardClass: "border-emerald-100 bg-white",
     badgeClass: "border-emerald-200 bg-emerald-50 text-emerald-700",
     buttonClass: "bg-emerald-600 text-white hover:bg-emerald-700",
     badge: "APK",
     details: ["Android package", "Mobile device", "Manual install"],
-    actionLabel: "Download APK",
+    actionLabel: "Download",
     actionIcon: Download,
     href: SPARVI_POINTER_ANDROID_DOWNLOAD_URL,
     download: true,
@@ -87,7 +86,6 @@ const TOOL_SYSTEMS = [
 /* ====== TABS ====== */
 const TABS = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
-  { id: "rounds", label: "My Rounds", icon: BookOpen },
   { id: "gallery", label: "Tools", icon: Blocks },
   { id: "feedback", label: "Feedback", icon: Star },
 ];
@@ -122,34 +120,6 @@ const getSessionDateTime = (session) => {
   return dateTime;
 };
 
-const getUpcomingSessionId = (sessions, now) => {
-  if (!sessions?.length) return null;
-  const upcoming = sessions
-    .map((session) => {
-      const dateTime = getSessionDateTime(session);
-      if (!dateTime) return null;
-      if (session.status === "Completed") return null;
-      return { id: session.id || session._id, time: dateTime.getTime() };
-    })
-    .filter(Boolean)
-    .filter((s) => s.time >= now.getTime())
-    .sort((a, b) => a.time - b.time);
-  return upcoming[0]?.id || null;
-};
-
-const getCountdownLabel = (diffMs) => {
-  if (diffMs <= 0) return "Active";
-  const minute = 60 * 1000;
-  const hour = 60 * minute;
-  const day = 24 * hour;
-  const week = 7 * day;
-  if (diffMs <= 30 * minute) return "in 30 min";
-  if (diffMs <= hour) return "in 1 hour";
-  if (diffMs <= day) return "in 1 day";
-  if (diffMs <= week) return "in 1 week";
-  return "in 1 week";
-};
-
 const formatCountdown = (diffMs) => {
   const totalMinutes = Math.max(0, Math.floor(diffMs / 60000));
   const days = Math.floor(totalMinutes / (60 * 24));
@@ -160,6 +130,15 @@ const formatCountdown = (diffMs) => {
   if (hours) parts.push(`${hours}h`);
   if (!days && minutes) parts.push(`${minutes}m`);
   return parts.join(" ");
+};
+
+const getCountdownParts = (diffMs) => {
+  const totalSeconds = Math.max(0, Math.floor(diffMs / 1000));
+  const days = Math.floor(totalSeconds / (60 * 60 * 24));
+  const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
+  const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
+  const seconds = totalSeconds % 60;
+  return { days, hours, minutes, seconds };
 };
 
 const formatTime24 = (value) => {
@@ -211,7 +190,6 @@ const ParentDashboard = ({ parent, setParent }) => {
   const navigate = useNavigate();
 
   const [rounds, setRounds] = useState([]);
-  const [enrollments, setEnrollments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [globalError, setGlobalError] = useState("");
 
@@ -244,7 +222,7 @@ const ParentDashboard = ({ parent, setParent }) => {
   };
 
   useEffect(() => {
-    const interval = setInterval(() => setNow(new Date()), 30000);
+    const interval = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -285,7 +263,6 @@ const ParentDashboard = ({ parent, setParent }) => {
       if (!res.ok) throw new Error(json.message || "Failed to load dashboard");
       if (!hasCompletedProfile(json.parent)) { navigate("/parent/profile"); return; }
       setParent(json.parent);
-      setEnrollments(json.enrollments || []);
       setRounds(enrichRoundsWithAllPhotos(json));
       setLinkedRounds((json.rounds || []).map((r) => r.code));
       setFreeSessions(json.freeSessions || []);
@@ -323,10 +300,9 @@ const ParentDashboard = ({ parent, setParent }) => {
         setRounds((prev) => prev.some((r) => r.code === json.round.code) ? prev : [...prev, json.round]);
         setLinkedRounds((prev) => prev.includes(json.round.code) ? prev : [...prev, json.round.code]);
       }
-      if (Array.isArray(json.enrollments)) setEnrollments(json.enrollments);
       toast.success("Child enrolled successfully");
       setRoundCodeInput("");
-      setActiveTab("rounds");
+      setActiveTab("overview");
     } catch (err) {
       setLinkErrorMessage(err.message || "Could not link this round.");
     } finally {
@@ -338,7 +314,6 @@ const ParentDashboard = ({ parent, setParent }) => {
     () => linkedRounds.map((code) => rounds.find((r) => r.code === code)).filter(Boolean),
     [linkedRounds, rounds]
   );
-  const getChildrenForRound = (roundCode) => enrollments.filter((e) => e.roundCode === roundCode);
 
   const allSessions = useMemo(() => {
     return visibleRounds.flatMap((round) =>
@@ -349,11 +324,6 @@ const ParentDashboard = ({ parent, setParent }) => {
       }))
     );
   }, [visibleRounds]);
-
-  const completedSessions = useMemo(
-    () => allSessions.filter((s) => s.status === "Completed"),
-    [allSessions]
-  );
 
   const overviewSessions = useMemo(() => {
     const roundItems = allSessions.map((session) => ({
@@ -445,6 +415,14 @@ const ParentDashboard = ({ parent, setParent }) => {
   const selectedOverviewSubmitted = selectedOverviewKey
     ? ratingSubmitted[selectedOverviewKey] || Boolean(selectedOverviewSession.userRating)
     : false;
+  const upcomingOverviewSession = useMemo(
+    () => overviewSessions.find((session) => session.lifecycle !== "completed") || null,
+    [overviewSessions]
+  );
+  const upcomingCountdown = useMemo(() => {
+    if (!upcomingOverviewSession?.startMs) return null;
+    return getCountdownParts(upcomingOverviewSession.startMs - now.getTime());
+  }, [upcomingOverviewSession, now]);
 
   const handleSessionRatingChange = (roundCode, sessionId, rating) => {
     setSessionRatings((prev) => ({ ...prev, [`${roundCode}-${sessionId}`]: rating }));
@@ -760,20 +738,77 @@ const ParentDashboard = ({ parent, setParent }) => {
 
           {/* ===== TAB: OVERVIEW ===== */}
           {!loading && activeTab === "overview" && (
-            <Motion.div key="overview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
-              {/* Link new round row */}
-              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                <form onSubmit={handleLinkRound} className="flex flex-col gap-3 lg:flex-row lg:items-center">
-                  <div className="min-w-[140px] text-sm font-bold text-slate-700">
-                    Link New Round
+            <Motion.div key="overview-redesign" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+              <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr),minmax(360px,440px)]">
+                <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold uppercase tracking-wide text-emerald-700">Next session</p>
+                      {upcomingOverviewSession ? (
+                        <>
+                          <h2 className="mt-2 truncate text-xl font-semibold text-slate-900">{upcomingOverviewSession.title}</h2>
+                          <p className="mt-1 text-sm font-medium text-slate-500">
+                            {upcomingOverviewSession.dateLabel} at {upcomingOverviewSession.timeLabel}
+                            {upcomingOverviewSession.roundName ? ` - ${upcomingOverviewSession.roundName}` : ""}
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <h2 className="mt-2 text-xl font-semibold text-slate-900">No upcoming sessions</h2>
+                          <p className="mt-1 text-sm font-medium text-slate-500">Linked sessions will appear here.</p>
+                        </>
+                      )}
+                    </div>
+
                   </div>
-                  <div className="flex-1 grid grid-cols-1 md:grid-cols-[minmax(180px,240px),1fr] gap-2">
+
+                  {upcomingOverviewSession && upcomingCountdown && (
+                    <div className="mt-5 border-t border-slate-100 pt-5">
+                      <div className="flex items-start justify-center gap-1 sm:gap-4">
+                        {[
+                          ["Days", upcomingCountdown.days, "text-slate-900"],
+                          ["Hours", upcomingCountdown.hours, "text-slate-900"],
+                          ["Minutes", upcomingCountdown.minutes, "text-slate-900"],
+                          ["Seconds", upcomingCountdown.seconds, "text-red-600"],
+                        ].map(([label, value, colorClass], index) => (
+                          <Fragment key={label}>
+                            {index > 0 && (
+                              <span className="mt-0.5 text-3xl font-bold leading-none text-slate-400 sm:mt-1 sm:text-5xl">:</span>
+                            )}
+                            <div className="min-w-[52px] text-center sm:min-w-[78px]">
+                              <p className={`font-mono text-3xl font-black leading-none tracking-normal sm:text-5xl lg:text-6xl ${colorClass}`}>
+                                {String(value).padStart(2, "0")}
+                              </p>
+                              <p
+                                className="mt-3 text-xs font-medium text-slate-600 sm:mt-4 sm:text-base"
+                                style={{ fontFamily: '"Segoe Print", "Comic Sans MS", cursive' }}
+                              >
+                                {label}
+                              </p>
+                            </div>
+                          </Fragment>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </section>
+
+                <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <div>
+                      <h2 className="text-base font-semibold text-slate-900">Link a round</h2>
+                      <p className="mt-1 text-xs font-medium text-slate-400">Add a child to a new round code.</p>
+                    </div>
+                    <KeyRound className="h-5 w-5 text-slate-300" />
+                  </div>
+
+                  <form onSubmit={handleLinkRound} className="space-y-3">
                     <div className="relative">
-                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <User className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                       <select
                         value={selectedChildId}
                         onChange={(e) => setSelectedChildId(e.target.value)}
-                        className="w-full appearance-none rounded-lg border border-slate-200 bg-slate-50/70 py-2.5 pl-10 pr-10 text-sm font-medium text-slate-800 outline-none transition-all focus:border-emerald-300 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+                        className="w-full appearance-none rounded-lg border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-10 text-sm font-medium text-slate-800 outline-none transition-all focus:border-emerald-300 focus:bg-white focus:ring-4 focus:ring-emerald-100"
                       >
                         <option value="" disabled>Select child</option>
                         {parent?.children?.map((child, i) => (
@@ -782,344 +817,198 @@ const ParentDashboard = ({ parent, setParent }) => {
                           </option>
                         ))}
                       </select>
-                      <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                     </div>
 
                     <div className="relative">
-                      <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <KeyRound className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                       <input
                         type="text"
                         value={roundCodeInput}
                         onChange={(e) => setRoundCodeInput(e.target.value)}
-                        className="w-full rounded-lg border border-slate-200 bg-slate-50/70 py-2.5 pl-10 pr-4 font-mono text-sm font-semibold uppercase tracking-wide text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-300 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+                        className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 font-mono text-sm font-semibold uppercase tracking-wide text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-300 focus:bg-white focus:ring-4 focus:ring-emerald-100"
                         placeholder="SPRV-101"
                       />
                     </div>
-                  </div>
 
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Motion.button
-                      type="submit"
-                      disabled={isEnrollingChild}
-                      className="flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-emerald-700 disabled:opacity-60 whitespace-nowrap"
-                      whileTap={{ scale: 0.97 }}
-                    >
-                      {isEnrollingChild ? (
-                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                      ) : (
-                        <>Link <ArrowRight className="w-4 h-4" /></>
-                      )}
-                    </Motion.button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab("rounds")}
-                      className="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-600 transition-all hover:bg-slate-50 whitespace-nowrap"
-                    >
-                      See all rounds linked
-                    </button>
-                    <a
-                      href="https://wa.me/201500077369"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition-all hover:brightness-110 whitespace-nowrap"
-                      style={{ background: "#25D366" }}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="white" aria-hidden="true">
-                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                      </svg>
-                      Don’t have a round code?
-                    </a>
-                  </div>
-                </form>
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      <Motion.button
+                        type="submit"
+                        disabled={isEnrollingChild}
+                        className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-bold text-white shadow-sm transition-all hover:bg-emerald-700 disabled:opacity-60"
+                        whileTap={{ scale: 0.97 }}
+                      >
+                        {isEnrollingChild ? (
+                          <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                        ) : (
+                          <>Link round <ArrowRight className="h-4 w-4" /></>
+                        )}
+                      </Motion.button>
+                      <a
+                        href="https://wa.me/201500077369"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-xs font-bold text-slate-600 transition-all hover:bg-slate-50"
+                      >
+                        Need code?
+                      </a>
+                    </div>
+                  </form>
 
-                {linkErrorMessage && (
-                  <Motion.div
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mt-3 rounded-lg border border-rose-200 bg-rose-50 p-3 text-center text-sm font-semibold text-rose-700"
-                  >
-                    {linkErrorMessage}
-                  </Motion.div>
-                )}
+                  {linkErrorMessage && (
+                    <Motion.div
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700"
+                    >
+                      {linkErrorMessage}
+                    </Motion.div>
+                  )}
+                </section>
               </div>
 
-              {/* Stats Row */}
-          
-              {/* Sessions Overview */}
-              <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-                <div className="grid grid-cols-1 xl:grid-cols-[320px,1fr]">
-                  <div className="border-b border-slate-100 xl:border-b-0 xl:border-r">
-                    <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-                      <h2 className="text-sm font-bold text-slate-700">Sessions</h2>
-                      <span className="inline-flex items-center rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-500">
-                        {overviewSessions.length}
-                      </span>
+              <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr),minmax(360px,440px)]">
+                <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                  <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+                    <div>
+                      <h2 className="text-base font-semibold text-slate-900">Schedule</h2>
+                      <p className="mt-1 text-xs font-medium text-slate-400">{overviewSessions.length} session{overviewSessions.length !== 1 && "s"}</p>
                     </div>
+                  </div>
 
-                    {overviewSessions.length === 0 ? (
-                      <div className="px-4 py-10 text-center text-sm text-slate-500">
-                        No sessions yet. Linked sessions will appear here.
-                      </div>
-                    ) : (
-                      <div className="max-h-[620px] overflow-y-auto">
-                        {overviewSessions.map((session) => {
-                          const statusMeta = getParentStatusMeta(session.lifecycle);
-                          const isSelected = selectedOverviewSessionKey === session.key;
-                          return (
-                            <button
-                              key={session.key}
-                              type="button"
-                              onClick={() => setSelectedOverviewSessionKey(session.key)}
-                              className={`w-full border-b border-slate-100 px-4 py-3 text-left transition-colors ${
-                                isSelected ? "bg-emerald-50" : "hover:bg-slate-50"
-                              }`}
-                            >
-                              <div className="flex items-start justify-between gap-2">
-                                <p className="text-sm font-semibold text-slate-800">{session.title}</p>
-                                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusMeta.badgeClass}`}>
-                                  {statusMeta.label}
-                                </span>
+                  {overviewSessions.length === 0 ? (
+                    <div className="px-5 py-12 text-center">
+                      <CalendarClock className="mx-auto h-10 w-10 text-slate-300" />
+                      <p className="mt-3 text-sm font-semibold text-slate-700">No sessions yet</p>
+                      <p className="mt-1 text-sm text-slate-500">Use a round code to add your schedule.</p>
+                    </div>
+                  ) : (
+                    <div className="max-h-[560px] divide-y divide-slate-100 overflow-y-auto">
+                      {overviewSessions.map((session) => {
+                        const statusMeta = getParentStatusMeta(session.lifecycle);
+                        const isSelected = selectedOverviewSessionKey === session.key;
+                        return (
+                          <button
+                            key={session.key}
+                            type="button"
+                            onClick={() => setSelectedOverviewSessionKey(session.key)}
+                            className={`grid w-full gap-3 px-5 py-4 text-left transition-colors sm:grid-cols-[1fr,auto] sm:items-center ${
+                              isSelected ? "bg-emerald-50/80" : "hover:bg-slate-50"
+                            }`}
+                          >
+                            <div className="min-w-0">
+                              <div className="flex min-w-0 items-center gap-2">
+                                <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${
+                                  session.lifecycle === "active"
+                                    ? "bg-emerald-500"
+                                    : session.lifecycle === "completed"
+                                      ? "bg-slate-300"
+                                      : "bg-amber-500"
+                                }`} />
+                                <p className="truncate text-sm font-semibold text-slate-900">{session.title}</p>
                               </div>
-                              <p className={`mt-1 text-xs font-medium ${statusMeta.hintClass}`}>
-                                {session.hintText} ({session.timeLabel})
-                              </p>
-                              <p className="mt-1 text-[11px] text-slate-400">
-                                {session.dateLabel}
+                              <p className="mt-1 truncate text-xs font-medium text-slate-500">
+                                {session.dateLabel} at {session.timeLabel}
                                 {session.roundName ? ` - ${session.roundName}` : ""}
                               </p>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                              <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${statusMeta.badgeClass}`}>
+                                {statusMeta.label}
+                              </span>
+                              <span className={`text-xs font-bold ${statusMeta.hintClass}`}>{session.hintText}</span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
+
+                <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <div>
+                      <h2 className="text-base font-semibold text-slate-900">Session detail</h2>
+                      <p className="mt-1 text-xs font-medium text-slate-400">Status and feedback</p>
+                    </div>
+                    <Star className="h-5 w-5 text-slate-300" />
                   </div>
 
-                  <div className="min-w-0">
-                    <div className="p-4 lg:p-5">
-                      {!selectedOverviewSession ? (
-                        <div className="rounded-xl border border-slate-100 bg-slate-50 px-5 py-8 text-center text-sm text-slate-500">
-                          Select any session from the list to add feedback.
+                  {!selectedOverviewSession ? (
+                    <div className="rounded-lg border border-slate-100 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
+                      Select a session from the schedule.
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${getParentStatusMeta(selectedOverviewSession.lifecycle).badgeClass}`}>
+                            {getParentStatusMeta(selectedOverviewSession.lifecycle).label}
+                          </span>
+                          <span className={`text-xs font-bold ${getParentStatusMeta(selectedOverviewSession.lifecycle).hintClass}`}>
+                            {selectedOverviewSession.hintText}
+                          </span>
+                        </div>
+                        <h3 className="mt-3 text-lg font-semibold text-slate-900">{selectedOverviewSession.title}</h3>
+                        <p className="mt-1 text-sm font-medium text-slate-500">
+                          {selectedOverviewSession.dateLabel} at {selectedOverviewSession.timeLabel}
+                        </p>
+                        {selectedOverviewSession.roundName && (
+                          <p className="mt-1 text-xs font-semibold text-slate-400">{selectedOverviewSession.roundName}</p>
+                        )}
+                      </div>
+
+                      {selectedOverviewSession.sessionType === "free" ? (
+                        <div className="grid gap-2 rounded-lg border border-slate-100 bg-slate-50 p-3 text-xs text-slate-600 sm:grid-cols-2">
+                          <span><b className="text-slate-700">Parent:</b> {selectedOverviewSession.parentName || "-"}</span>
+                          <span><b className="text-slate-700">Phone:</b> {selectedOverviewSession.phone || "-"}</span>
+                          <span><b className="text-slate-700">Child:</b> {selectedOverviewSession.childName || "-"}</span>
+                          <span><b className="text-slate-700">Age:</b> {selectedOverviewSession.childAge || "-"}</span>
+                        </div>
+                      ) : selectedOverviewSession.lifecycle === "completed" ? (
+                        <div className="space-y-3 border-t border-slate-100 pt-4">
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="text-xs font-bold uppercase tracking-wide text-slate-400">Rating</span>
+                            <RatingStars
+                              value={selectedOverviewRating}
+                              disabled={selectedOverviewSubmitted}
+                              onChange={(stars) => handleSessionRatingChange(selectedOverviewSession.roundCode, selectedOverviewSession.sessionId, stars)}
+                            />
+                          </div>
+                          <textarea
+                            value={selectedOverviewFeedback}
+                            onChange={(e) => handleSessionFeedbackChange(selectedOverviewSession.roundCode, selectedOverviewSession.sessionId, e.target.value)}
+                            placeholder="Leave feedback..."
+                            disabled={selectedOverviewSubmitted}
+                            className={`w-full min-h-[96px] resize-none rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-700 outline-none transition-all focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100 ${selectedOverviewSubmitted ? "bg-slate-100/70 text-slate-600" : ""}`}
+                          />
+                          <div className="flex justify-end">
+                            {selectedOverviewSubmitted ? (
+                              <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-600">
+                                <CheckCircle2 className="h-4 w-4" /> Submitted ({selectedOverviewRating}/5)
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                disabled={!selectedOverviewRating}
+                                onClick={() => handleSubmitRating(selectedOverviewSession.roundCode, selectedOverviewSession)}
+                                className="rounded-lg bg-slate-950 px-5 py-2.5 text-xs font-semibold text-white shadow-sm transition-all hover:bg-slate-800 disabled:opacity-50"
+                              >
+                                Submit feedback
+                              </button>
+                            )}
+                          </div>
                         </div>
                       ) : (
-                        <div className="space-y-4">
-                          <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-4">
-                            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                              <div>
-                                <p className="text-sm font-semibold text-slate-800">{selectedOverviewSession.title}</p>
-                                <p className="mt-1 text-xs text-slate-500">
-                                  {selectedOverviewSession.dateLabel} at {selectedOverviewSession.timeLabel}
-                                  {selectedOverviewSession.roundName ? ` - ${selectedOverviewSession.roundName}` : ""}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${getParentStatusMeta(selectedOverviewSession.lifecycle).badgeClass}`}>
-                                  {getParentStatusMeta(selectedOverviewSession.lifecycle).label}
-                                </span>
-                                <span className={`text-xs font-semibold ${getParentStatusMeta(selectedOverviewSession.lifecycle).hintClass}`}>
-                                  {selectedOverviewSession.hintText}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {selectedOverviewSession.sessionType === "free" ? (
-                            <div className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
-                              <div className="flex items-center justify-between gap-2">
-                                <p className="text-xs font-semibold text-slate-700">
-                                  Free session details
-                                </p>
-                                <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
-                                  Free
-                                </span>
-                              </div>
-                              <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-600">
-                                <span><b className="text-slate-700">Parent:</b> {selectedOverviewSession.parentName || "-"}</span>
-                                <span><b className="text-slate-700">Phone:</b> {selectedOverviewSession.phone || "-"}</span>
-                                <span><b className="text-slate-700">Child:</b> {selectedOverviewSession.childName || "-"}</span>
-                                <span><b className="text-slate-700">Age:</b> {selectedOverviewSession.childAge || "-"}</span>
-                              </div>
-                            </div>
-                          ) : selectedOverviewSession.lifecycle === "completed" ? (
-                            <div className="rounded-xl border border-slate-100 p-4">
-                              <div className="flex flex-col lg:flex-row gap-3">
-                                <div className="flex-1 space-y-2">
-                                  <div className="flex items-center gap-3">
-                                    <span className="text-xs font-bold text-slate-500 uppercase">Rating:</span>
-                                    <RatingStars
-                                      value={selectedOverviewRating}
-                                      disabled={selectedOverviewSubmitted}
-                                      onChange={(stars) => handleSessionRatingChange(selectedOverviewSession.roundCode, selectedOverviewSession.sessionId, stars)}
-                                    />
-                                  </div>
-                                  <textarea
-                                    value={selectedOverviewFeedback}
-                                    onChange={(e) => handleSessionFeedbackChange(selectedOverviewSession.roundCode, selectedOverviewSession.sessionId, e.target.value)}
-                                    placeholder="Leave feedback..."
-                                    disabled={selectedOverviewSubmitted}
-                                    className={`w-full min-h-[70px] resize-none rounded-lg border border-slate-200 bg-white p-2.5 text-sm text-slate-700 outline-none transition-all focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100 ${selectedOverviewSubmitted ? "bg-slate-100/70 text-slate-600" : ""}`}
-                                  />
-                                </div>
-                                <div className="flex flex-col justify-end items-end gap-2">
-                                  {selectedOverviewSubmitted ? (
-                                    <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100">
-                                      <CheckCircle2 className="w-4 h-4" /> Submitted ({selectedOverviewRating}/5)
-                                    </span>
-                                  ) : (
-                                    <button
-                                      type="button"
-                                      disabled={!selectedOverviewRating}
-                                      onClick={() => handleSubmitRating(selectedOverviewSession.roundCode, selectedOverviewSession)}
-                                      className="rounded-lg bg-slate-950 px-5 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-slate-800 disabled:opacity-50"
-                                    >
-                                      Submit
-                                    </button>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
-                              <CalendarClock className="w-4 h-4 text-slate-400" />
-                              Feedback opens after session completion.
-                            </div>
-                          )}
+                        <div className="flex items-center gap-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-3 text-xs font-semibold text-slate-500">
+                          <CalendarClock className="h-4 w-4 text-slate-400" />
+                          Feedback opens after session completion.
                         </div>
                       )}
                     </div>
-                  </div>
-                </div>
+                  )}
+                </section>
               </div>
-
-              {/* Quick nav to tabs */}
-             
-
-              {/* Empty state */}
-              {visibleRounds.length === 0 && (
-                <div className="rounded-xl border border-slate-200 bg-white p-14 text-center shadow-sm">
-                  <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-emerald-50 ring-1 ring-emerald-100">
-                    <KeyRound className="h-6 w-6 text-emerald-600" />
-                  </div>
-                  <h3 className="mb-2 text-lg font-bold text-slate-800">No Rounds Linked Yet</h3>
-                  <p className="text-sm text-slate-500 max-w-sm mx-auto">
-                    Enter a round code above to unlock your child's schedule and media gallery.
-                  </p>
-                </div>
-              )}
-            </Motion.div>
-          )}
-
-          {/* ===== TAB: MY ROUNDS ===== */}
-          {!loading && activeTab === "rounds" && (
-            <Motion.div key="rounds" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-base font-semibold tracking-normal text-slate-700">Your Enrolled Rounds</h2>
-                <span className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-500">
-                  {visibleRounds.length} round{visibleRounds.length !== 1 && "s"}
-                </span>
-              </div>
-
-              {visibleRounds.length === 0 ? (
-                <div className="rounded-xl border border-slate-200 bg-white p-14 text-center shadow-sm">
-                  <KeyRound className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-                  <p className="text-sm text-slate-500">No rounds linked yet.</p>
-                  <button onClick={() => setActiveTab("overview")} className="mt-4 rounded-lg bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-slate-800">
-                    Enroll Now
-                  </button>
-                </div>
-              ) : (
-                visibleRounds.map((round) => {
-                  const children = getChildrenForRound(round.code);
-                  const upcomingSessionId = getUpcomingSessionId(round.sessions, now);
-
-                  return (
-                    <div key={round.id || round.code} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-                      {/* Round Header */}
-                      <div className="p-5 border-b border-slate-100">
-                        <div className="flex items-center gap-3 mb-1.5">
-                          <h3 className="text-lg font-semibold text-slate-800">{round.name}</h3>
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${round.status === "Active" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-700 border-slate-200"}`}>
-                            {round.status}
-                          </span>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
-                          <span className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-0.5 font-mono text-xs font-semibold text-slate-600">{round.code}</span>
-                          <span className="w-1 h-1 rounded-full bg-slate-300" />
-                          <span>{round.level}</span>
-                          <span className="w-1 h-1 rounded-full bg-slate-300" />
-                          <span>{round.campus}</span>
-                        </div>
-                      </div>
-
-                      {/* Students */}
-                      <div className="p-5 border-b border-slate-100">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
-                          <Users className="w-4 h-4 text-slate-400" />
-                          Enrolled ({children.length})
-                        </h4>
-                        <div className="flex flex-wrap gap-3">
-                          {children.map((child) => (
-                            <div key={child.id || child._id} className="flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 px-4 py-2.5">
-                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-sm font-bold text-emerald-700 ring-1 ring-emerald-100">
-                                {(child.childName || child.name || "?")[0].toUpperCase()}
-                              </div>
-                              <div>
-                                <p className="text-sm font-semibold text-slate-800">{child.childName || child.name}</p>
-                                <p className="text-xs text-slate-500">{child.level || "Beginner"}</p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Sessions Timeline */}
-                      <div className="p-5">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
-                          <CalendarClock className="w-4 h-4 text-slate-400" />
-                          Sessions ({round.sessions?.length || 0})
-                        </h4>
-                        <div className="space-y-2">
-                          {round.sessions?.map((session) => {
-                            const sessionId = session.id || session._id;
-                            const isUpcoming = upcomingSessionId === sessionId;
-                            const sessionDateTime = isUpcoming ? getSessionDateTime(session) : null;
-                            const diffMs = sessionDateTime ? sessionDateTime.getTime() - now.getTime() : null;
-                            const countdownLabel = diffMs != null ? getCountdownLabel(diffMs) : null;
-                            const isCompleted = session.status === "Completed";
-
-                            return (
-                              <div
-                                key={sessionId}
-                                className={`flex items-center gap-4 rounded-xl p-3 border transition-colors ${
-                                  isUpcoming ? "border-amber-200 bg-amber-50/70" : isCompleted ? "border-slate-100 bg-white" : "border-slate-100 bg-slate-50/50"
-                                }`}
-                              >
-                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                                  isCompleted ? "bg-emerald-100 text-emerald-600" : isUpcoming ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-400"
-                                }`}>
-                                  {isCompleted ? <CheckCircle2 className="w-4 h-4" /> : <CalendarClock className="w-4 h-4" />}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="truncate text-sm font-semibold text-slate-800">{session.title}</p>
-                                  <p className="text-xs text-slate-500">{session.date || "TBA"}{session.time ? ` · ${session.time}` : ""}</p>
-                                </div>
-                                {isUpcoming && countdownLabel && (
-                                  <span className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">
-                                    <Zap className="w-3 h-3" />
-                                    {countdownLabel}
-                                  </span>
-                                )}
-                                {isCompleted && (
-                                  <span className="text-xs font-medium text-emerald-600 shrink-0">Done</span>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
             </Motion.div>
           )}
 
@@ -1129,58 +1018,76 @@ const ParentDashboard = ({ parent, setParent }) => {
               key="gallery"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="space-y-5"
+              className="space-y-4"
             >
-            
-              <div className="space-y-5">
-                {TOOL_SYSTEMS.map((system) => {
-                  const SystemIcon = system.icon;
-                  const ActionIcon = system.actionIcon;
-                  const ActionContent = (
-                    <>
-                      <ActionIcon className="h-4 w-4" />
-                      <span>{system.actionLabel}</span>
-                    </>
-                  );
+              <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+                <div className="border-b border-slate-100 px-5 py-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h2 className="text-base font-semibold text-slate-900">Pointer Apps</h2>
+                      <p className="mt-1 text-xs font-medium text-slate-400">Downloads for live session devices</p>
+                    </div>
+                    <span className="inline-flex w-fit items-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">
+                      {TOOL_SYSTEMS.filter((system) => !system.disabled).length} ready
+                    </span>
+                  </div>
+                </div>
 
-                  return (
-                    <div
-                      key={system.title}
-                      className={`overflow-hidden rounded-xl border p-5 shadow-sm transition-all hover:border-emerald-200 hover:shadow-md sm:p-6 ${system.cardClass}`}
-                    >
-                      <div className="flex flex-col gap-5 lg:flex-row lg:items-center">
-                        <div className={`flex h-20 w-20 shrink-0 items-center justify-center rounded-xl shadow-sm ${system.iconClass}`}>
-                          <SystemIcon className="h-10 w-10" />
+                <div className="hidden grid-cols-[minmax(0,1.25fr)_minmax(260px,0.9fr)_150px] gap-4 border-b border-slate-100 bg-slate-50/70 px-5 py-2.5 text-[11px] font-bold uppercase tracking-wide text-slate-400 lg:grid">
+                  <span>Platform</span>
+                  <span>Package</span>
+                  <span className="text-right">Action</span>
+                </div>
+
+                <div className="divide-y divide-slate-100">
+                  {TOOL_SYSTEMS.map((system) => {
+                    const SystemIcon = system.icon;
+                    const ActionIcon = system.actionIcon;
+                    const ActionContent = (
+                      <>
+                        <ActionIcon className="h-4 w-4" />
+                        <span>{system.actionLabel}</span>
+                      </>
+                    );
+
+                    return (
+                      <div
+                        key={system.title}
+                        className="grid gap-4 px-5 py-4 transition-colors hover:bg-slate-50/70 lg:grid-cols-[minmax(0,1.25fr)_minmax(260px,0.9fr)_150px] lg:items-center"
+                      >
+                        <div className="flex min-w-0 items-start gap-3">
+                          <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ring-1 ${system.iconClass}`}>
+                            <SystemIcon className="h-5 w-5" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className="truncate text-sm font-semibold text-slate-900">{system.title}</h3>
+                              <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-bold ${system.badgeClass}`}>
+                                {system.badge}
+                              </span>
+                            </div>
+                            <p className="mt-1 text-sm font-medium text-slate-500">{system.subtitle}</p>
+                            <p className="mt-1 max-w-2xl text-xs leading-5 text-slate-500">{system.description}</p>
+                          </div>
                         </div>
 
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-3">
-                            <h3 className="text-xl font-semibold text-slate-800">{system.title}</h3>
-                            <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold ${system.badgeClass}`}>
-                              {system.badge}
+                        <div className="flex flex-wrap gap-2 lg:justify-start">
+                          {system.details.map((detail) => (
+                            <span
+                              key={detail}
+                              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-600"
+                            >
+                              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                              {detail}
                             </span>
-                          </div>
-                          <p className="mt-1 text-sm font-semibold text-slate-500">{system.subtitle}</p>
-                          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">{system.description}</p>
-
-                          <div className="mt-4 grid gap-2 sm:grid-cols-3">
-                            {system.details.map((detail) => (
-                              <span
-                                key={detail}
-                                className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-white/80 bg-white/80 px-3 py-2 text-xs font-semibold text-slate-600 shadow-sm"
-                              >
-                                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-                                {detail}
-                              </span>
-                            ))}
-                          </div>
+                          ))}
                         </div>
 
                         {system.disabled ? (
                           <button
                             type="button"
                             disabled
-                            className={`inline-flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold sm:w-auto ${system.buttonClass}`}
+                            className={`inline-flex h-10 w-full cursor-not-allowed items-center justify-center gap-2 rounded-lg px-4 text-sm font-bold lg:w-auto lg:justify-self-end ${system.buttonClass}`}
                           >
                             {ActionContent}
                           </button>
@@ -1188,16 +1095,16 @@ const ParentDashboard = ({ parent, setParent }) => {
                           <a
                             href={system.href}
                             download={system.download}
-                            className={`inline-flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold shadow-sm transition-all sm:w-auto ${system.buttonClass}`}
+                            className={`inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg px-4 text-sm font-bold shadow-sm transition-all lg:w-auto lg:justify-self-end ${system.buttonClass}`}
                           >
                             {ActionContent}
                           </a>
                         )}
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              </section>
             </Motion.div>
           )}
 
