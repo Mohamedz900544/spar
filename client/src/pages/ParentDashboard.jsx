@@ -207,6 +207,7 @@ const ParentDashboard = ({ parent, setParent }) => {
   const [isEnrollingChild, setIsEnrollingChild] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedOverviewSessionKey, setSelectedOverviewSessionKey] = useState(null);
+  const [scheduleFilter, setScheduleFilter] = useState("upcoming");
   const [isPhotoUploading, setIsPhotoUploading] = useState(false);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState("");
   const profilePhotoInputRef = useRef(null);
@@ -391,17 +392,29 @@ const ParentDashboard = ({ parent, setParent }) => {
     () => overviewSessions.find((s) => s.key === selectedOverviewSessionKey) || null,
     [overviewSessions, selectedOverviewSessionKey]
   );
+  const scheduleCounts = useMemo(() => ({
+    upcoming: overviewSessions.filter((session) => session.lifecycle !== "completed").length,
+    completed: overviewSessions.filter((session) => session.lifecycle === "completed").length,
+  }), [overviewSessions]);
+  const filteredOverviewSessions = useMemo(
+    () => overviewSessions.filter((session) => (
+      scheduleFilter === "completed"
+        ? session.lifecycle === "completed"
+        : session.lifecycle !== "completed"
+    )),
+    [overviewSessions, scheduleFilter]
+  );
 
   useEffect(() => {
-    if (overviewSessions.length === 0) {
+    if (filteredOverviewSessions.length === 0) {
       setSelectedOverviewSessionKey(null);
       return;
     }
-    const exists = overviewSessions.some((s) => s.key === selectedOverviewSessionKey);
+    const exists = filteredOverviewSessions.some((s) => s.key === selectedOverviewSessionKey);
     if (!selectedOverviewSessionKey || !exists) {
-      setSelectedOverviewSessionKey(overviewSessions[0].key);
+      setSelectedOverviewSessionKey(filteredOverviewSessions[0].key);
     }
-  }, [overviewSessions, selectedOverviewSessionKey]);
+  }, [filteredOverviewSessions, selectedOverviewSessionKey]);
 
   const selectedOverviewKey = selectedOverviewSession
     ? `${selectedOverviewSession.roundCode}-${selectedOverviewSession.sessionId}`
@@ -869,10 +882,40 @@ const ParentDashboard = ({ parent, setParent }) => {
 
               <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr),minmax(360px,440px)]">
                 <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-                  <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+                  <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <h2 className="text-base font-semibold text-slate-900">Schedule</h2>
                       <p className="mt-1 text-xs font-medium text-slate-400">{overviewSessions.length} session{overviewSessions.length !== 1 && "s"}</p>
+                    </div>
+                    <div className="flex w-full flex-wrap gap-3 sm:w-auto">
+                      {[
+                        ["upcoming", "Upcoming", scheduleCounts.upcoming],
+                        ["completed", "Completed", scheduleCounts.completed],
+                      ].map(([filterId, label, count]) => {
+                        const isActive = scheduleFilter === filterId;
+                        return (
+                          <button
+                            key={filterId}
+                            type="button"
+                            aria-pressed={isActive}
+                            onClick={() => setScheduleFilter(filterId)}
+                            className={`inline-flex h-9 min-w-[104px] flex-1 items-center justify-center gap-2 rounded-full border px-3 text-xs font-bold transition-all sm:flex-none ${
+                              isActive
+                                ? "border-blue-600 bg-blue-600 text-white shadow-sm shadow-blue-600/20"
+                                : "border-cyan-200 bg-cyan-50 text-cyan-700 hover:border-cyan-300 hover:bg-cyan-100"
+                            }`}
+                          >
+                            <span>{label}</span>
+                            <span className={`inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-black ${
+                              isActive
+                                ? "bg-white/20 text-white"
+                                : "bg-white text-cyan-700"
+                            }`}>
+                              {count}
+                            </span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -882,9 +925,21 @@ const ParentDashboard = ({ parent, setParent }) => {
                       <p className="mt-3 text-sm font-semibold text-slate-700">No sessions yet</p>
                       <p className="mt-1 text-sm text-slate-500">Use a round code to add your schedule.</p>
                     </div>
+                  ) : filteredOverviewSessions.length === 0 ? (
+                    <div className="px-5 py-12 text-center">
+                      <CalendarClock className="mx-auto h-10 w-10 text-slate-300" />
+                      <p className="mt-3 text-sm font-semibold text-slate-700">
+                        No {scheduleFilter === "completed" ? "completed" : "upcoming"} sessions
+                      </p>
+                      <p className="mt-1 text-sm text-slate-500">
+                        {scheduleFilter === "completed"
+                          ? "Finished sessions will appear here."
+                          : "Future sessions will appear here."}
+                      </p>
+                    </div>
                   ) : (
                     <div className="max-h-[560px] divide-y divide-slate-100 overflow-y-auto">
-                      {overviewSessions.map((session) => {
+                      {filteredOverviewSessions.map((session) => {
                         const statusMeta = getParentStatusMeta(session.lifecycle);
                         const isSelected = selectedOverviewSessionKey === session.key;
                         return (
