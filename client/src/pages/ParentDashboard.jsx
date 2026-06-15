@@ -22,7 +22,7 @@ import {
   Camera,
   Loader2,
 } from "lucide-react";
-import { FaAndroid, FaApple, FaWindows } from "react-icons/fa";
+import { FaAndroid, FaApple, FaWhatsapp, FaWindows } from "react-icons/fa";
 import toast from "react-hot-toast";
 import PropTypes from "prop-types";
 
@@ -651,8 +651,8 @@ const ParentDashboard = ({ parent, setParent }) => {
         </aside>
 
         <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-[#f4f7fb]">
-          <header className="sticky top-0 z-30 border-b border-blue-100 bg-white/90 px-4 py-3 backdrop-blur sm:px-6">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <header className="sticky top-0 z-30 border-b border-blue-100 bg-white/90 px-4 py-3 backdrop-blur sm:px-6 lg:h-20 lg:py-0">
+            <div className="flex flex-col gap-3 lg:h-full lg:flex-row lg:items-center lg:justify-between">
               <div className="flex min-w-0 items-center gap-3">
                 <Link
                   to="/parent"
@@ -861,8 +861,9 @@ const ParentDashboard = ({ parent, setParent }) => {
                         href="https://wa.me/201500077369"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex h-10 items-center justify-center rounded-lg border border-cyan-200 bg-cyan-50 px-4 text-xs font-bold text-cyan-700 transition-all hover:bg-cyan-100"
+                        className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-cyan-200 bg-cyan-50 px-4 text-xs font-bold text-cyan-700 transition-all hover:bg-cyan-100"
                       >
+                        <FaWhatsapp className="h-4 w-4 text-cyan-700" />
                         Need code?
                       </a>
                     </div>
