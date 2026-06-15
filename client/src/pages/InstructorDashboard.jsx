@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import {
@@ -367,6 +367,15 @@ const formatCountdownLabel = (startTs, nowTs) => {
   return `After ${hours}h${minutes ? ` ${minutes}m` : ""}`;
 };
 
+const getCountdownParts = (diffMs) => {
+  const totalSeconds = Math.max(0, Math.floor(diffMs / 1000));
+  const days = Math.floor(totalSeconds / (60 * 60 * 24));
+  const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
+  const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
+  const seconds = totalSeconds % 60;
+  return { days, hours, minutes, seconds };
+};
+
 const buildLifecycleHint = (status, startTs, endTs, nowTs) => {
   if (status === "upcoming") {
     return formatCountdownLabel(startTs, nowTs);
@@ -401,6 +410,7 @@ const InstructorDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [timelineNow, setTimelineNow] = useState(() => Date.now());
   const [selectedOverviewSessionKey, setSelectedOverviewSessionKey] = useState("");
+  const [scheduleFilter, setScheduleFilter] = useState("upcoming");
   const [showLinkedRounds, setShowLinkedRounds] = useState(false);
   const [workingHours, setWorkingHours] = useState(createEmptyWorkingHours());
   const [workingHoursGrid, setWorkingHoursGrid] = useState(createEmptyWorkingHoursGrid());
@@ -495,7 +505,7 @@ const InstructorDashboard = () => {
     saveInstructorCustomMessages(customMessagesStorageKey, customWhatsAppMessages);
   }, [customMessagesStorageKey, customWhatsAppMessages]);
   useEffect(() => {
-    const timer = setInterval(() => setTimelineNow(Date.now()), 30000);
+    const timer = setInterval(() => setTimelineNow(Date.now()), 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -595,17 +605,43 @@ const InstructorDashboard = () => {
       .slice(0, 20);
   }, [freeSessions, rounds, timelineNow]);
 
+  const scheduleCounts = useMemo(
+    () =>
+      upcomingSessions.reduce(
+        (counts, session) => {
+          if (session.lifecycleStatus === "completed") {
+            counts.completed += 1;
+          } else {
+            counts.upcoming += 1;
+          }
+          return counts;
+        },
+        { upcoming: 0, completed: 0 }
+      ),
+    [upcomingSessions]
+  );
+
+  const filteredOverviewSessions = useMemo(
+    () =>
+      upcomingSessions.filter((session) =>
+        scheduleFilter === "completed"
+          ? session.lifecycleStatus === "completed"
+          : session.lifecycleStatus !== "completed"
+      ),
+    [scheduleFilter, upcomingSessions]
+  );
+
   useEffect(() => {
-    if (!upcomingSessions.length) {
+    if (!filteredOverviewSessions.length) {
       setSelectedOverviewSessionKey("");
       return;
     }
 
-    const stillExists = upcomingSessions.some((session) => session.key === selectedOverviewSessionKey);
+    const stillExists = filteredOverviewSessions.some((session) => session.key === selectedOverviewSessionKey);
     if (!selectedOverviewSessionKey || !stillExists) {
-      setSelectedOverviewSessionKey(upcomingSessions[0].key);
+      setSelectedOverviewSessionKey(filteredOverviewSessions[0].key);
     }
-  }, [upcomingSessions, selectedOverviewSessionKey]);
+  }, [filteredOverviewSessions, selectedOverviewSessionKey]);
 
   useEffect(() => {
     if (!selectedRound) return;
@@ -710,6 +746,21 @@ const InstructorDashboard = () => {
     () => upcomingSessions.find((session) => session.key === selectedOverviewSessionKey) || null,
     [upcomingSessions, selectedOverviewSessionKey]
   );
+  const overviewNextSession = useMemo(
+    () => upcomingSessions.find((session) => session.lifecycleStatus !== "completed") || upcomingSessions[0] || null,
+    [upcomingSessions]
+  );
+  const overviewCountdown = useMemo(() => {
+    if (
+      !overviewNextSession ||
+      overviewNextSession.lifecycleStatus !== "upcoming" ||
+      !Number.isFinite(overviewNextSession.startTs)
+    ) {
+      return null;
+    }
+
+    return getCountdownParts(overviewNextSession.startTs - timelineNow);
+  }, [overviewNextSession, timelineNow]);
 
   const overviewRound = useMemo(() => {
     if (!selectedOverviewSession || selectedOverviewSession.sessionType !== "round") return null;
@@ -1036,17 +1087,17 @@ const InstructorDashboard = () => {
   /*  RENDER                                                             */
   /* ================================================================== */
   return (
-    <div className="h-screen w-full overflow-hidden bg-[#f7f8f6] font-sans text-slate-900 [&_h1]:font-sans [&_h2]:font-sans [&_h3]:font-sans">
-      <div className="flex h-full w-full overflow-hidden bg-white">
-        <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white lg:flex lg:flex-col">
-          <div className="flex h-20 items-center border-b border-slate-200 px-6">
+    <div className="h-screen w-full overflow-hidden bg-[#f4f7fb] font-sans text-slate-950 [&_h1]:font-sans [&_h2]:font-sans [&_h3]:font-sans">
+      <div className="flex h-full w-full overflow-hidden bg-[#f4f7fb]">
+        <aside className="hidden w-64 shrink-0 border-r border-blue-100 bg-white text-slate-950 lg:flex lg:flex-col">
+          <div className="flex h-20 items-center border-b border-blue-100 px-6">
             <Link to="/instructor" className="inline-flex min-w-0 items-center gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 ring-1 ring-emerald-100">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-blue-100">
                 <img src="/icon.png" alt="SP School" className="h-6 w-6 rounded-md object-contain" />
               </span>
               <span className="min-w-0">
-                <span className="block truncate text-lg font-semibold text-slate-800">SP School Instructor</span>
-                <span className="block truncate text-xs font-semibold text-slate-400">Instructor Workspace</span>
+                <span className="block truncate text-lg font-semibold text-slate-950">SP School Instructor</span>
+                <span className="block truncate text-xs font-semibold text-blue-600">Instructor Workspace</span>
               </span>
             </Link>
           </div>
@@ -1066,8 +1117,8 @@ const InstructorDashboard = () => {
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold transition-all ${
                       isActive
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                        ? "bg-blue-600 text-white shadow-sm shadow-blue-600/20"
+                        : "text-slate-500 hover:bg-blue-50 hover:text-blue-700"
                     }`}
                   >
                     <TabIcon className="h-4 w-4 shrink-0" />
@@ -1078,7 +1129,7 @@ const InstructorDashboard = () => {
             </div>
           </nav>
 
-          <div className="border-t border-slate-200 px-4 py-5">
+          <div className="border-t border-blue-100 px-4 py-5">
             <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
               Account
             </p>
@@ -1093,21 +1144,21 @@ const InstructorDashboard = () => {
           </div>
         </aside>
 
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-[#f7f8f6]">
-          <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur sm:px-6">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-[#f4f7fb]">
+          <header className="sticky top-0 z-30 border-b border-blue-100 bg-white/90 px-4 py-3 backdrop-blur sm:px-6">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex min-w-0 items-center gap-3">
                 <Link
                   to="/instructor"
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 ring-1 ring-emerald-100 lg:hidden"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-blue-100 lg:hidden"
                 >
                   <img src="/icon.png" alt="SP School" className="h-6 w-6 rounded-md object-contain" />
                 </Link>
                 <div className="min-w-0">
-                  <h1 className="truncate text-2xl font-semibold tracking-normal text-slate-800">
+                  <h1 className="truncate text-2xl font-semibold tracking-normal text-slate-950">
                     {pageTitle}
                   </h1>
-                  <p className="truncate text-xs font-medium text-slate-400">
+                  <p className="truncate text-xs font-semibold text-blue-500">
                     Instructor Workspace
                   </p>
                 </div>
@@ -1118,7 +1169,7 @@ const InstructorDashboard = () => {
                   type="button"
                   onClick={fetchDashboard}
                   disabled={isLoading}
-                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 disabled:opacity-60"
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-blue-100 bg-white px-3 text-sm font-semibold text-blue-700 shadow-sm transition-all hover:border-blue-200 hover:bg-blue-50 disabled:opacity-60"
                 >
                   <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
                   <span className="hidden sm:inline">Refresh</span>
@@ -1145,8 +1196,8 @@ const InstructorDashboard = () => {
                     onClick={() => setActiveTab(tab.id)}
                     className={`inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-xs font-bold transition-all ${
                       isActive
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "bg-white text-slate-500 ring-1 ring-slate-200 hover:text-slate-900"
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "bg-white text-slate-500 ring-1 ring-blue-100 hover:bg-blue-50 hover:text-blue-700"
                     }`}
                   >
                     <TabIcon className="h-3.5 w-3.5" />
@@ -1199,175 +1250,278 @@ const InstructorDashboard = () => {
               animate={{ opacity: 1, y: 0 }}
               className="space-y-5"
             >
-              <div className="rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm">
-                <form
-                  onSubmit={handleLinkRound}
-                  className="grid grid-cols-1 gap-2 lg:grid-cols-[180px_1fr_auto_auto] lg:items-center"
-                >
-                  <label className="flex items-center gap-3 text-sm font-bold text-slate-700">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                      <Link2 className="h-4 w-4" />
-                    </span>
-                    <span>Link New Round</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={roundCode}
-                    onChange={(e) => setRoundCode(e.target.value)}
-                    placeholder="Enter code here"
-                    className="h-11 rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-800 shadow-inner outline-none placeholder:text-slate-400 focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100"
-                  />
-                  <button
-                    type="submit"
-                    disabled={isLinking || !roundCode.trim()}
-                    className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 text-sm font-bold text-white shadow-sm transition-all hover:bg-emerald-700 disabled:opacity-50"
-                  >
-                    <Link2 className="h-4 w-4" />
-                    {isLinking ? "Linking..." : "Link"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowLinkedRounds((prev) => !prev)}
-                    className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 transition-all hover:bg-slate-50 hover:text-slate-900"
-                  >
-                    <List className="h-4 w-4" />
-                    {showLinkedRounds ? "Hide linked rounds" : "See all rounds linked"}
-                  </button>
-                </form>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 xl:grid-cols-[360px_1fr]">
-                <div className="min-h-[520px] rounded-2xl border border-slate-200/80 bg-white shadow-sm">
-                  <div className="flex items-center justify-between px-4 py-4">
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-                        <CalendarClock className="h-4 w-4" />
-                      </span>
-                      <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-600">Upcoming Sessions</h2>
+              <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr),minmax(360px,440px)]">
+                <section className="rounded-xl border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-sky-50 p-5 shadow-sm">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold uppercase tracking-wide text-blue-700">Next session</p>
+                      {overviewNextSession ? (
+                        <>
+                          <h2 className="mt-2 truncate text-xl font-semibold text-slate-950">{overviewNextSession.title}</h2>
+                          <p className="mt-1 text-sm font-medium text-blue-700/70">
+                            {overviewNextSession.dateLabel} at {overviewNextSession.timeLabel}
+                            {overviewNextSession.roundName ? ` - ${overviewNextSession.roundName}` : ""}
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <h2 className="mt-2 text-xl font-semibold text-slate-950">No upcoming sessions</h2>
+                          <p className="mt-1 text-sm font-medium text-blue-700/70">Linked sessions will appear here.</p>
+                        </>
+                      )}
                     </div>
-                    <span className="inline-flex h-8 min-w-8 items-center justify-center rounded-lg bg-emerald-50 px-2 text-sm font-bold text-emerald-700">
-                        {upcomingSessions.length}
-                    </span>
+                    {overviewNextSession ? (
+                      <div className="flex flex-wrap items-center gap-2">
+                      
+                     
+                      </div>
+                    ) : null}
                   </div>
 
-                    {isLoading ? (
-                      <div className="px-5 py-10 text-center text-sm text-slate-500">Loading sessions...</div>
-                    ) : upcomingSessions.length === 0 ? (
-                      <div className="px-5 py-10 text-center text-sm text-slate-500">
-                        No sessions yet. Linked sessions will appear here.
+                  {overviewNextSession && overviewCountdown && (
+                    <div className="mt-5 border-t border-blue-100 pt-5">
+                      <div className="flex items-start justify-center gap-1 sm:gap-4">
+                        {[
+                          ["Days", overviewCountdown.days, "text-slate-950"],
+                          ["Hours", overviewCountdown.hours, "text-blue-900"],
+                          ["Minutes", overviewCountdown.minutes, "text-violet-800"],
+                          ["Seconds", overviewCountdown.seconds, "text-rose-600"],
+                        ].map(([label, value, colorClass], index) => (
+                          <Fragment key={label}>
+                            {index > 0 && (
+                              <span className="mt-0.5 text-3xl font-bold leading-none text-blue-300 sm:mt-1 sm:text-5xl">:</span>
+                            )}
+                            <div className="min-w-[52px] text-center sm:min-w-[78px]">
+                              <p className={`font-mono text-3xl font-black leading-none tracking-normal sm:text-5xl lg:text-6xl ${colorClass}`}>
+                                {String(value).padStart(2, "0")}
+                              </p>
+                              <p
+                                className="mt-3 text-xs font-medium text-blue-800/70 sm:mt-4 sm:text-base"
+                                style={{ fontFamily: '"Segoe Print", "Comic Sans MS", cursive' }}
+                              >
+                                {label}
+                              </p>
+                            </div>
+                          </Fragment>
+                        ))}
                       </div>
-                    ) : (
-                      <div className="max-h-[450px] space-y-2 overflow-y-auto px-1 pb-4">
-                        {upcomingSessions.map((session) => {
-                          const statusMeta = getStatusMeta(session.lifecycleStatus);
-                          const isSelected = selectedOverviewSessionKey === session.key;
+                    </div>
+                  )}
+                </section>
 
-                          return (
-                            <button
-                              key={session.key}
-                              type="button"
-                              onClick={() => handleSelectOverviewSession(session)}
-                              className={`relative mx-1 w-[calc(100%-0.5rem)] rounded-xl border px-4 py-3 text-left transition-all ${
-                                isSelected
-                                  ? "border-emerald-200 bg-emerald-50/70 shadow-[inset_4px_0_0_#10b981]"
-                                  : "border-transparent bg-white hover:border-slate-200 hover:bg-slate-50"
-                              }`}
-                            >
-                              <div className="flex items-start gap-3">
-                                <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${isSelected ? "bg-emerald-100 text-emerald-700" : "bg-emerald-50 text-emerald-600"}`}>
-                                  <CalendarClock className="h-4 w-4" />
-                                </span>
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex items-start justify-between gap-3">
-                                    <p className="truncate text-sm font-semibold text-slate-900">{session.title}</p>
-                                    <span className={`shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] font-bold ${statusMeta.badgeClass}`}>
-                                      {statusMeta.label}
-                                    </span>
-                                  </div>
-                                  <p className={`mt-1.5 text-xs font-semibold ${statusMeta.hintClass}`}>
-                                    {session.dateLabel} at {session.timeLabel}
-                                  </p>
-                                  <p className="mt-2 text-xs font-medium text-slate-500">
-                                    {session.dateLabel}
-                                    {session.roundName ? ` - ${session.roundName}` : ""}
-                                  </p>
-                                </div>
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                </div>
+                <section className="rounded-xl border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-sky-50 p-5 shadow-sm">
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <div>
+                      <h2 className="text-base font-semibold text-slate-950">Link a round</h2>
+                      <p className="mt-1 text-xs font-medium text-amber-700/70">Add a round code to your instructor schedule.</p>
+                    </div>
+                    <Link2 className="h-5 w-5 text-amber-500" />
+                  </div>
 
-                <div className="min-w-0 rounded-2xl border border-slate-200/80 bg-white shadow-sm">
-                    {showLinkedRounds && (
-                      <div className="border-b border-slate-100 p-4">
-                        {rounds.length === 0 ? (
-                          <p className="text-sm text-slate-500">No linked rounds yet.</p>
-                        ) : (
-                          <div className="flex flex-wrap gap-2">
-                            {rounds.map((round) => {
-                              const roundId = round.id || round._id;
-                              const isSelectedRound = selectedRoundId === roundId;
+                  <form onSubmit={handleLinkRound} className="space-y-3">
+                    <div className="relative">
+                      <Link2 className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-amber-500" />
+                      <input
+                        type="text"
+                        value={roundCode}
+                        onChange={(e) => setRoundCode(e.target.value)}
+                        placeholder="Enter code here"
+                        className="h-10 w-full rounded-lg border border-amber-100 bg-white py-2.5 pl-10 pr-4 font-mono text-sm font-semibold uppercase tracking-wide text-slate-800 outline-none placeholder:text-amber-300 focus:border-amber-300 focus:ring-4 focus:ring-amber-100"
+                      />
+                    </div>
 
-                              return (
-                                <button
-                                  key={roundId}
-                                  type="button"
-                                  onClick={() => setSelectedRoundId(roundId)}
-                                  className={`rounded-xl border px-3 py-2 text-left text-xs font-semibold transition-all ${
-                                    isSelectedRound
-                                      ? "border-emerald-300 bg-emerald-50 text-emerald-700"
-                                      : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                                  }`}
-                                >
-                                  <p>{round.name}</p>
-                                  <p className="mt-0.5 text-[11px] text-slate-500">{round.code}</p>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    )}
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      <button
+                        type="submit"
+                        disabled={isLinking || !roundCode.trim()}
+                        className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-lg bg-amber-400 px-4 text-sm font-bold text-slate-950 shadow-sm transition-all hover:bg-amber-300 disabled:opacity-50"
+                      >
+                        <Link2 className="h-4 w-4" />
+                        {isLinking ? "Linking..." : "Link round"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowLinkedRounds((prev) => !prev)}
+                        className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-cyan-200 bg-cyan-50 px-4 text-xs font-bold text-cyan-700 transition-all hover:bg-cyan-100"
+                      >
+                        <List className="h-4 w-4" />
+                        {showLinkedRounds ? "Hide" : "Rounds"}
+                      </button>
+                    </div>
+                  </form>
 
-                    <div className="p-4 lg:p-5">
-                      {!selectedOverviewSession ? (
-                        <div className="rounded-2xl border border-slate-100 bg-slate-50 px-5 py-12 text-center text-sm text-slate-500">
-                          Select any upcoming session from the list to add attendance or evaluation.
-                        </div>
+                  {showLinkedRounds && (
+                    <div className="mt-4 border-t border-blue-100 pt-4">
+                      {rounds.length === 0 ? (
+                        <p className="text-sm text-slate-500">No linked rounds yet.</p>
                       ) : (
-                        <div className="space-y-4">
-                          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                        <div className="flex flex-wrap gap-2">
+                          {rounds.map((round) => {
+                            const roundId = round.id || round._id;
+                            const isSelectedRound = selectedRoundId === roundId;
+
+                            return (
+                              <button
+                                key={roundId}
+                                type="button"
+                                onClick={() => setSelectedRoundId(roundId)}
+                                className={`rounded-lg border px-3 py-2 text-left text-xs font-semibold transition-all ${
+                                  isSelectedRound
+                                    ? "border-blue-200 bg-blue-50 text-blue-700"
+                                    : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                                }`}
+                              >
+                                <p>{round.name}</p>
+                                <p className="mt-0.5 text-[11px] text-slate-500">{round.code}</p>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </section>
+              </div>
+
+              <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr),minmax(360px,440px)]">
+                <section className="overflow-hidden rounded-xl border border-blue-100 bg-white shadow-sm">
+                  <div className="flex flex-col gap-3 border-b border-blue-100 bg-gradient-to-r from-white to-blue-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h2 className="text-base font-semibold text-slate-950">Schedule</h2>
+                      <p className="mt-1 text-xs font-medium text-blue-600/70">{upcomingSessions.length} session{upcomingSessions.length !== 1 && "s"}</p>
+                    </div>
+                    <div className="flex w-full flex-wrap gap-2 sm:w-auto">
+                      {[
+                        ["upcoming", "Upcoming", scheduleCounts.upcoming],
+                        ["completed", "Completed", scheduleCounts.completed],
+                      ].map(([filterId, label, count]) => {
+                        const isActive = scheduleFilter === filterId;
+                        return (
+                          <button
+                            key={filterId}
+                            type="button"
+                            aria-pressed={isActive}
+                            onClick={() => setScheduleFilter(filterId)}
+                            className={`inline-flex h-7 min-w-[86px] flex-1 items-center justify-center gap-1.5 rounded-full border px-2.5 text-[11px] font-bold transition-all sm:flex-none ${
+                              isActive
+                                ? "border-blue-600 bg-blue-600 text-white shadow-sm shadow-blue-600/20"
+                                : "border-cyan-200 bg-cyan-50 text-cyan-700 hover:border-cyan-300 hover:bg-cyan-100"
+                            }`}
+                          >
+                            <span>{label}</span>
+                            <span className={`inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-black ${
+                              isActive
+                                ? "bg-white/20 text-white"
+                                : "bg-white text-cyan-700"
+                            }`}>
+                              {count}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {isLoading ? (
+                    <div className="px-5 py-12 text-center text-sm text-slate-500">Loading sessions...</div>
+                  ) : upcomingSessions.length === 0 ? (
+                    <div className="px-5 py-12 text-center">
+                      <CalendarClock className="mx-auto h-10 w-10 text-blue-300" />
+                      <p className="mt-3 text-sm font-semibold text-slate-800">No sessions yet</p>
+                      <p className="mt-1 text-sm text-blue-700/60">Linked sessions will appear here.</p>
+                    </div>
+                  ) : filteredOverviewSessions.length === 0 ? (
+                    <div className="px-5 py-12 text-center">
+                      <CalendarClock className="mx-auto h-10 w-10 text-blue-300" />
+                      <p className="mt-3 text-sm font-semibold text-slate-800">
+                        No {scheduleFilter === "completed" ? "completed" : "upcoming"} sessions
+                      </p>
+                      <p className="mt-1 text-sm text-blue-700/60">
+                        {scheduleFilter === "completed"
+                          ? "Finished sessions will appear here."
+                          : "Future sessions will appear here."}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="max-h-[560px] divide-y divide-blue-50 overflow-y-auto">
+                      {filteredOverviewSessions.map((session) => {
+                        const statusMeta = getStatusMeta(session.lifecycleStatus);
+                        const isSelected = selectedOverviewSessionKey === session.key;
+
+                        return (
+                          <button
+                            key={session.key}
+                            type="button"
+                            onClick={() => handleSelectOverviewSession(session)}
+                            className={`grid w-full gap-3 px-5 py-4 text-left transition-colors sm:grid-cols-[1fr,auto] sm:items-center ${
+                              isSelected ? "bg-blue-50/90" : "hover:bg-cyan-50/60"
+                            }`}
+                          >
+                            <div className="min-w-0">
+                              <div className="flex min-w-0 items-center gap-2">
+                                <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${
+                                  session.lifecycleStatus === "active"
+                                    ? "bg-emerald-500"
+                                    : session.lifecycleStatus === "completed"
+                                      ? "bg-violet-500"
+                                      : "bg-amber-500"
+                                }`} />
+                                <p className="truncate text-sm font-semibold text-slate-950">{session.title}</p>
+                              </div>
+                              <p className="mt-1 truncate text-xs font-medium text-slate-500">
+                                {session.dateLabel} at {session.timeLabel}
+                                {session.roundName ? ` - ${session.roundName}` : ""}
+                              </p>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                              <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${statusMeta.badgeClass}`}>
+                                {statusMeta.label}
+                              </span>
+                              <span className={`text-xs font-bold ${statusMeta.hintClass}`}>{session.hintText}</span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
+
+                <section className="min-w-0 rounded-xl border border-violet-100 bg-gradient-to-br from-white to-violet-50 p-5 shadow-sm">
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <div>
+                      <h2 className="text-base font-semibold text-slate-950">Session detail</h2>
+                      <p className="mt-1 text-xs font-medium text-violet-700/60">Attendance and evaluation</p>
+                    </div>
+                    <Star className="h-5 w-5 text-violet-500" />
+                  </div>
+
+                  {!selectedOverviewSession ? (
+                    <div className="rounded-lg border border-violet-100 bg-white/70 px-5 py-12 text-center text-sm text-violet-600">
+                      Select any upcoming session from the list to add attendance or evaluation.
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                             <div className="flex items-start gap-4">
-                              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-violet-50 text-violet-600">
                                 <CalendarClock className="h-5 w-5" />
                               </span>
                               <div>
-                                <h2 className="text-base font-semibold text-slate-900">{selectedOverviewSession.title}</h2>
+                                <h2 className="text-base font-semibold text-slate-950">{selectedOverviewSession.title}</h2>
                                 <p className="mt-1 text-sm font-medium text-slate-500">
                                   {selectedOverviewSession.dateLabel} at {selectedOverviewSession.timeLabel}
                                   {selectedOverviewSession.roundName ? ` - ${selectedOverviewSession.roundName}` : ""}
                                 </p>
                               </div>
                             </div>
-                            <div className="flex items-center gap-3 md:pt-1">
-                              <span className={`rounded-full border px-3 py-1 text-xs font-bold ${getStatusMeta(selectedOverviewSession.lifecycleStatus).badgeClass}`}>
-                                {getStatusMeta(selectedOverviewSession.lifecycleStatus).label}
-                              </span>
-                              <span className={`inline-flex items-center gap-1.5 text-xs font-bold ${getStatusMeta(selectedOverviewSession.lifecycleStatus).hintClass}`}>
-                                <Clock3 className="h-4 w-4" />
-                                {selectedOverviewSession.hintText}
-                              </span>
-                            </div>
+                            
                           </div>
 
                           {selectedOverviewSession.sessionType === "round" ? (
-                            <div className="overflow-hidden rounded-2xl border border-slate-100">
-                              <div className="flex flex-col gap-3 border-b border-slate-100 p-4 md:flex-row md:items-center md:justify-between">
+                            <div className="overflow-hidden rounded-lg border border-violet-100 bg-white/80">
+                              <div className="flex flex-col gap-3 border-b border-violet-100 bg-white/60 p-4 md:flex-row md:items-center md:justify-between">
                                 <div>
-                                  <h3 className="text-sm font-semibold text-slate-700">Attendance</h3>
+                                  <h3 className="text-sm font-semibold text-slate-800">Attendance</h3>
                                   <p className="text-xs text-slate-500">
                                     {overviewAttendanceCounts.present}/{overviewAttendanceCounts.total} marked present
                                   </p>
@@ -1377,7 +1531,7 @@ const InstructorDashboard = () => {
                                     type="button"
                                     onClick={() => handleOverviewBulkUpdate(true)}
                                     disabled={isBulkUpdating || overviewEnrollments.length === 0}
-                                    className="rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-semibold text-emerald-700 transition-all hover:bg-emerald-100 disabled:opacity-50"
+                                    className="rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-semibold text-emerald-700 transition-all hover:bg-emerald-100 disabled:opacity-50"
                                   >
                                     All Present
                                   </button>
@@ -1385,7 +1539,7 @@ const InstructorDashboard = () => {
                                     type="button"
                                     onClick={() => handleOverviewBulkUpdate(false)}
                                     disabled={isBulkUpdating || overviewEnrollments.length === 0}
-                                    className="rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-semibold text-slate-600 transition-all hover:bg-slate-100 disabled:opacity-50"
+                                    className="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-600 transition-all hover:bg-slate-50 disabled:opacity-50"
                                   >
                                     All Absent
                                   </button>
@@ -1400,13 +1554,13 @@ const InstructorDashboard = () => {
                                 <div className="max-h-[420px] overflow-auto">
                                   <table className="min-w-full text-sm">
                                     <thead>
-                                      <tr className="border-b border-slate-100 bg-slate-50/80">
-                                        <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Student</th>
-                                        <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Parent</th>
-                                        <th className="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">Attendance</th>
+                                      <tr className="border-b border-violet-100 bg-violet-50/70">
+                                        <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-violet-500">Student</th>
+                                        <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-violet-500">Parent</th>
+                                        <th className="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wide text-violet-500">Attendance</th>
                                       </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-100 bg-white">
+                                    <tbody className="divide-y divide-violet-50 bg-white/80">
                                       {overviewEnrollments.map((enrollment) => {
                                         const enrollmentId = enrollment.id || enrollment._id;
                                         const isPresent = getAttendanceStatus(
@@ -1415,7 +1569,7 @@ const InstructorDashboard = () => {
                                         );
 
                                         return (
-                                          <tr key={enrollmentId} className="hover:bg-slate-50/70">
+                                          <tr key={enrollmentId} className="hover:bg-violet-50/50">
                                             <td className="px-4 py-3 font-medium text-slate-800">
                                               {enrollment.childName || "-"}
                                             </td>
@@ -1447,35 +1601,37 @@ const InstructorDashboard = () => {
                               )}
                             </div>
                           ) : (
-                            <div className="rounded-2xl border border-slate-200 p-4">
-                              <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                            <div className="rounded-lg border border-violet-100 bg-white/80 p-4">
+                              <div className="mb-3 flex flex-col gap-3">
                                 <div>
-                                  <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-600">Evaluation</h3>
+                                  <h3 className="text-sm font-semibold uppercase tracking-wide text-violet-500">Evaluation</h3>
                                 </div>
-                                <button
-                                  type="button"
-                                  onClick={() => setActiveTab("evaluations")}
-                                  className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                                >
-                                  <span>Open all evaluations</span>
-                                  <ExternalLink className="h-4 w-4" />
-                                </button>
-                                {selectedOverviewLead?.phone && (
+                                <div className="flex flex-nowrap items-center gap-2">
                                   <button
                                     type="button"
-                                    onClick={() =>
-                                      openWhatsAppMessagePicker({
-                                        ...selectedOverviewLead,
-                                        source: selectedOverviewLead.source || "Free Session",
-                                        sessionTitle: selectedOverviewSession.title,
-                                      })
-                                    }
-                                    className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-50"
+                                    onClick={() => setActiveTab("evaluations")}
+                                    className="inline-flex h-9 min-w-0 items-center gap-2 whitespace-nowrap rounded-lg border border-violet-100 bg-white px-3 text-[11px] font-bold text-violet-600 hover:bg-violet-50"
                                   >
-                                    <MessageCircle className="h-4 w-4" />
-                                    WhatsApp
+                                    <span>Open all evaluations</span>
+                                    <ExternalLink className="h-4 w-4" />
                                   </button>
-                                )}
+                                  {selectedOverviewLead?.phone && (
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        openWhatsAppMessagePicker({
+                                          ...selectedOverviewLead,
+                                          source: selectedOverviewLead.source || "Free Session",
+                                          sessionTitle: selectedOverviewSession.title,
+                                        })
+                                      }
+                                      className="inline-flex h-9 min-w-0 items-center gap-2 whitespace-nowrap rounded-lg border border-emerald-200 bg-white px-3 text-[11px] font-bold text-emerald-700 hover:bg-emerald-50"
+                                    >
+                                      <MessageCircle className="h-4 w-4" />
+                                      WhatsApp
+                                    </button>
+                                  )}
+                                </div>
                               </div>
 
                               {selectedOverviewLead ? (
@@ -1485,7 +1641,7 @@ const InstructorDashboard = () => {
                                     <span className="mx-3 text-slate-300">•</span>
                                     Child: {selectedOverviewLead.childName || "-"}
                                   </p>
-                                  <div className="mb-3 rounded-xl border border-slate-100 bg-slate-50/80 p-4">
+                                  <div className="mb-3 rounded-lg border border-violet-100 bg-white/70 p-4">
                                     <div className="mb-3">
                                       <p className="text-sm font-bold text-slate-700">Did the kid show?</p>
                                       <p className="mt-1 text-xs text-slate-500">
@@ -1529,7 +1685,7 @@ const InstructorDashboard = () => {
                                   </div>
                                   <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
                                     <div className="relative">
-                                      <Star className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-blue-500" />
+                                      <Star className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-violet-500" />
                                       <textarea
                                         rows={3}
                                         value={selectedOverviewEvaluationDraft.strengths}
@@ -1537,11 +1693,11 @@ const InstructorDashboard = () => {
                                           handleEvaluationDraftChange(selectedOverviewLeadId, "strengths", e.target.value)
                                         }
                                         placeholder="Child strengths..."
-                                        className="w-full rounded-lg border border-slate-200 bg-white py-3 pl-11 pr-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100"
+                                        className="w-full rounded-lg border border-violet-100 bg-white py-3 pl-11 pr-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-violet-300 focus:ring-4 focus:ring-violet-100"
                                       />
                                     </div>
                                     <div className="relative">
-                                      <Folder className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-blue-500" />
+                                      <Folder className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-violet-500" />
                                       <textarea
                                         rows={3}
                                         value={selectedOverviewEvaluationDraft.favoriteProject}
@@ -1549,7 +1705,7 @@ const InstructorDashboard = () => {
                                           handleEvaluationDraftChange(selectedOverviewLeadId, "favoriteProject", e.target.value)
                                         }
                                         placeholder="Favorite project..."
-                                        className="w-full rounded-lg border border-slate-200 bg-white py-3 pl-11 pr-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100"
+                                        className="w-full rounded-lg border border-violet-100 bg-white py-3 pl-11 pr-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-violet-300 focus:ring-4 focus:ring-violet-100"
                                       />
                                     </div>
                                   </div>
@@ -1558,7 +1714,7 @@ const InstructorDashboard = () => {
                                       type="button"
                                       onClick={() => saveLeadEvaluation(selectedOverviewLeadId)}
                                       disabled={!selectedOverviewLeadId || isSavingEvaluationId === selectedOverviewLeadId}
-                                      className="inline-flex h-10 items-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-bold text-white shadow-sm transition-all hover:bg-blue-700 disabled:opacity-50"
+                                      className="inline-flex h-10 items-center gap-2 rounded-lg bg-violet-600 px-5 text-sm font-bold text-white shadow-sm transition-all hover:bg-violet-700 disabled:opacity-50"
                                     >
                                       <Save className="h-4 w-4" />
                                       {isSavingEvaluationId === selectedOverviewLeadId ? "Saving..." : "Save Evaluation"}
@@ -1574,9 +1730,8 @@ const InstructorDashboard = () => {
                           )}
                         </div>
                       )}
-                    </div>
-                  </div>
-                </div>
+                </section>
+              </div>
             </Motion.div>
           )}
 

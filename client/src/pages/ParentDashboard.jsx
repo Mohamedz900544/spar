@@ -888,7 +888,7 @@ const ParentDashboard = ({ parent, setParent }) => {
                       <h2 className="text-base font-semibold text-slate-950">Schedule</h2>
                       <p className="mt-1 text-xs font-medium text-blue-600/70">{overviewSessions.length} session{overviewSessions.length !== 1 && "s"}</p>
                     </div>
-                    <div className="flex w-full flex-wrap gap-3 sm:w-auto">
+                    <div className="flex w-full flex-wrap gap-2 sm:w-auto">
                       {[
                         ["upcoming", "Upcoming", scheduleCounts.upcoming],
                         ["completed", "Completed", scheduleCounts.completed],
@@ -900,14 +900,14 @@ const ParentDashboard = ({ parent, setParent }) => {
                             type="button"
                             aria-pressed={isActive}
                             onClick={() => setScheduleFilter(filterId)}
-                            className={`inline-flex h-9 min-w-[104px] flex-1 items-center justify-center gap-2 rounded-full border px-3 text-xs font-bold transition-all sm:flex-none ${
+                            className={`inline-flex h-7 min-w-[86px] flex-1 items-center justify-center gap-1.5 rounded-full border px-2.5 text-[11px] font-bold transition-all sm:flex-none ${
                               isActive
                                 ? "border-blue-600 bg-blue-600 text-white shadow-sm shadow-blue-600/20"
                                 : "border-cyan-200 bg-cyan-50 text-cyan-700 hover:border-cyan-300 hover:bg-cyan-100"
                             }`}
                           >
                             <span>{label}</span>
-                            <span className={`inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-black ${
+                            <span className={`inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-black ${
                               isActive
                                 ? "bg-white/20 text-white"
                                 : "bg-white text-cyan-700"
