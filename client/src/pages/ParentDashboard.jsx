@@ -37,10 +37,10 @@ const TOOL_SYSTEMS = [
     description:
       "Install the Windows companion used during live sessions and interactive classroom activities.",
     icon: FaWindows,
-    iconClass: "bg-slate-100 text-slate-900 ring-slate-200",
-    cardClass: "border-slate-200 bg-white",
-    badgeClass: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    buttonClass: "bg-slate-950 text-white hover:bg-slate-800",
+    iconClass: "bg-blue-50 text-blue-700 ring-blue-100",
+    cardClass: "border-blue-100 bg-white",
+    badgeClass: "border-blue-200 bg-blue-50 text-blue-700",
+    buttonClass: "bg-blue-600 text-white hover:bg-blue-700",
     badge: "Ready",
     details: ["Installer (.exe)", "Live-session ready", "Student laptop"],
     actionLabel: "Download",
@@ -54,10 +54,10 @@ const TOOL_SYSTEMS = [
     description:
       "The macOS version is being prepared. Parents can use the Windows or Android version for now.",
     icon: FaApple,
-    iconClass: "bg-zinc-100 text-zinc-700 ring-zinc-200",
-    cardClass: "border-slate-200 bg-white",
-    badgeClass: "border-amber-200 bg-amber-50 text-amber-700",
-    buttonClass: "bg-slate-100 text-slate-500",
+    iconClass: "bg-violet-50 text-violet-700 ring-violet-100",
+    cardClass: "border-violet-100 bg-white",
+    badgeClass: "border-violet-200 bg-violet-50 text-violet-700",
+    buttonClass: "bg-violet-50 text-violet-500",
     badge: "Coming soon",
     details: ["Mac app", "In progress", "Not downloadable yet"],
     actionLabel: "Coming soon",
@@ -173,8 +173,8 @@ const getParentStatusMeta = (lifecycle) => {
     case "completed":
       return {
         label: "Completed",
-        badgeClass: "border-slate-200 bg-slate-100 text-slate-600",
-        hintClass: "text-slate-500",
+        badgeClass: "border-violet-200 bg-violet-50 text-violet-700",
+        hintClass: "text-violet-600",
       };
     default:
       return {
@@ -537,17 +537,17 @@ const ParentDashboard = ({ parent, setParent }) => {
 
   /* ================================================================== */
   return (
-    <div className="h-screen w-full overflow-hidden bg-[#f7f8f6] font-sans text-slate-900 [&_h1]:font-sans [&_h2]:font-sans [&_h3]:font-sans">
-      <div className="flex h-full w-full overflow-hidden bg-white">
-        <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white lg:flex lg:flex-col">
-          <div className="flex h-20 items-center border-b border-slate-200 px-6">
+    <div className="h-screen w-full overflow-hidden bg-[#f4f7fb] font-sans text-slate-950 [&_h1]:font-sans [&_h2]:font-sans [&_h3]:font-sans">
+      <div className="flex h-full w-full overflow-hidden bg-[#f4f7fb]">
+        <aside className="hidden w-64 shrink-0 border-r border-blue-100 bg-white text-slate-950 lg:flex lg:flex-col">
+          <div className="flex h-20 items-center border-b border-blue-100 px-6">
             <Link to="/parent" className="inline-flex min-w-0 items-center gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 ring-1 ring-emerald-100">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-blue-100">
                 <img src="/icon.png" alt="SP School" className="h-6 w-6 rounded-md object-contain" />
               </span>
               <span className="min-w-0">
-                <span className="block truncate text-lg font-semibold text-slate-800">SP School Parent</span>
-                <span className="block truncate text-xs font-semibold text-slate-400">Parent Workspace</span>
+                <span className="block truncate text-lg font-semibold text-slate-950">SP School Parent</span>
+                <span className="block truncate text-xs font-semibold text-blue-600">Parent Workspace</span>
               </span>
             </Link>
           </div>
@@ -567,17 +567,17 @@ const ParentDashboard = ({ parent, setParent }) => {
                 disabled={isPhotoUploading}
                 aria-label="Change profile photo"
                 title="Change profile photo"
-                className="group flex w-full flex-col items-center rounded-lg py-2 text-center transition-all hover:bg-slate-50 disabled:cursor-wait disabled:opacity-75"
+                className="group flex w-full flex-col items-center rounded-lg py-2 text-center transition-all hover:bg-blue-50 disabled:cursor-wait disabled:opacity-75"
               >
                 <span className="relative">
-                  <span className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-slate-100 text-3xl font-bold text-slate-400 shadow-sm ring-1 ring-slate-200 transition-all group-hover:ring-emerald-200">
+                  <span className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-blue-50 text-3xl font-bold text-blue-700 shadow-sm ring-1 ring-blue-100 transition-all group-hover:ring-amber-300">
                     {sidebarPhotoUrl ? (
                       <img src={sidebarPhotoUrl} alt="Profile" className="h-full w-full object-cover" />
                     ) : (
                       <span>{parentInitial}</span>
                     )}
                   </span>
-                  <span className="absolute bottom-1 right-1 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg ring-2 ring-white transition-all group-hover:bg-emerald-700">
+                  <span className="absolute bottom-1 right-1 flex h-8 w-8 items-center justify-center rounded-full bg-amber-400 text-slate-950 shadow-lg ring-2 ring-white transition-all group-hover:bg-amber-300">
                     {isPhotoUploading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
@@ -585,10 +585,10 @@ const ParentDashboard = ({ parent, setParent }) => {
                     )}
                   </span>
                 </span>
-                <span className="mt-3 block max-w-full truncate text-sm font-semibold text-slate-800">
+                <span className="mt-3 block max-w-full truncate text-sm font-semibold text-slate-950">
                   {parent?.name || "Parent"}
                 </span>
-                <span className="mt-0.5 text-[11px] font-semibold text-emerald-600">
+                <span className="mt-0.5 text-[11px] font-semibold text-amber-600">
                   {isPhotoUploading ? "Updating photo" : "Change photo"}
                 </span>
               </button>
@@ -607,8 +607,8 @@ const ParentDashboard = ({ parent, setParent }) => {
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold transition-all ${
                       isActive
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                        ? "bg-blue-600 text-white shadow-sm shadow-blue-600/20"
+                        : "text-slate-500 hover:bg-blue-50 hover:text-blue-700"
                     }`}
                   >
                     <TabIcon className="h-4 w-4 shrink-0" />
@@ -619,21 +619,21 @@ const ParentDashboard = ({ parent, setParent }) => {
             </div>
           </nav>
 
-          <div className="border-t border-slate-200 px-4 py-5">
+          <div className="border-t border-blue-100 px-4 py-5">
             <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
               Account
             </p>
             <div className="space-y-1.5">
               <Link
                 to="/parent/profile"
-                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-500 transition-all hover:bg-slate-50 hover:text-slate-900"
+                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-500 transition-all hover:bg-violet-50 hover:text-violet-700"
               >
                 <Settings className="h-4 w-4 shrink-0" />
                 Settings
               </Link>
               <Link
                 to="/blocks"
-                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-500 transition-all hover:bg-slate-50 hover:text-slate-900"
+                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-500 transition-all hover:bg-cyan-50 hover:text-cyan-700"
               >
                 <Play className="h-4 w-4 shrink-0" />
                 Blocks
@@ -650,21 +650,21 @@ const ParentDashboard = ({ parent, setParent }) => {
           </div>
         </aside>
 
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-[#f7f8f6]">
-          <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur sm:px-6">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-[#f4f7fb]">
+          <header className="sticky top-0 z-30 border-b border-blue-100 bg-white/90 px-4 py-3 backdrop-blur sm:px-6">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex min-w-0 items-center gap-3">
                 <Link
                   to="/parent"
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 ring-1 ring-emerald-100 lg:hidden"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-blue-100 lg:hidden"
                 >
                   <img src="/icon.png" alt="SP School" className="h-6 w-6 rounded-md object-contain" />
                 </Link>
                 <div className="min-w-0">
-                  <h1 className="truncate text-2xl font-semibold tracking-normal text-slate-800">
+                  <h1 className="truncate text-2xl font-semibold tracking-normal text-slate-950">
                     {pageTitle}
                   </h1>
-                  <p className="truncate text-xs font-medium text-slate-400">
+                  <p className="truncate text-xs font-semibold text-blue-500">
                     {parent?.name || "Parent"} Workspace
                   </p>
                 </div>
@@ -675,14 +675,14 @@ const ParentDashboard = ({ parent, setParent }) => {
                   type="button"
                   onClick={loadDashboard}
                   disabled={loading}
-                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 disabled:opacity-60"
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-blue-100 bg-white px-3 text-sm font-semibold text-blue-700 shadow-sm transition-all hover:border-blue-200 hover:bg-blue-50 disabled:opacity-60"
                 >
                   <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
                   <span className="hidden sm:inline">Refresh</span>
                 </button>
                 <Link
                   to="/parent/profile"
-                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 lg:hidden"
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-violet-100 bg-white px-3 text-sm font-semibold text-violet-700 shadow-sm transition-all hover:border-violet-200 hover:bg-violet-50 lg:hidden"
                 >
                   <Settings className="h-4 w-4" />
                   <span className="hidden sm:inline">Settings</span>
@@ -690,7 +690,7 @@ const ParentDashboard = ({ parent, setParent }) => {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-slate-950 px-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-slate-800 lg:hidden"
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-rose-600 px-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-rose-700 lg:hidden"
                 >
                   <LogOut className="h-4 w-4" />
                   <span className="hidden sm:inline">Sign Out</span>
@@ -709,8 +709,8 @@ const ParentDashboard = ({ parent, setParent }) => {
                     onClick={() => setActiveTab(tab.id)}
                     className={`inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-xs font-bold transition-all ${
                       isActive
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "bg-white text-slate-500 ring-1 ring-slate-200 hover:text-slate-900"
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "bg-white text-slate-500 ring-1 ring-blue-100 hover:bg-blue-50 hover:text-blue-700"
                     }`}
                   >
                     <TabIcon className="h-3.5 w-3.5" />
@@ -743,9 +743,9 @@ const ParentDashboard = ({ parent, setParent }) => {
 
           {/* Loading */}
           {loading && (
-            <div className="flex flex-col items-center rounded-xl border border-slate-200 bg-white p-16 text-center shadow-sm">
-              <div className="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-emerald-100 border-t-emerald-600" />
-              <p className="text-sm font-medium text-slate-500">Loading your dashboard…</p>
+            <div className="flex flex-col items-center rounded-xl border border-blue-100 bg-white p-16 text-center shadow-sm">
+              <div className="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-blue-100 border-t-amber-400" />
+              <p className="text-sm font-medium text-blue-700">Loading your dashboard…</p>
             </div>
           )}
 
@@ -753,22 +753,22 @@ const ParentDashboard = ({ parent, setParent }) => {
           {!loading && activeTab === "overview" && (
             <Motion.div key="overview-redesign" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
               <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr),minmax(360px,440px)]">
-                <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <section className="rounded-xl border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-sky-50 p-5 shadow-sm">
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div className="min-w-0">
-                      <p className="text-xs font-bold uppercase tracking-wide text-emerald-700">Next session</p>
+                      <p className="text-xs font-bold uppercase tracking-wide text-blue-700">Next session</p>
                       {upcomingOverviewSession ? (
                         <>
-                          <h2 className="mt-2 truncate text-xl font-semibold text-slate-900">{upcomingOverviewSession.title}</h2>
-                          <p className="mt-1 text-sm font-medium text-slate-500">
+                          <h2 className="mt-2 truncate text-xl font-semibold text-slate-950">{upcomingOverviewSession.title}</h2>
+                          <p className="mt-1 text-sm font-medium text-blue-700/70">
                             {upcomingOverviewSession.dateLabel} at {upcomingOverviewSession.timeLabel}
                             {upcomingOverviewSession.roundName ? ` - ${upcomingOverviewSession.roundName}` : ""}
                           </p>
                         </>
                       ) : (
                         <>
-                          <h2 className="mt-2 text-xl font-semibold text-slate-900">No upcoming sessions</h2>
-                          <p className="mt-1 text-sm font-medium text-slate-500">Linked sessions will appear here.</p>
+                          <h2 className="mt-2 text-xl font-semibold text-slate-950">No upcoming sessions</h2>
+                          <p className="mt-1 text-sm font-medium text-blue-700/70">Linked sessions will appear here.</p>
                         </>
                       )}
                     </div>
@@ -776,24 +776,24 @@ const ParentDashboard = ({ parent, setParent }) => {
                   </div>
 
                   {upcomingOverviewSession && upcomingCountdown && (
-                    <div className="mt-5 border-t border-slate-100 pt-5">
+                    <div className="mt-5 border-t border-blue-100 pt-5">
                       <div className="flex items-start justify-center gap-1 sm:gap-4">
                         {[
-                          ["Days", upcomingCountdown.days, "text-slate-900"],
-                          ["Hours", upcomingCountdown.hours, "text-slate-900"],
-                          ["Minutes", upcomingCountdown.minutes, "text-slate-900"],
-                          ["Seconds", upcomingCountdown.seconds, "text-red-600"],
+                          ["Days", upcomingCountdown.days, "text-slate-950"],
+                          ["Hours", upcomingCountdown.hours, "text-blue-900"],
+                          ["Minutes", upcomingCountdown.minutes, "text-violet-800"],
+                          ["Seconds", upcomingCountdown.seconds, "text-rose-600"],
                         ].map(([label, value, colorClass], index) => (
                           <Fragment key={label}>
                             {index > 0 && (
-                              <span className="mt-0.5 text-3xl font-bold leading-none text-slate-400 sm:mt-1 sm:text-5xl">:</span>
+                              <span className="mt-0.5 text-3xl font-bold leading-none text-blue-300 sm:mt-1 sm:text-5xl">:</span>
                             )}
                             <div className="min-w-[52px] text-center sm:min-w-[78px]">
                               <p className={`font-mono text-3xl font-black leading-none tracking-normal sm:text-5xl lg:text-6xl ${colorClass}`}>
                                 {String(value).padStart(2, "0")}
                               </p>
                               <p
-                                className="mt-3 text-xs font-medium text-slate-600 sm:mt-4 sm:text-base"
+                                className="mt-3 text-xs font-medium text-blue-800/70 sm:mt-4 sm:text-base"
                                 style={{ fontFamily: '"Segoe Print", "Comic Sans MS", cursive' }}
                               >
                                 {label}
@@ -806,22 +806,22 @@ const ParentDashboard = ({ parent, setParent }) => {
                   )}
                 </section>
 
-                <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <section className="rounded-xl border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-sky-50 p-5 shadow-sm">
                   <div className="mb-4 flex items-center justify-between gap-3">
                     <div>
-                      <h2 className="text-base font-semibold text-slate-900">Link a round</h2>
-                      <p className="mt-1 text-xs font-medium text-slate-400">Add a child to a new round code.</p>
+                      <h2 className="text-base font-semibold text-slate-950">Link a round</h2>
+                      <p className="mt-1 text-xs font-medium text-amber-700/70">Add a child to a new round code.</p>
                     </div>
-                    <KeyRound className="h-5 w-5 text-slate-300" />
+                    <KeyRound className="h-5 w-5 text-amber-500" />
                   </div>
 
                   <form onSubmit={handleLinkRound} className="space-y-3">
                     <div className="relative">
-                      <User className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                      <User className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-amber-500" />
                       <select
                         value={selectedChildId}
                         onChange={(e) => setSelectedChildId(e.target.value)}
-                        className="w-full appearance-none rounded-lg border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-10 text-sm font-medium text-slate-800 outline-none transition-all focus:border-emerald-300 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+                        className="w-full appearance-none rounded-lg border border-amber-100 bg-white py-2.5 pl-10 pr-10 text-sm font-medium text-slate-800 outline-none transition-all focus:border-amber-300 focus:bg-white focus:ring-4 focus:ring-amber-100"
                       >
                         <option value="" disabled>Select child</option>
                         {parent?.children?.map((child, i) => (
@@ -830,16 +830,16 @@ const ParentDashboard = ({ parent, setParent }) => {
                           </option>
                         ))}
                       </select>
-                      <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                      <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-amber-500" />
                     </div>
 
                     <div className="relative">
-                      <KeyRound className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                      <KeyRound className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-amber-500" />
                       <input
                         type="text"
                         value={roundCodeInput}
                         onChange={(e) => setRoundCodeInput(e.target.value)}
-                        className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 font-mono text-sm font-semibold uppercase tracking-wide text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-300 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+                        className="w-full appearance-none rounded-lg border border-amber-100 bg-white py-2.5 pl-10 pr-10 text-sm font-medium text-slate-800 outline-none transition-all focus:border-amber-300 focus:bg-white focus:ring-4 focus:ring-amber-100"
                         placeholder="SPRV-101"
                       />
                     </div>
@@ -848,7 +848,7 @@ const ParentDashboard = ({ parent, setParent }) => {
                       <Motion.button
                         type="submit"
                         disabled={isEnrollingChild}
-                        className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-bold text-white shadow-sm transition-all hover:bg-emerald-700 disabled:opacity-60"
+                        className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-lg bg-amber-400 px-4 text-sm font-bold text-slate-950 shadow-sm transition-all hover:bg-amber-300 disabled:opacity-60"
                         whileTap={{ scale: 0.97 }}
                       >
                         {isEnrollingChild ? (
@@ -861,7 +861,7 @@ const ParentDashboard = ({ parent, setParent }) => {
                         href="https://wa.me/201500077369"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-xs font-bold text-slate-600 transition-all hover:bg-slate-50"
+                        className="inline-flex h-10 items-center justify-center rounded-lg border border-cyan-200 bg-cyan-50 px-4 text-xs font-bold text-cyan-700 transition-all hover:bg-cyan-100"
                       >
                         Need code?
                       </a>
@@ -881,11 +881,11 @@ const ParentDashboard = ({ parent, setParent }) => {
               </div>
 
               <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr),minmax(360px,440px)]">
-                <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-                  <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <section className="overflow-hidden rounded-xl border border-blue-100 bg-white shadow-sm">
+                  <div className="flex flex-col gap-3 border-b border-blue-100 bg-gradient-to-r from-white to-blue-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <h2 className="text-base font-semibold text-slate-900">Schedule</h2>
-                      <p className="mt-1 text-xs font-medium text-slate-400">{overviewSessions.length} session{overviewSessions.length !== 1 && "s"}</p>
+                      <h2 className="text-base font-semibold text-slate-950">Schedule</h2>
+                      <p className="mt-1 text-xs font-medium text-blue-600/70">{overviewSessions.length} session{overviewSessions.length !== 1 && "s"}</p>
                     </div>
                     <div className="flex w-full flex-wrap gap-3 sm:w-auto">
                       {[
@@ -921,24 +921,24 @@ const ParentDashboard = ({ parent, setParent }) => {
 
                   {overviewSessions.length === 0 ? (
                     <div className="px-5 py-12 text-center">
-                      <CalendarClock className="mx-auto h-10 w-10 text-slate-300" />
-                      <p className="mt-3 text-sm font-semibold text-slate-700">No sessions yet</p>
-                      <p className="mt-1 text-sm text-slate-500">Use a round code to add your schedule.</p>
+                      <CalendarClock className="mx-auto h-10 w-10 text-blue-300" />
+                      <p className="mt-3 text-sm font-semibold text-slate-800">No sessions yet</p>
+                      <p className="mt-1 text-sm text-blue-700/60">Use a round code to add your schedule.</p>
                     </div>
                   ) : filteredOverviewSessions.length === 0 ? (
                     <div className="px-5 py-12 text-center">
-                      <CalendarClock className="mx-auto h-10 w-10 text-slate-300" />
-                      <p className="mt-3 text-sm font-semibold text-slate-700">
+                      <CalendarClock className="mx-auto h-10 w-10 text-blue-300" />
+                      <p className="mt-3 text-sm font-semibold text-slate-800">
                         No {scheduleFilter === "completed" ? "completed" : "upcoming"} sessions
                       </p>
-                      <p className="mt-1 text-sm text-slate-500">
+                      <p className="mt-1 text-sm text-blue-700/60">
                         {scheduleFilter === "completed"
                           ? "Finished sessions will appear here."
                           : "Future sessions will appear here."}
                       </p>
                     </div>
                   ) : (
-                    <div className="max-h-[560px] divide-y divide-slate-100 overflow-y-auto">
+                    <div className="max-h-[560px] divide-y divide-blue-50 overflow-y-auto">
                       {filteredOverviewSessions.map((session) => {
                         const statusMeta = getParentStatusMeta(session.lifecycle);
                         const isSelected = selectedOverviewSessionKey === session.key;
@@ -948,7 +948,7 @@ const ParentDashboard = ({ parent, setParent }) => {
                             type="button"
                             onClick={() => setSelectedOverviewSessionKey(session.key)}
                             className={`grid w-full gap-3 px-5 py-4 text-left transition-colors sm:grid-cols-[1fr,auto] sm:items-center ${
-                              isSelected ? "bg-emerald-50/80" : "hover:bg-slate-50"
+                              isSelected ? "bg-blue-50/90" : "hover:bg-cyan-50/60"
                             }`}
                           >
                             <div className="min-w-0">
@@ -957,10 +957,10 @@ const ParentDashboard = ({ parent, setParent }) => {
                                   session.lifecycle === "active"
                                     ? "bg-emerald-500"
                                     : session.lifecycle === "completed"
-                                      ? "bg-slate-300"
+                                      ? "bg-violet-500"
                                       : "bg-amber-500"
                                 }`} />
-                                <p className="truncate text-sm font-semibold text-slate-900">{session.title}</p>
+                                <p className="truncate text-sm font-semibold text-slate-950">{session.title}</p>
                               </div>
                               <p className="mt-1 truncate text-xs font-medium text-slate-500">
                                 {session.dateLabel} at {session.timeLabel}
@@ -968,7 +968,7 @@ const ParentDashboard = ({ parent, setParent }) => {
                               </p>
                             </div>
                             <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-                              <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${statusMeta.badgeClass}`}>
+                              <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${statusMeta.badgeClass}`}>
                                 {statusMeta.label}
                               </span>
                               <span className={`text-xs font-bold ${statusMeta.hintClass}`}>{session.hintText}</span>
@@ -980,31 +980,31 @@ const ParentDashboard = ({ parent, setParent }) => {
                   )}
                 </section>
 
-                <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <section className="rounded-xl border border-violet-100 bg-gradient-to-br from-white to-violet-50 p-5 shadow-sm">
                   <div className="mb-4 flex items-center justify-between gap-3">
                     <div>
-                      <h2 className="text-base font-semibold text-slate-900">Session detail</h2>
-                      <p className="mt-1 text-xs font-medium text-slate-400">Status and feedback</p>
+                      <h2 className="text-base font-semibold text-slate-950">Session detail</h2>
+                      <p className="mt-1 text-xs font-medium text-violet-700/60">Status and feedback</p>
                     </div>
-                    <Star className="h-5 w-5 text-slate-300" />
+                    <Star className="h-5 w-5 text-violet-500" />
                   </div>
 
                   {!selectedOverviewSession ? (
-                    <div className="rounded-lg border border-slate-100 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
+                    <div className="rounded-lg border border-violet-100 bg-white/70 px-4 py-8 text-center text-sm text-violet-600">
                       Select a session from the schedule.
                     </div>
                   ) : (
                     <div className="space-y-4">
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${getParentStatusMeta(selectedOverviewSession.lifecycle).badgeClass}`}>
+                          <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${getParentStatusMeta(selectedOverviewSession.lifecycle).badgeClass}`}>
                             {getParentStatusMeta(selectedOverviewSession.lifecycle).label}
                           </span>
                           <span className={`text-xs font-bold ${getParentStatusMeta(selectedOverviewSession.lifecycle).hintClass}`}>
                             {selectedOverviewSession.hintText}
                           </span>
                         </div>
-                        <h3 className="mt-3 text-lg font-semibold text-slate-900">{selectedOverviewSession.title}</h3>
+                        <h3 className="mt-3 text-lg font-semibold text-slate-950">{selectedOverviewSession.title}</h3>
                         <p className="mt-1 text-sm font-medium text-slate-500">
                           {selectedOverviewSession.dateLabel} at {selectedOverviewSession.timeLabel}
                         </p>
@@ -1014,16 +1014,16 @@ const ParentDashboard = ({ parent, setParent }) => {
                       </div>
 
                       {selectedOverviewSession.sessionType === "free" ? (
-                        <div className="grid gap-2 rounded-lg border border-slate-100 bg-slate-50 p-3 text-xs text-slate-600 sm:grid-cols-2">
+                        <div className="grid gap-2 rounded-lg border border-violet-100 bg-white/70 p-3 text-xs text-slate-600 sm:grid-cols-2">
                           <span><b className="text-slate-700">Parent:</b> {selectedOverviewSession.parentName || "-"}</span>
                           <span><b className="text-slate-700">Phone:</b> {selectedOverviewSession.phone || "-"}</span>
                           <span><b className="text-slate-700">Child:</b> {selectedOverviewSession.childName || "-"}</span>
                           <span><b className="text-slate-700">Age:</b> {selectedOverviewSession.childAge || "-"}</span>
                         </div>
                       ) : selectedOverviewSession.lifecycle === "completed" ? (
-                        <div className="space-y-3 border-t border-slate-100 pt-4">
+                        <div className="space-y-3 border-t border-violet-100 pt-4">
                           <div className="flex items-center justify-between gap-3">
-                            <span className="text-xs font-bold uppercase tracking-wide text-slate-400">Rating</span>
+                            <span className="text-xs font-bold uppercase tracking-wide text-violet-500">Rating</span>
                             <RatingStars
                               value={selectedOverviewRating}
                               disabled={selectedOverviewSubmitted}
@@ -1035,7 +1035,7 @@ const ParentDashboard = ({ parent, setParent }) => {
                             onChange={(e) => handleSessionFeedbackChange(selectedOverviewSession.roundCode, selectedOverviewSession.sessionId, e.target.value)}
                             placeholder="Leave feedback..."
                             disabled={selectedOverviewSubmitted}
-                            className={`w-full min-h-[96px] resize-none rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-700 outline-none transition-all focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100 ${selectedOverviewSubmitted ? "bg-slate-100/70 text-slate-600" : ""}`}
+                            className={`w-full min-h-[96px] resize-none rounded-lg border border-violet-100 bg-white p-3 text-sm text-slate-700 outline-none transition-all focus:border-violet-300 focus:ring-4 focus:ring-violet-100 ${selectedOverviewSubmitted ? "bg-violet-50/70 text-slate-600" : ""}`}
                           />
                           <div className="flex justify-end">
                             {selectedOverviewSubmitted ? (
@@ -1047,7 +1047,7 @@ const ParentDashboard = ({ parent, setParent }) => {
                                 type="button"
                                 disabled={!selectedOverviewRating}
                                 onClick={() => handleSubmitRating(selectedOverviewSession.roundCode, selectedOverviewSession)}
-                                className="rounded-lg bg-slate-950 px-5 py-2.5 text-xs font-semibold text-white shadow-sm transition-all hover:bg-slate-800 disabled:opacity-50"
+                                className="rounded-lg bg-violet-600 px-5 py-2.5 text-xs font-semibold text-white shadow-sm transition-all hover:bg-violet-700 disabled:opacity-50"
                               >
                                 Submit feedback
                               </button>
@@ -1055,8 +1055,8 @@ const ParentDashboard = ({ parent, setParent }) => {
                           </div>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-3 text-xs font-semibold text-slate-500">
-                          <CalendarClock className="h-4 w-4 text-slate-400" />
+                        <div className="flex items-center gap-2 rounded-lg border border-violet-100 bg-white/70 px-3 py-3 text-xs font-semibold text-violet-600">
+                          <CalendarClock className="h-4 w-4 text-violet-400" />
                           Feedback opens after session completion.
                         </div>
                       )}
@@ -1075,26 +1075,26 @@ const ParentDashboard = ({ parent, setParent }) => {
               animate={{ opacity: 1, y: 0 }}
               className="space-y-4"
             >
-              <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-                <div className="border-b border-slate-100 px-5 py-4">
+              <section className="overflow-hidden rounded-lg border border-blue-100 bg-white shadow-sm">
+                <div className="border-b border-blue-100 bg-gradient-to-r from-white to-cyan-50 px-5 py-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <h2 className="text-base font-semibold text-slate-900">Pointer Apps</h2>
-                      <p className="mt-1 text-xs font-medium text-slate-400">Downloads for live session devices</p>
+                      <h2 className="text-base font-semibold text-slate-950">Pointer Apps</h2>
+                      <p className="mt-1 text-xs font-medium text-cyan-700/70">Downloads for live session devices</p>
                     </div>
-                    <span className="inline-flex w-fit items-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">
+                    <span className="inline-flex w-fit items-center rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700">
                       {TOOL_SYSTEMS.filter((system) => !system.disabled).length} ready
                     </span>
                   </div>
                 </div>
 
-                <div className="hidden grid-cols-[minmax(0,1.25fr)_minmax(260px,0.9fr)_150px] gap-4 border-b border-slate-100 bg-slate-50/70 px-5 py-2.5 text-[11px] font-bold uppercase tracking-wide text-slate-400 lg:grid">
+                <div className="hidden grid-cols-[minmax(0,1.25fr)_minmax(260px,0.9fr)_150px] gap-4 border-b border-blue-100 bg-blue-50/70 px-5 py-2.5 text-[11px] font-bold uppercase tracking-wide text-blue-400 lg:grid">
                   <span>Platform</span>
                   <span>Package</span>
                   <span className="text-right">Action</span>
                 </div>
 
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-blue-50">
                   {TOOL_SYSTEMS.map((system) => {
                     const SystemIcon = system.icon;
                     const ActionIcon = system.actionIcon;
@@ -1108,7 +1108,7 @@ const ParentDashboard = ({ parent, setParent }) => {
                     return (
                       <div
                         key={system.title}
-                        className="grid gap-4 px-5 py-4 transition-colors hover:bg-slate-50/70 lg:grid-cols-[minmax(0,1.25fr)_minmax(260px,0.9fr)_150px] lg:items-center"
+                        className="grid gap-4 px-5 py-4 transition-colors hover:bg-cyan-50/60 lg:grid-cols-[minmax(0,1.25fr)_minmax(260px,0.9fr)_150px] lg:items-center"
                       >
                         <div className="flex min-w-0 items-start gap-3">
                           <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ring-1 ${system.iconClass}`}>
@@ -1116,7 +1116,7 @@ const ParentDashboard = ({ parent, setParent }) => {
                           </div>
                           <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
-                              <h3 className="truncate text-sm font-semibold text-slate-900">{system.title}</h3>
+                              <h3 className="truncate text-sm font-semibold text-slate-950">{system.title}</h3>
                               <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-bold ${system.badgeClass}`}>
                                 {system.badge}
                               </span>
@@ -1130,7 +1130,7 @@ const ParentDashboard = ({ parent, setParent }) => {
                           {system.details.map((detail) => (
                             <span
                               key={detail}
-                              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-600"
+                              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-blue-100 bg-blue-50/70 px-2.5 text-xs font-semibold text-blue-700"
                             >
                               <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
                               {detail}
@@ -1166,26 +1166,29 @@ const ParentDashboard = ({ parent, setParent }) => {
           {/* ===== TAB: FEEDBACK ===== */}
           {!loading && activeTab === "feedback" && (
             <Motion.div key="feedback" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
-              <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="flex items-center justify-between mb-5">
+              <div className="rounded-xl border border-blue-100 bg-white p-5 shadow-sm">
+                <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 ring-1 ring-emerald-100">
-                      <Star className="h-4 w-4 text-emerald-600" />
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 ring-1 ring-blue-100">
+                      <Star className="h-4 w-4 text-blue-600" />
                     </div>
-                    <h2 className="text-base font-semibold tracking-normal text-slate-700">Session Feedback</h2>
+                    <div>
+                      <h2 className="text-base font-semibold tracking-normal text-slate-950">Session Feedback</h2>
+                      <p className="mt-0.5 text-xs font-medium text-slate-500">Rate completed sessions only.</p>
+                    </div>
                   </div>
-                  <span className="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-500">
+                  <span className="inline-flex w-fit items-center rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700">
                     {allSessions.length} Sessions
                   </span>
                 </div>
 
                 {allSessions.length === 0 ? (
-                  <div className="text-center py-12 border-t border-slate-100">
-                    <Star className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                  <div className="border-t border-blue-50 py-12 text-center">
+                    <Star className="mx-auto mb-3 h-10 w-10 text-blue-200" />
                     <p className="text-sm text-slate-500">No sessions available for feedback yet.</p>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="overflow-hidden rounded-lg border border-slate-100 bg-white">
                     {allSessions.map((session) => {
                       const sessionId = session.id || session._id;
                       const key = `${session.roundCode}-${sessionId}`;
@@ -1197,31 +1200,32 @@ const ParentDashboard = ({ parent, setParent }) => {
                       return (
                         <div
                           key={key}
-                          className={`rounded-xl border p-4 transition-colors ${
-                            isCompleted ? "border-slate-100 bg-white" : "border-amber-200 bg-amber-50/70"
-                          }`}
+                          className={`border-b border-slate-100 p-4 last:border-b-0 ${isCompleted ? "bg-white" : "bg-slate-50/70"}`}
                         >
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+                          <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                             <div>
                               <div className="flex items-center gap-2 mb-0.5">
-                                <h5 className="text-sm font-bold text-slate-800">{session.title}</h5>
+                                <h5 className="text-sm font-bold text-slate-950">{session.title}</h5>
                                 {!isCompleted && (
-                                  <span className="inline-flex items-center rounded-lg bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-700">
+                                  <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-bold uppercase text-slate-500">
                                     Upcoming
                                   </span>
                                 )}
                               </div>
                               <p className="text-xs text-slate-500">
+                                {session.roundName} - {session.date || "TBA"}{session.time ? ` - ${session.time}` : ""}
+                              </p>
+                              <p className="hidden">
                                 {session.roundName} · {session.date || "TBA"}{session.time ? ` · ${session.time}` : ""}
                               </p>
                             </div>
                           </div>
 
                           {isCompleted ? (
-                            <div className="flex flex-col lg:flex-row gap-3">
+                            <div className="flex flex-col gap-3 lg:flex-row">
                               <div className="flex-1 space-y-2">
                                 <div className="flex items-center gap-3">
-                                  <span className="text-xs font-bold text-slate-500 uppercase">Rating:</span>
+                                  <span className="text-xs font-bold uppercase text-slate-400">Rating</span>
                                   <RatingStars
                                     value={rating}
                                     disabled={submitted}
@@ -1233,20 +1237,20 @@ const ParentDashboard = ({ parent, setParent }) => {
                                   onChange={(e) => handleSessionFeedbackChange(session.roundCode, sessionId, e.target.value)}
                                   placeholder="Leave feedback…"
                                   disabled={submitted}
-                                  className={`w-full min-h-[60px] resize-none rounded-lg border border-slate-200 bg-white p-2.5 text-sm text-slate-700 outline-none transition-all focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100 ${submitted ? "bg-slate-100/70 text-slate-600" : ""}`}
+                                  className={`min-h-[64px] w-full resize-none rounded-lg border border-slate-200 bg-white p-2.5 text-sm text-slate-700 outline-none transition-all focus:border-blue-300 focus:ring-4 focus:ring-blue-100 ${submitted ? "bg-slate-50 text-slate-600" : ""}`}
                                 />
                               </div>
-                              <div className="flex flex-col justify-end items-end gap-2">
+                              <div className="flex flex-col items-end justify-end gap-2">
                                 {submitted ? (
-                                  <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100">
-                                    <CheckCircle2 className="w-4 h-4" /> Submitted ({rating}/5)
+                                  <span className="flex items-center gap-1.5 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-600">
+                                    <CheckCircle2 className="h-4 w-4" /> Submitted ({rating}/5)
                                   </span>
                                 ) : (
                                   <button
                                     type="button"
                                     disabled={!rating}
                                     onClick={() => handleSubmitRating(session.roundCode, session)}
-                                    className="rounded-lg bg-slate-950 px-5 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-slate-800 disabled:opacity-50"
+                                    className="rounded-lg bg-blue-600 px-5 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-blue-700 disabled:opacity-50"
                                   >
                                     Submit
                                   </button>
@@ -1254,10 +1258,9 @@ const ParentDashboard = ({ parent, setParent }) => {
                               </div>
                             </div>
                           ) : (
-                            <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
-                              <CalendarClock className="w-4 h-4 text-slate-400" />
-                              Feedback opens after session completion.
-                            </div>
+                            <p className="text-xs font-medium text-slate-500">
+                              Feedback opens after this session is completed.
+                            </p>
                           )}
                         </div>
                       );
