@@ -131,6 +131,7 @@ export const getDashboardData = async (req, res) => {
                 id: user._id.toString(),
                 name: user.name,
                 email: user.email,
+                phone: user.phone || "",
                 photoUrl: user.photoUrl,
                 children: user.children,
             },
@@ -346,12 +347,15 @@ const buildParentProfileResponse = (user) => ({
 });
 
 export const getParentProfile = async (req, res) => {
-    const { name, phone, children: childrenStr, campusCode } = req.body
+    const { name, email, phone, children: childrenStr, campusCode } = req.body
 
     let children;
-    if (childrenStr) {
+    if (childrenStr !== undefined && childrenStr !== "") {
         try {
             children = JSON.parse(childrenStr);
+            if (!Array.isArray(children)) {
+                return res.status(400).json({ message: "Invalid children data" });
+            }
         } catch {
             return res.status(400).json({ message: "Invalid children data" });
         }
@@ -360,10 +364,42 @@ export const getParentProfile = async (req, res) => {
     const userDoc = await User.findById(req.user._id)
     if (!userDoc) return res.status(404).json({ message: "User not found" });
 
-    if (name) userDoc.name = name;
-    if (phone) userDoc.phone = phone;
+    if (name !== undefined) userDoc.name = name.toString().trim();
+    if (email !== undefined) {
+        const normalizedEmail = email.toString().trim().toLowerCase();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+            return res.status(400).json({ message: "Valid email is required" });
+        }
+        const existingUser = await User.findOne({ email: normalizedEmail, _id: { $ne: userDoc._id } });
+        if (existingUser) return res.status(409).json({ message: "Email is already used" });
+        userDoc.email = normalizedEmail;
+    }
+    if (phone !== undefined) userDoc.phone = phone;
     if (campusCode !== undefined) userDoc.campusCode = campusCode;
-    if (children) userDoc.children = children;
+    if (children) {
+        const existingChildrenById = new Map(
+            (userDoc.children || []).map((child) => [child._id.toString(), child])
+        );
+        const normalizedChildren = [];
+        for (const child of children) {
+            const childId = child._id || child.id;
+            const existingChild = childId ? existingChildrenById.get(childId.toString()) : null;
+            const childName = (child.name || child.childName || "").toString().trim();
+            const childAge = Number(child.age);
+            if (!childName || !(childAge >= 3 && childAge <= 18)) {
+                return res.status(400).json({ message: "Each child needs a name and an age between 3 and 18" });
+            }
+            normalizedChildren.push({
+                ...(childId ? { _id: childId } : {}),
+                name: childName,
+                age: childAge,
+                enrolledRounds: (child.enrolledRounds || existingChild?.enrolledRounds || []).map(
+                    (round) => round?._id || round?.id || round
+                ),
+            });
+        }
+        userDoc.children = normalizedChildren;
+    }
 
     if (req.file) {
         try {

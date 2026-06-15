@@ -21,6 +21,11 @@ import {
   Play,
   Camera,
   Loader2,
+  Mail,
+  Phone,
+  Plus,
+  Baby,
+  Save,
 } from "lucide-react";
 import { FaAndroid, FaApple, FaWhatsapp, FaWindows } from "react-icons/fa";
 import toast from "react-hot-toast";
@@ -89,6 +94,30 @@ const TABS = [
   { id: "gallery", label: "Tools", icon: Blocks },
   { id: "feedback", label: "Feedback", icon: Star },
 ];
+
+const buildParentSettingsDraft = (parent) => ({
+  name: parent?.name || "",
+  email: parent?.email || "",
+  phone: parent?.phone || "",
+  children: (parent?.children?.length ? parent.children : [{ name: "", age: "" }]).map((child) => ({
+    _id: child?._id || child?.id || undefined,
+    id: child?.id || child?._id || undefined,
+    name: child?.name || child?.childName || "",
+    age: child?.age ?? "",
+    enrolledRounds: child?.enrolledRounds || [],
+  })),
+});
+
+const normalizeParentSettingsDraft = (draft) => ({
+  name: (draft?.name || "").trim(),
+  email: (draft?.email || "").trim().toLowerCase(),
+  phone: (draft?.phone || "").trim(),
+  children: (draft?.children || []).map((child) => ({
+    id: (child?._id || child?.id || "").toString(),
+    name: (child?.name || child?.childName || "").trim(),
+    age: child?.age === "" || child?.age === undefined || child?.age === null ? "" : String(Number(child.age)),
+  })),
+});
 
 /* ====== RATING STARS ====== */
 const RatingStars = ({ value, onChange, disabled }) => (
@@ -210,6 +239,9 @@ const ParentDashboard = ({ parent, setParent }) => {
   const [scheduleFilter, setScheduleFilter] = useState("upcoming");
   const [isPhotoUploading, setIsPhotoUploading] = useState(false);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState("");
+  const [settingsDraft, setSettingsDraft] = useState(() => buildParentSettingsDraft(parent));
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [settingsError, setSettingsError] = useState("");
   const profilePhotoInputRef = useRef(null);
 
   const getToken = () =>
@@ -232,6 +264,10 @@ const ParentDashboard = ({ parent, setParent }) => {
       if (profilePhotoPreview) URL.revokeObjectURL(profilePhotoPreview);
     };
   }, [profilePhotoPreview]);
+
+  useEffect(() => {
+    setSettingsDraft(buildParentSettingsDraft(parent));
+  }, [parent]);
 
   const loadDashboard = async () => {
     const token = getToken();
@@ -436,6 +472,12 @@ const ParentDashboard = ({ parent, setParent }) => {
     if (!upcomingOverviewSession?.startMs) return null;
     return getCountdownParts(upcomingOverviewSession.startMs - now.getTime());
   }, [upcomingOverviewSession, now]);
+  const hasSettingsChanges = useMemo(
+    () =>
+      JSON.stringify(normalizeParentSettingsDraft(settingsDraft)) !==
+      JSON.stringify(normalizeParentSettingsDraft(buildParentSettingsDraft(parent))),
+    [parent, settingsDraft]
+  );
 
   const handleSessionRatingChange = (roundCode, sessionId, rating) => {
     setSessionRatings((prev) => ({ ...prev, [`${roundCode}-${sessionId}`]: rating }));
@@ -530,8 +572,102 @@ const ParentDashboard = ({ parent, setParent }) => {
     }
   };
 
+  const handleSettingsFieldChange = (field, value) => {
+    setSettingsError("");
+    setSettingsDraft((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSettingsChildChange = (index, field, value) => {
+    setSettingsError("");
+    setSettingsDraft((prev) => ({
+      ...prev,
+      children: prev.children.map((child, childIndex) =>
+        childIndex === index ? { ...child, [field]: value } : child
+      ),
+    }));
+  };
+
+  const handleAddSettingsChild = () => {
+    setSettingsError("");
+    setSettingsDraft((prev) => ({
+      ...prev,
+      children: [...prev.children, { name: "", age: "", enrolledRounds: [] }],
+    }));
+  };
+
+  const handleSaveSettings = async (event) => {
+    event.preventDefault();
+
+    const token = getToken();
+    if (!token || getRole() !== "parent") { navigate("/login"); return; }
+    if (!hasSettingsChanges) return;
+
+    const cleanedChildren = settingsDraft.children.map((child) => ({
+      ...child,
+      name: (child.name || "").trim(),
+      age: Number(child.age),
+      enrolledRounds: child.enrolledRounds || [],
+    }));
+
+    if (!settingsDraft.name.trim()) {
+      setSettingsError("Please enter the parent name.");
+      return;
+    }
+    if (!settingsDraft.email.trim()) {
+      setSettingsError("Please enter an email address.");
+      return;
+    }
+    if (cleanedChildren.length === 0 || cleanedChildren.some((child) => !child.name || !(child.age >= 3 && child.age <= 18))) {
+      setSettingsError("Each kid needs a name and an age between 3 and 18.");
+      return;
+    }
+
+    try {
+      setIsSavingSettings(true);
+      setSettingsError("");
+
+      const formData = new FormData();
+      formData.append("name", settingsDraft.name.trim());
+      formData.append("email", settingsDraft.email.trim());
+      formData.append("phone", settingsDraft.phone || "");
+      formData.append("children", JSON.stringify(cleanedChildren));
+
+      const res = await fetch(`${API_BASE_URL}/api/parent/profile`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.message || "Could not update settings.");
+
+      const updatedUser = json.user || {};
+      setParent((prev) => ({ ...prev, ...updatedUser }));
+      if (updatedUser.children?.length && !selectedChildId) {
+        const firstChildId = updatedUser.children[0]._id || updatedUser.children[0].id || "";
+        setSelectedChildId(firstChildId);
+      }
+
+      if (typeof window !== "undefined") {
+        let storedUser = {};
+        try {
+          storedUser = JSON.parse(localStorage.getItem("sparvi_user") || "{}");
+        } catch {
+          storedUser = {};
+        }
+        localStorage.setItem("sparvi_user", JSON.stringify({ ...storedUser, ...updatedUser }));
+      }
+
+      toast.success("Settings updated.");
+    } catch (err) {
+      setSettingsError(err.message || "Could not update settings.");
+      toast.error(err.message || "Could not update settings.");
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
+
   const activeTabConfig = TABS.find((tab) => tab.id === activeTab) || TABS[0];
-  const pageTitle = activeTab === "overview" ? "Dashboard" : activeTabConfig.label;
+  const pageTitle = activeTab === "overview" ? "Dashboard" : activeTab === "settings" ? "Settings" : activeTabConfig.label;
   const sidebarPhotoUrl = profilePhotoPreview || parent?.photoUrl || "";
   const parentInitial = parent?.name?.trim()?.charAt(0)?.toUpperCase() || "P";
 
@@ -624,13 +760,18 @@ const ParentDashboard = ({ parent, setParent }) => {
               Account
             </p>
             <div className="space-y-1.5">
-              <Link
-                to="/parent/profile"
-                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-500 transition-all hover:bg-violet-50 hover:text-violet-700"
+              <button
+                type="button"
+                onClick={() => setActiveTab("settings")}
+                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold transition-all ${
+                  activeTab === "settings"
+                    ? "bg-blue-600 text-white shadow-sm shadow-blue-600/20"
+                    : "text-slate-500 hover:bg-violet-50 hover:text-violet-700"
+                }`}
               >
                 <Settings className="h-4 w-4 shrink-0" />
                 Settings
-              </Link>
+              </button>
               <Link
                 to="/blocks"
                 className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-500 transition-all hover:bg-cyan-50 hover:text-cyan-700"
@@ -680,13 +821,18 @@ const ParentDashboard = ({ parent, setParent }) => {
                   <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
                   <span className="hidden sm:inline">Refresh</span>
                 </button>
-                <Link
-                  to="/parent/profile"
-                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-violet-100 bg-white px-3 text-sm font-semibold text-violet-700 shadow-sm transition-all hover:border-violet-200 hover:bg-violet-50 lg:hidden"
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("settings")}
+                  className={`inline-flex h-10 items-center justify-center gap-2 rounded-lg border px-3 text-sm font-semibold shadow-sm transition-all lg:hidden ${
+                    activeTab === "settings"
+                      ? "border-blue-600 bg-blue-600 text-white"
+                      : "border-violet-100 bg-white text-violet-700 hover:border-violet-200 hover:bg-violet-50"
+                  }`}
                 >
                   <Settings className="h-4 w-4" />
                   <span className="hidden sm:inline">Settings</span>
-                </Link>
+                </button>
                 <button
                   type="button"
                   onClick={handleLogout}
@@ -1269,6 +1415,146 @@ const ParentDashboard = ({ parent, setParent }) => {
                   </div>
                 )}
               </div>
+            </Motion.div>
+          )}
+
+          {/* ===== TAB: SETTINGS ===== */}
+          {!loading && activeTab === "settings" && (
+            <Motion.div
+              key="settings"
+              initial={{ opacity: 0, x: 18 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="space-y-5"
+            >
+              <form onSubmit={handleSaveSettings} className="grid gap-5 xl:grid-cols-[minmax(0,1fr),minmax(360px,440px)]">
+                <section className="rounded-xl border border-blue-100 bg-white p-5 shadow-sm">
+                  <div className="mb-5 flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 ring-1 ring-blue-100">
+                      <Settings className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-base font-semibold text-slate-950">Account settings</h2>
+                      <p className="mt-0.5 text-xs font-medium text-blue-600/70">Update parent contact details.</p>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3">
+                    <label className="grid gap-1.5">
+                      <span className="text-xs font-bold uppercase tracking-wide text-slate-500">Parent name</span>
+                      <span className="relative">
+                        <User className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-blue-500" />
+                        <input
+                          type="text"
+                          value={settingsDraft.name}
+                          onChange={(event) => handleSettingsFieldChange("name", event.target.value)}
+                          className="h-11 w-full rounded-lg border border-blue-100 bg-white py-2.5 pl-10 pr-3 text-sm font-medium text-slate-800 outline-none transition-all focus:border-blue-300 focus:ring-4 focus:ring-blue-100"
+                        />
+                      </span>
+                    </label>
+
+                    <label className="grid gap-1.5">
+                      <span className="text-xs font-bold uppercase tracking-wide text-slate-500">Email</span>
+                      <span className="relative">
+                        <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-blue-500" />
+                        <input
+                          type="email"
+                          value={settingsDraft.email}
+                          onChange={(event) => handleSettingsFieldChange("email", event.target.value)}
+                          className="h-11 w-full rounded-lg border border-blue-100 bg-white py-2.5 pl-10 pr-3 text-sm font-medium text-slate-800 outline-none transition-all focus:border-blue-300 focus:ring-4 focus:ring-blue-100"
+                        />
+                      </span>
+                    </label>
+
+                    <label className="grid gap-1.5">
+                      <span className="text-xs font-bold uppercase tracking-wide text-slate-500">Phone</span>
+                      <span className="relative">
+                        <Phone className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-blue-500" />
+                        <input
+                          type="tel"
+                          value={settingsDraft.phone}
+                          onChange={(event) => handleSettingsFieldChange("phone", event.target.value)}
+                          className="h-11 w-full rounded-lg border border-blue-100 bg-white py-2.5 pl-10 pr-3 text-sm font-medium text-slate-800 outline-none transition-all focus:border-blue-300 focus:ring-4 focus:ring-blue-100"
+                        />
+                      </span>
+                    </label>
+                  </div>
+                </section>
+
+                <section className="rounded-xl border border-violet-100 bg-gradient-to-br from-white to-violet-50 p-5 shadow-sm">
+                  <div className="mb-5 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-50 ring-1 ring-violet-100">
+                        <Baby className="h-4 w-4 text-violet-600" />
+                      </div>
+                      <div>
+                        <h2 className="text-base font-semibold text-slate-950">Kids</h2>
+                        <p className="mt-0.5 text-xs font-medium text-violet-700/60">Edit names or add another kid.</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleAddSettingsChild}
+                      className="inline-flex h-9 items-center gap-2 rounded-lg border border-cyan-200 bg-cyan-50 px-3 text-xs font-bold text-cyan-700 transition-all hover:bg-cyan-100"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add kid
+                    </button>
+                  </div>
+
+                  <div className="divide-y divide-violet-100 overflow-hidden rounded-lg border border-violet-100 bg-white/80">
+                    {settingsDraft.children.map((child, index) => (
+                      <div key={child._id || child.id || index} className="grid gap-3 p-4">
+                        <div className="flex items-center gap-2">
+                          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-50 text-xs font-black text-violet-600">
+                            {index + 1}
+                          </span>
+                          <p className="text-sm font-semibold text-slate-800">Kid {index + 1}</p>
+                        </div>
+                        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr),96px]">
+                          <label className="grid gap-1.5">
+                            <span className="text-xs font-bold uppercase tracking-wide text-slate-500">Name</span>
+                            <input
+                              type="text"
+                              value={child.name}
+                              onChange={(event) => handleSettingsChildChange(index, "name", event.target.value)}
+                              className="h-10 rounded-lg border border-violet-100 bg-white px-3 text-sm font-medium text-slate-800 outline-none transition-all focus:border-violet-300 focus:ring-4 focus:ring-violet-100"
+                            />
+                          </label>
+                          <label className="grid gap-1.5">
+                            <span className="text-xs font-bold uppercase tracking-wide text-slate-500">Age</span>
+                            <input
+                              type="number"
+                              min="3"
+                              max="18"
+                              value={child.age}
+                              onChange={(event) => handleSettingsChildChange(index, "age", event.target.value)}
+                              className="h-10 rounded-lg border border-violet-100 bg-white px-3 text-sm font-medium text-slate-800 outline-none transition-all focus:border-violet-300 focus:ring-4 focus:ring-violet-100"
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <div className="flex flex-col gap-3 rounded-xl border border-blue-100 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between xl:col-span-2">
+                  <p className={`text-sm font-semibold ${settingsError ? "text-rose-600" : "text-slate-500"}`}>
+                    {settingsError || "Changes will update this parent account directly."}
+                  </p>
+                  <button
+                    type="submit"
+                    disabled={isSavingSettings || !hasSettingsChanges}
+                    className={`inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm font-bold shadow-sm transition-all ${
+                      hasSettingsChanges
+                        ? "bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
+                        : "cursor-not-allowed bg-slate-200 text-slate-500 shadow-none"
+                    }`}
+                  >
+                    {isSavingSettings ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    {isSavingSettings ? "Saving..." : "Save settings"}
+                  </button>
+                </div>
+              </form>
             </Motion.div>
           )}
             </div>
