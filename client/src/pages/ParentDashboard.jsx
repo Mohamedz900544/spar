@@ -725,7 +725,7 @@ const ParentDashboard = ({ parent, setParent }) => {
                   {parent?.name || "Parent"}
                 </span>
                 <span className="mt-0.5 text-[11px] font-semibold text-amber-600">
-                  {isPhotoUploading ? "Updating photo" : "Change photo"}
+                  {isPhotoUploading ? "Updating photo" : ""}
                 </span>
               </button>
             </div>
