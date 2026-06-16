@@ -1118,7 +1118,6 @@ const ParentDashboard = ({ parent, setParent }) => {
                               <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${statusMeta.badgeClass}`}>
                                 {statusMeta.label}
                               </span>
-                              <span className={`text-xs font-bold ${statusMeta.hintClass}`}>{session.hintText}</span>
                             </div>
                           </button>
                         );
@@ -1147,9 +1146,7 @@ const ParentDashboard = ({ parent, setParent }) => {
                           <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${getParentStatusMeta(selectedOverviewSession.lifecycle).badgeClass}`}>
                             {getParentStatusMeta(selectedOverviewSession.lifecycle).label}
                           </span>
-                          <span className={`text-xs font-bold ${getParentStatusMeta(selectedOverviewSession.lifecycle).hintClass}`}>
-                            {selectedOverviewSession.hintText}
-                          </span>
+                          
                         </div>
                         <h3 className="mt-3 text-lg font-semibold text-slate-950">{selectedOverviewSession.title}</h3>
                         <p className="mt-1 text-sm font-medium text-slate-500">
