@@ -4,6 +4,7 @@ import cors from "cors";
 import { connectDB } from "./config/db.js";
 import './config/multer.js'
 import publicBlocksRoutes from "./routes/blocks.public.routes.js";
+import publicPortfolioRoutes from "./routes/portfolio.public.routes.js";
 import authRoutes from "./routes/authRoutes.js";
 import parentRoutes from "./routes/parentRoutes.js";
 import adminRoutes from "./routes/admin.routes.js";
@@ -86,6 +87,7 @@ app.use("/api/sales", salesRoutes);
 app.use("/api/sparvi", sparviRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/blocks", publicBlocksRoutes); // <-- share is public
+app.use("/api/portfolio", publicPortfolioRoutes);
 app.use("/api/blocks", blocksRoutes);
 app.use("/api/fractions", fractionsRoutes);
 app.use("/api", visitRoutes);

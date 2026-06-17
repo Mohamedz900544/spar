@@ -396,6 +396,23 @@ export const getParentProfile = async (req, res) => {
                 enrolledRounds: (child.enrolledRounds || existingChild?.enrolledRounds || []).map(
                     (round) => round?._id || round?.id || round
                 ),
+                portfolioAbout: (child.portfolioAbout !== undefined
+                    ? child.portfolioAbout
+                    : existingChild?.portfolioAbout || ""
+                ).toString().trim().slice(0, 500),
+                scratchProjects: (child.scratchProjects || existingChild?.scratchProjects || [])
+                    .map((project) => {
+                        const projectId = (project?.projectId || project?.id || "").toString().trim();
+                        if (!projectId) return null;
+                        return {
+                            ...(project?._id ? { _id: project._id } : {}),
+                            title: (project.title || `Scratch Project ${projectId}`).toString().trim(),
+                            projectId,
+                            url: (project.url || `https://scratch.mit.edu/projects/${projectId}`).toString().trim(),
+                            createdAt: project.createdAt || new Date(),
+                        };
+                    })
+                    .filter(Boolean),
             });
         }
         userDoc.children = normalizedChildren;

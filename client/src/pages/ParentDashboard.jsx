@@ -26,6 +26,9 @@ import {
   Plus,
   Baby,
   Save,
+  ExternalLink,
+  Trash2,
+  Share2,
 } from "lucide-react";
 import { FaAndroid, FaApple, FaWhatsapp, FaWindows } from "react-icons/fa";
 import toast from "react-hot-toast";
@@ -91,6 +94,7 @@ const TOOL_SYSTEMS = [
 /* ====== TABS ====== */
 const TABS = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
+  { id: "portfolio", label: "Portfolio", icon: Users },
   { id: "gallery", label: "Tools", icon: Blocks },
   { id: "feedback", label: "Feedback", icon: Star },
 ];
@@ -118,6 +122,32 @@ const normalizeParentSettingsDraft = (draft) => ({
     age: child?.age === "" || child?.age === undefined || child?.age === null ? "" : String(Number(child.age)),
   })),
 });
+
+const getChildKey = (child, index = 0) =>
+  (child?._id || child?.id || `${child?.name || "child"}-${index}`).toString();
+
+const getScratchProjectEmbed = (project) => {
+  const projectId = project?.projectId || project?.id;
+  return projectId ? `https://scratch.mit.edu/projects/${projectId}/embed` : "";
+};
+
+const parseScratchProjectLink = (value) => {
+  const trimmed = (value || "").trim();
+  const match = trimmed.match(/scratch\.mit\.edu\/projects\/(\d+)/i) || trimmed.match(/^(\d+)$/);
+  if (!match) return null;
+  const projectId = match[1];
+  return {
+    projectId,
+    title: `Scratch Project ${projectId}`,
+    url: `https://scratch.mit.edu/projects/${projectId}`,
+  };
+};
+
+const getDefaultPortfolioAbout = (child) => {
+  const name = child?.name || child?.childName || "Student";
+  const age = child?.age || "-";
+  return `Hi! I'm ${name}. I am ${age} years old and this is my digital scrapbook of projects made at SP School.`;
+};
 
 /* ====== RATING STARS ====== */
 const RatingStars = ({ value, onChange, disabled }) => (
@@ -242,6 +272,13 @@ const ParentDashboard = ({ parent, setParent }) => {
   const [settingsDraft, setSettingsDraft] = useState(() => buildParentSettingsDraft(parent));
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [settingsError, setSettingsError] = useState("");
+  const [portfolioChildId, setPortfolioChildId] = useState("");
+  const [blockProjects, setBlockProjects] = useState([]);
+  const [isLoadingBlockProjects, setIsLoadingBlockProjects] = useState(false);
+  const [scratchProjectLink, setScratchProjectLink] = useState("");
+  const [isSavingScratchProject, setIsSavingScratchProject] = useState(false);
+  const [portfolioAboutDraft, setPortfolioAboutDraft] = useState("");
+  const [isSavingPortfolioAbout, setIsSavingPortfolioAbout] = useState(false);
   const profilePhotoInputRef = useRef(null);
 
   const getToken = () =>
@@ -268,6 +305,49 @@ const ParentDashboard = ({ parent, setParent }) => {
   useEffect(() => {
     setSettingsDraft(buildParentSettingsDraft(parent));
   }, [parent]);
+
+  const parentChildren = useMemo(() => parent?.children || [], [parent?.children]);
+
+  useEffect(() => {
+    if (!parentChildren.length) {
+      setPortfolioChildId("");
+      return;
+    }
+
+    const exists = parentChildren.some((child, index) => getChildKey(child, index) === portfolioChildId);
+    if (!portfolioChildId || !exists) {
+      setPortfolioChildId(getChildKey(parentChildren[0], 0));
+    }
+  }, [parentChildren, portfolioChildId]);
+
+  useEffect(() => {
+    if (activeTab !== "portfolio") return;
+
+    const token = typeof window !== "undefined" ? localStorage.getItem("sparvi_token") : null;
+    if (!token) { navigate("/login"); return; }
+
+    let isCancelled = false;
+    const loadBlockProjects = async () => {
+      try {
+        setIsLoadingBlockProjects(true);
+        const res = await fetch(`${API_BASE_URL}/api/blocks/projects/my`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(json.message || "Could not load Blocks projects.");
+        if (!isCancelled) setBlockProjects(json.projects || []);
+      } catch (err) {
+        if (!isCancelled) toast.error(err.message || "Could not load Blocks projects.");
+      } finally {
+        if (!isCancelled) setIsLoadingBlockProjects(false);
+      }
+    };
+
+    loadBlockProjects();
+    return () => {
+      isCancelled = true;
+    };
+  }, [activeTab, navigate]);
 
   const loadDashboard = async () => {
     const token = getToken();
@@ -478,6 +558,182 @@ const ParentDashboard = ({ parent, setParent }) => {
       JSON.stringify(normalizeParentSettingsDraft(buildParentSettingsDraft(parent))),
     [parent, settingsDraft]
   );
+  const selectedPortfolioChild = useMemo(
+    () => parentChildren.find((child, index) => getChildKey(child, index) === portfolioChildId) || parentChildren[0] || null,
+    [parentChildren, portfolioChildId]
+  );
+  const savedPortfolioAbout = selectedPortfolioChild?.portfolioAbout || "";
+  const defaultPortfolioAbout = useMemo(
+    () => getDefaultPortfolioAbout(selectedPortfolioChild),
+    [selectedPortfolioChild]
+  );
+  const hasPortfolioAboutChanges = portfolioAboutDraft.trim() !== savedPortfolioAbout.trim();
+  const selectedScratchProjects = useMemo(
+    () => selectedPortfolioChild?.scratchProjects || [],
+    [selectedPortfolioChild]
+  );
+  const allPortfolioProjects = useMemo(() => {
+    const scratchProjects = selectedScratchProjects.map((project) => ({
+      ...project,
+      source: "scratch",
+      sourceLabel: "Scratch",
+      portfolioKey: `scratch-${project._id || project.projectId}`,
+    }));
+    const blocksPlayProjects = blockProjects.map((project) => ({
+      ...project,
+      source: "blocks",
+      sourceLabel: "Blocks Play",
+      portfolioKey: `blocks-${project._id || project.id}`,
+    }));
+    return [...scratchProjects, ...blocksPlayProjects];
+  }, [blockProjects, selectedScratchProjects]);
+  const portfolioShareUrl = useMemo(() => {
+    const parentId = parent?.id || parent?._id;
+    const childId = selectedPortfolioChild?._id || selectedPortfolioChild?.id;
+    if (!parentId || !childId || typeof window === "undefined") return "";
+    return `${window.location.origin}/portfolio/${parentId}/${childId}`;
+  }, [parent?.id, parent?._id, selectedPortfolioChild]);
+
+  useEffect(() => {
+    setPortfolioAboutDraft(savedPortfolioAbout);
+  }, [portfolioChildId, savedPortfolioAbout]);
+
+  const handleCopyPortfolioShare = async () => {
+    if (!portfolioShareUrl) {
+      toast.error("Please select a kid first.");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(portfolioShareUrl);
+      toast.success("Portfolio link copied.");
+    } catch {
+      toast.error("Could not copy the portfolio link.");
+    }
+  };
+
+  const updateParentChildren = async (nextChildren, successMessage) => {
+    const token = getToken();
+    if (!token || getRole() !== "parent") { navigate("/login"); return null; }
+
+    const formData = new FormData();
+    formData.append("children", JSON.stringify(nextChildren));
+
+    const res = await fetch(`${API_BASE_URL}/api/parent/profile`, {
+      method: "PUT",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json.message || "Could not update portfolio.");
+
+    const updatedUser = json.user || {};
+    setParent((prev) => ({ ...prev, ...updatedUser }));
+    if (typeof window !== "undefined") {
+      let storedUser = {};
+      try {
+        storedUser = JSON.parse(localStorage.getItem("sparvi_user") || "{}");
+      } catch {
+        storedUser = {};
+      }
+      localStorage.setItem("sparvi_user", JSON.stringify({ ...storedUser, ...updatedUser }));
+    }
+    if (successMessage) toast.success(successMessage);
+    return updatedUser;
+  };
+
+  const savePortfolioAbout = async (nextAbout, successMessage) => {
+    if (!selectedPortfolioChild) {
+      toast.error("Please select a kid first.");
+      return;
+    }
+
+    const normalizedAbout = (nextAbout || "").trim().slice(0, 500);
+    const nextChildren = parentChildren.map((child, index) => {
+      if (getChildKey(child, index) !== portfolioChildId) return child;
+      return {
+        ...child,
+        portfolioAbout: normalizedAbout,
+      };
+    });
+
+    try {
+      setIsSavingPortfolioAbout(true);
+      await updateParentChildren(nextChildren, successMessage);
+      setPortfolioAboutDraft(normalizedAbout);
+    } catch (err) {
+      toast.error(err.message || "Could not update the portfolio about.");
+    } finally {
+      setIsSavingPortfolioAbout(false);
+    }
+  };
+
+  const handleSavePortfolioAbout = () => {
+    savePortfolioAbout(portfolioAboutDraft, "Portfolio about saved.");
+  };
+
+  const handleUseDefaultPortfolioAbout = () => {
+    if (!savedPortfolioAbout.trim()) {
+      setPortfolioAboutDraft("");
+      return;
+    }
+    savePortfolioAbout("", "Default about restored.");
+  };
+
+  const handleAddScratchProject = async (event) => {
+    event.preventDefault();
+    const parsedProject = parseScratchProjectLink(scratchProjectLink);
+    if (!selectedPortfolioChild) {
+      toast.error("Please select a kid first.");
+      return;
+    }
+    if (!parsedProject) {
+      toast.error("Please enter a valid Scratch project link.");
+      return;
+    }
+
+    const nextChildren = parentChildren.map((child, index) => {
+      if (getChildKey(child, index) !== portfolioChildId) return child;
+      const scratchProjects = child.scratchProjects || [];
+      if (scratchProjects.some((project) => project.projectId === parsedProject.projectId)) {
+        return child;
+      }
+      return {
+        ...child,
+        scratchProjects: [...scratchProjects, parsedProject],
+      };
+    });
+
+    try {
+      setIsSavingScratchProject(true);
+      await updateParentChildren(nextChildren, "Scratch project added.");
+      setScratchProjectLink("");
+    } catch (err) {
+      toast.error(err.message || "Could not add Scratch project.");
+    } finally {
+      setIsSavingScratchProject(false);
+    }
+  };
+
+  const handleRemoveScratchProject = async (projectId) => {
+    if (!selectedPortfolioChild) return;
+    const nextChildren = parentChildren.map((child, index) => {
+      if (getChildKey(child, index) !== portfolioChildId) return child;
+      return {
+        ...child,
+        scratchProjects: (child.scratchProjects || []).filter((project) => project.projectId !== projectId),
+      };
+    });
+
+    try {
+      setIsSavingScratchProject(true);
+      await updateParentChildren(nextChildren, "Scratch project removed.");
+    } catch (err) {
+      toast.error(err.message || "Could not remove Scratch project.");
+    } finally {
+      setIsSavingScratchProject(false);
+    }
+  };
 
   const handleSessionRatingChange = (roundCode, sessionId, rating) => {
     setSessionRatings((prev) => ({ ...prev, [`${roundCode}-${sessionId}`]: rating }));
@@ -1211,6 +1467,286 @@ const ParentDashboard = ({ parent, setParent }) => {
             </Motion.div>
           )}
 
+          {/* ===== TAB: PORTFOLIO ===== */}
+          {!loading && activeTab === "portfolio" && (
+            <Motion.div
+              key="portfolio"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-5"
+            >
+              <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr),minmax(360px,440px)]">
+                <section className="rounded-xl border border-blue-100 bg-white p-5 shadow-sm">
+                  <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 ring-1 ring-blue-100">
+                        <Users className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <h2 className="text-base font-semibold text-slate-950">Kids portfolio</h2>
+                        <p className="mt-0.5 text-xs font-medium text-blue-600/70">Projects and Scratch work.</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={handleCopyPortfolioShare}
+                        disabled={!portfolioShareUrl}
+                        className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-cyan-200 bg-cyan-50 px-3 text-xs font-bold text-cyan-700 transition-all hover:bg-cyan-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
+                      >
+                        <Share2 className="h-4 w-4" />
+                        Share
+                      </button>
+                      {portfolioShareUrl && (
+                        <a
+                          href={portfolioShareUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-blue-100 bg-white px-3 text-xs font-bold text-blue-700 shadow-sm transition-all hover:bg-blue-50"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                          View
+                        </a>
+                      )}
+                      <Link
+                        to="/blocks/play"
+                        className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 text-xs font-bold text-white shadow-sm transition-all hover:bg-blue-700"
+                      >
+                        <Blocks className="h-4 w-4" />
+                        Blocks Play
+                      </Link>
+                    </div>
+                  </div>
+
+                  {parentChildren.length === 0 ? (
+                    <div className="rounded-lg border border-dashed border-blue-100 bg-blue-50/60 px-4 py-10 text-center text-sm font-semibold text-blue-700">
+                      Add a kid from Settings to start a portfolio.
+                    </div>
+                  ) : (
+                    <>
+                      <div className="mb-5 flex flex-wrap gap-2">
+                        {parentChildren.map((child, index) => {
+                          const childKey = getChildKey(child, index);
+                          const isSelected = childKey === portfolioChildId;
+                          return (
+                            <button
+                              key={childKey}
+                              type="button"
+                              onClick={() => setPortfolioChildId(childKey)}
+                              className={`inline-flex h-9 items-center gap-2 rounded-full border px-3 text-xs font-bold transition-all ${
+                                isSelected
+                                  ? "border-blue-600 bg-blue-600 text-white shadow-sm shadow-blue-600/20"
+                                  : "border-cyan-200 bg-cyan-50 text-cyan-700 hover:bg-cyan-100"
+                              }`}
+                            >
+                              <Baby className="h-4 w-4" />
+                              {child.name || child.childName || `Kid ${index + 1}`}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {selectedPortfolioChild && (
+                        <div className="rounded-xl border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-sky-50 p-5">
+                          <p className="text-xs font-bold uppercase tracking-wide text-blue-700">Selected kid</p>
+                          <h3 className="mt-2 text-2xl font-semibold text-slate-950">
+                            {selectedPortfolioChild.name || selectedPortfolioChild.childName || "Kid"}
+                          </h3>
+                          <p className="mt-1 text-sm font-semibold text-blue-700/70">
+                            Age {selectedPortfolioChild.age || "-"}
+                          </p>
+                          <div className="mt-4 rounded-lg border border-blue-100 bg-white/80 p-3">
+                            <p className="text-xs font-bold uppercase tracking-wide text-slate-400">All projects</p>
+                            <p className="mt-1 text-2xl font-black text-blue-700">{allPortfolioProjects.length}</p>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </section>
+
+                <section className="rounded-xl border border-violet-100 bg-gradient-to-br from-white to-violet-50 p-5 shadow-sm">
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <div>
+                      <h2 className="text-base font-semibold text-slate-950">Add Scratch project</h2>
+                      <p className="mt-1 text-xs font-medium text-violet-700/60">Paste a Scratch project link.</p>
+                    </div>
+                    <ExternalLink className="h-5 w-5 text-violet-500" />
+                  </div>
+
+                  <form onSubmit={handleAddScratchProject} className="space-y-3">
+                    <input
+                      type="url"
+                      value={scratchProjectLink}
+                      onChange={(event) => setScratchProjectLink(event.target.value)}
+                      placeholder="https://scratch.mit.edu/projects/1332650229"
+                      className="h-11 w-full rounded-lg border border-violet-100 bg-white px-3 text-sm font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-violet-300 focus:ring-4 focus:ring-violet-100"
+                    />
+                    <button
+                      type="submit"
+                      disabled={isSavingScratchProject || !selectedPortfolioChild}
+                      className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-violet-600 px-4 text-sm font-bold text-white shadow-sm transition-all hover:bg-violet-700 disabled:opacity-60"
+                    >
+                      {isSavingScratchProject ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                      Add Scratch project
+                    </button>
+                  </form>
+                </section>
+              </div>
+
+              {selectedPortfolioChild && (
+                <section className="rounded-xl border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-cyan-50 p-5 shadow-sm">
+                  <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <h2 className="text-base font-semibold text-slate-950">Shared portfolio about</h2>
+                      <p className="mt-1 text-xs font-medium text-blue-600/70">
+                        Leave empty to use the default about text.
+                      </p>
+                    </div>
+                    <span className="inline-flex w-fit rounded-lg border border-blue-100 bg-white px-3 py-1.5 text-xs font-bold text-blue-700">
+                      {(portfolioAboutDraft || "").trim().length}/500
+                    </span>
+                  </div>
+
+                  <textarea
+                    value={portfolioAboutDraft}
+                    onChange={(event) => setPortfolioAboutDraft(event.target.value.slice(0, 500))}
+                    maxLength={500}
+                    placeholder={defaultPortfolioAbout}
+                    className="min-h-[118px] w-full resize-none rounded-lg border border-blue-100 bg-white p-3 text-sm font-medium leading-6 text-slate-700 outline-none transition-all placeholder:text-slate-400 focus:border-blue-300 focus:ring-4 focus:ring-blue-100"
+                  />
+
+                  <div className="mt-3 rounded-lg border border-blue-100 bg-white/70 p-3 text-sm font-medium leading-6 text-slate-500">
+                    <span className="font-bold text-blue-700">Default:</span> {defaultPortfolioAbout}
+                  </div>
+
+                  <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
+                    <button
+                      type="button"
+                      onClick={handleUseDefaultPortfolioAbout}
+                      disabled={isSavingPortfolioAbout || (!savedPortfolioAbout.trim() && !portfolioAboutDraft.trim())}
+                      className="inline-flex h-10 items-center justify-center rounded-lg border border-cyan-200 bg-cyan-50 px-4 text-sm font-bold text-cyan-700 transition-all hover:bg-cyan-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
+                    >
+                      Use default
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSavePortfolioAbout}
+                      disabled={isSavingPortfolioAbout || !hasPortfolioAboutChanges}
+                      className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-bold text-white shadow-sm transition-all hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-white"
+                    >
+                      {isSavingPortfolioAbout ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                      Save about
+                    </button>
+                  </div>
+                </section>
+              )}
+
+              <section className="rounded-xl border border-blue-100 bg-white p-5 shadow-sm">
+                <div className="mb-5 flex items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-base font-semibold text-slate-950">All projects</h2>
+                    <p className="mt-1 text-xs font-medium text-blue-600/70">
+                      {selectedPortfolioChild?.name || selectedPortfolioChild?.childName || "Selected kid"} portfolio
+                    </p>
+                  </div>
+                  <span className="inline-flex rounded-lg border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700">
+                    {allPortfolioProjects.length} saved
+                  </span>
+                </div>
+
+                {isLoadingBlockProjects && allPortfolioProjects.length === 0 ? (
+                  <div className="px-4 py-10 text-center text-sm font-semibold text-blue-700">Loading projects...</div>
+                ) : allPortfolioProjects.length === 0 ? (
+                  <div className="rounded-lg border border-dashed border-blue-100 bg-blue-50/60 px-4 py-10 text-center">
+                    <p className="text-sm font-semibold text-blue-700">No projects yet.</p>
+                    <Link
+                      to="/blocks/play"
+                      className="mt-3 inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 text-xs font-bold text-white shadow-sm hover:bg-blue-700"
+                    >
+                      <Blocks className="h-4 w-4" />
+                      Create in Blocks Play
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    {allPortfolioProjects.map((project) => {
+                      if (project.source === "scratch") {
+                        return (
+                          <article key={project.portfolioKey} className="overflow-hidden rounded-lg border border-violet-100 bg-white shadow-sm">
+                            <div className="flex items-center justify-between gap-3 border-b border-violet-100 bg-violet-50/60 px-4 py-3">
+                              <div className="min-w-0">
+                                <span className="mb-2 inline-flex rounded-full border border-violet-100 bg-white px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-violet-700">
+                                  {project.sourceLabel}
+                                </span>
+                                <h3 className="truncate text-sm font-bold text-slate-950">
+                                  {project.title || `Scratch Project ${project.projectId}`}
+                                </h3>
+                                <a
+                                  href={project.url || `https://scratch.mit.edu/projects/${project.projectId}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="mt-0.5 inline-flex items-center gap-1 text-xs font-semibold text-violet-600 hover:text-violet-800"
+                                >
+                                  Open project <ExternalLink className="h-3.5 w-3.5" />
+                                </a>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveScratchProject(project.projectId)}
+                                disabled={isSavingScratchProject}
+                                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-rose-100 bg-white text-rose-600 transition-all hover:bg-rose-50 disabled:opacity-60"
+                                aria-label="Remove Scratch project"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                            <iframe
+                              src={getScratchProjectEmbed(project)}
+                              title={project.title || `Scratch project ${project.projectId}`}
+                              allowTransparency="true"
+                              frameBorder="0"
+                              scrolling="no"
+                              allowFullScreen
+                              className="aspect-[485/402] w-full bg-white"
+                            />
+                          </article>
+                        );
+                      }
+
+                      const projectId = project._id || project.id;
+                      const blockCount = Object.keys(project.data?.builder?.blocks || {}).length;
+                      return (
+                        <article key={project.portfolioKey} className="rounded-lg border border-blue-100 bg-gradient-to-br from-white to-blue-50 p-4 shadow-sm">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <span className="mb-2 inline-flex rounded-full border border-blue-100 bg-white px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-blue-700">
+                                {project.sourceLabel}
+                              </span>
+                              <h3 className="truncate text-sm font-bold text-slate-950">{project.title || "My page"}</h3>
+                              <p className="mt-1 text-xs font-medium text-slate-500">
+                                {blockCount} block{blockCount === 1 ? "" : "s"}
+                              </p>
+                            </div>
+                            <Blocks className="h-5 w-5 shrink-0 text-blue-500" />
+                          </div>
+                          <a
+                            href={`/blocks/share/${projectId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-4 inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-blue-100 bg-white text-xs font-bold text-blue-700 transition-all hover:bg-blue-50"
+                          >
+                            Open project <ExternalLink className="h-4 w-4" />
+                          </a>
+                        </article>
+                      );
+                    })}
+                  </div>
+                )}
+              </section>
+            </Motion.div>
+          )}
+
           {/* ===== TAB: TOOLS ===== */}
           {!loading && activeTab === "gallery" && (
             <Motion.div
@@ -1566,6 +2102,8 @@ const ParentDashboard = ({ parent, setParent }) => {
 ParentDashboard.propTypes = {
   parent: PropTypes.shape({
     name: PropTypes.string.isRequired,
+    email: PropTypes.string,
+    phone: PropTypes.string,
     photoUrl: PropTypes.string,
     children: PropTypes.arrayOf(
       PropTypes.shape({
@@ -1577,6 +2115,15 @@ ParentDashboard.propTypes = {
         _id: PropTypes.string,
         id: PropTypes.string,
         enrolledRounds: PropTypes.arrayOf(PropTypes.shape({ _id: PropTypes.string })),
+        portfolioAbout: PropTypes.string,
+        scratchProjects: PropTypes.arrayOf(
+          PropTypes.shape({
+            _id: PropTypes.string,
+            title: PropTypes.string,
+            projectId: PropTypes.string,
+            url: PropTypes.string,
+          })
+        ),
       })
     ),
   }),

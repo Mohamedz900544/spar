@@ -69,6 +69,7 @@ const FreeSessionBooking = lazy(() => import("./pages/FreeSessionBooking"));
 const BlocksHome = lazy(() => import("./pages/blocks/BlocksHome"));
 const BlocksPlayground = lazy(() => import("./pages/blocks/BlocksPlayground"));
 const PublicPreview = lazy(() => import("./pages/blocks/PublicPreview"));
+const PortfolioShare = lazy(() => import("./pages/PortfolioShare"));
 const FractionLevelsPage = lazy(() => import("./pages/fractions/FractionLevelsPage"));
 const FractionPlayPage = lazy(() => import("./pages/fractions/FractionPlayPage"));
 const RoundSessionsPage = lazy(() => import("./pages/RoundSessionsPage"));
@@ -116,7 +117,8 @@ function App() {
       location.pathname.startsWith('/admin') ||
       location.pathname.startsWith('/instructor') ||
       location.pathname.startsWith('/sales') ||
-      location.pathname.startsWith('/blocks');
+      location.pathname.startsWith('/blocks') ||
+      location.pathname.startsWith('/portfolio');
 
     if (isDashboard) {
       document.documentElement.dir = "ltr";
@@ -184,6 +186,7 @@ function App() {
           </Route>
 
           <Route path="/blocks/share/:id" element={<PublicPreview />} />
+          <Route path="/portfolio/:parentId/:childId" element={<PortfolioShare />} />
 
           <Route path="/fractions" element={<FractionLevelsPage />} />
           <Route path="/fractions/:levelId" element={<FractionPlayPage />} />

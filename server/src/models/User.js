@@ -21,6 +21,20 @@ const childSchema = new mongoose.Schema(
         ref: "Round",
       },
     ],
+    portfolioAbout: {
+      type: String,
+      trim: true,
+      maxlength: 500,
+      default: "",
+    },
+    scratchProjects: [
+      {
+        title: { type: String, trim: true, maxlength: 160 },
+        projectId: { type: String, trim: true, required: true },
+        url: { type: String, trim: true },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
   }, { timestamps: true }
 );
 
