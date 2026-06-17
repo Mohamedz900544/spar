@@ -27,8 +27,8 @@ export const connectDB = async () => {
 };
 
 const ensureDefaultAdmin = async () => {
-  const email = process.env.ADMIN_EMAIL || "admin@sparvilab.com";
-  const password = process.env.ADMIN_PASSWORD || "Admin123!";
+  const email = process.env.ADMIN_EMAIL;
+  const password = process.env.ADMIN_PASSWORD;
   const name = "Main Admin";
 
   const admin = await User.findOne({ email });
