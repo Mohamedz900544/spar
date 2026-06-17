@@ -5,6 +5,7 @@ import User from "../models/User.js";
 
 const MONGO_URI =
   process.env.MONGO_URI || "mongodb://127.0.0.1:27017/sparvi_lab";
+const LEGACY_ADMIN_EMAIL = "admin@sparvilb.com";
 
 export const connectDB = async () => {
   try {
@@ -19,7 +20,9 @@ export const connectDB = async () => {
       if (removed.deletedCount > 0) {
         await col.dropIndexes();
       }
-    } catch (_) { /* collection may not exist yet */ }
+    } catch (_) {
+      // Collection may not exist yet.
+    }
   } catch (err) {
     console.error("MongoDB connection error:", err.message);
     process.exit(1);
@@ -27,22 +30,34 @@ export const connectDB = async () => {
 };
 
 const ensureDefaultAdmin = async () => {
-  const email = process.env.ADMIN_EMAIL;
-  const password = process.env.ADMIN_PASSWORD;
-  const name = "Main Admin";
+  const email = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
+  const password = `${process.env.ADMIN_PASSWORD || ""}`;
+  const name = (process.env.ADMIN_NAME || "Main Admin").trim();
 
-  const admin = await User.findOne({ email });
-  if (admin) {
+  if (!email || !password) {
+    console.warn(
+      "ADMIN_EMAIL and ADMIN_PASSWORD are required to sync the admin account."
+    );
     return;
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
 
-  await User.create({
-    name,
-    email,
-    passwordHash, // ✅ المطلوب في الـ schema
-    phone: "123456789",
-    role: "admin",
-  });
+  await User.findOneAndUpdate(
+    { email },
+    {
+      $set: {
+        name,
+        email,
+        passwordHash,
+        phone: process.env.ADMIN_PHONE || "123456789",
+        role: "admin",
+      },
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
+
+  if (email !== LEGACY_ADMIN_EMAIL) {
+    await User.deleteOne({ email: LEGACY_ADMIN_EMAIL, role: "admin" });
+  }
 };
