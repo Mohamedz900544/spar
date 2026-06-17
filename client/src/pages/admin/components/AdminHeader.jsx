@@ -13,8 +13,8 @@ const getPageTitle = (pathname) => {
 const getNavLinkClass = ({ isActive }) =>
   `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-all ${
     isActive
-      ? "bg-emerald-50 text-emerald-700"
-      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+      ? "bg-blue-600 text-white shadow-sm shadow-blue-600/20"
+      : "text-slate-500 hover:bg-blue-50 hover:text-blue-700"
   }`;
 
 const AdminHeader = ({ searchValue, setSearchValue }) => {
@@ -38,17 +38,17 @@ const AdminHeader = ({ searchValue, setSearchValue }) => {
   };
 
   return (
-    <div className="h-screen w-full overflow-hidden bg-[#f7f8f6] font-sans text-slate-900 [&_h1]:font-sans [&_h2]:font-sans [&_h3]:font-sans">
-      <div className="flex h-full w-full overflow-hidden bg-white">
-        <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white lg:flex lg:flex-col">
-          <div className="flex h-20 items-center border-b border-slate-200 px-6">
+    <div className="admin-parent-theme h-screen w-full overflow-hidden bg-[#f4f7fb] font-sans text-slate-950 [&_h1]:font-sans [&_h2]:font-sans [&_h3]:font-sans">
+      <div className="flex h-full w-full overflow-hidden bg-[#f4f7fb]">
+        <aside className="hidden w-64 shrink-0 border-r border-blue-100 bg-white lg:flex lg:flex-col">
+          <div className="flex h-20 items-center border-b border-blue-100 px-6">
             <Link to="/admin" className="inline-flex min-w-0 items-center gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 ring-1 ring-emerald-100">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 ring-1 ring-blue-100">
                 <img src="/icon.png" alt="SP School" className="h-6 w-6 rounded-md object-contain" />
               </span>
               <span className="min-w-0">
                 <span className="block truncate text-lg font-semibold text-slate-800">SP School Admin</span>
-                <span className="block truncate text-xs font-semibold text-slate-400">Admin Workspace</span>
+                <span className="block truncate text-xs font-semibold text-blue-600">Admin Workspace</span>
               </span>
             </Link>
           </div>
@@ -71,10 +71,10 @@ const AdminHeader = ({ searchValue, setSearchValue }) => {
               </div>
             )}
 
-            <div id="admin-sidebar-tabs-slot" className={isAdminHome ? "" : "mt-4 border-t border-slate-100 pt-4"} />
+            <div id="admin-sidebar-tabs-slot" className={isAdminHome ? "" : "mt-4 border-t border-blue-100 pt-4"} />
           </nav>
 
-          <div className="border-t border-slate-200 px-4 py-5">
+          <div className="border-t border-blue-100 px-4 py-5">
             <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
               Account
             </p>
@@ -89,21 +89,21 @@ const AdminHeader = ({ searchValue, setSearchValue }) => {
           </div>
         </aside>
 
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-[#f7f8f6]">
-          <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur sm:px-6">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-[#f4f7fb]">
+          <header className="sticky top-0 z-30 border-b border-blue-100 bg-white/90 px-4 py-3 backdrop-blur sm:px-6 lg:h-20 lg:py-0">
             <div className="relative flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex min-w-0 items-center gap-3">
                 <Link
                   to="/admin"
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 ring-1 ring-emerald-100 lg:hidden"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 ring-1 ring-blue-100 lg:hidden"
                 >
                   <img src="/icon.png" alt="SP School" className="h-6 w-6 rounded-md object-contain" />
                 </Link>
                 <div className="min-w-0">
-                  <h1 className="truncate text-2xl font-semibold tracking-normal text-slate-800">
+                  <h1 className="truncate text-2xl font-semibold tracking-normal text-slate-950">
                     {pageTitle}
                   </h1>
-                  <p className="truncate text-xs font-medium text-slate-400">
+                  <p className="truncate text-xs font-semibold text-blue-500">
                     Admin Workspace
                   </p>
                 </div>
@@ -121,7 +121,7 @@ const AdminHeader = ({ searchValue, setSearchValue }) => {
                     type="text"
                     value={searchValue}
                     onChange={(event) => setSearchValue(event.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-800 shadow-lg outline-none transition-all focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100"
+                    className="w-full rounded-lg border border-blue-100 bg-white px-4 py-2.5 text-sm font-medium text-slate-800 shadow-lg outline-none transition-all focus:border-blue-300 focus:ring-4 focus:ring-blue-100"
                     placeholder="Search student or parent..."
                   />
                 </div>
@@ -132,7 +132,7 @@ const AdminHeader = ({ searchValue, setSearchValue }) => {
                   <button
                     type="button"
                     onClick={() => setSearchAppear((current) => !current)}
-                    className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50"
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-blue-100 bg-white px-3 text-sm font-semibold text-blue-700 shadow-sm transition-all hover:border-blue-200 hover:bg-blue-50"
                   >
                     <Search className="h-4 w-4" />
                     <span className="hidden sm:inline">Search</span>
@@ -141,7 +141,7 @@ const AdminHeader = ({ searchValue, setSearchValue }) => {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-slate-950 px-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-slate-800 lg:hidden"
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 lg:hidden"
                 >
                   <LogOut className="h-4 w-4" />
                   <span className="hidden sm:inline">Sign Out</span>
@@ -158,8 +158,8 @@ const AdminHeader = ({ searchValue, setSearchValue }) => {
                     className={({ isActive }) =>
                       `inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-xs font-bold transition-all ${
                         isActive
-                          ? "bg-emerald-50 text-emerald-700"
-                          : "bg-white text-slate-500 ring-1 ring-slate-200 hover:text-slate-900"
+                          ? "bg-blue-600 text-white shadow-sm"
+                          : "bg-white text-slate-500 ring-1 ring-blue-100 hover:bg-blue-50 hover:text-blue-700"
                       }`
                     }
                   >
@@ -171,8 +171,8 @@ const AdminHeader = ({ searchValue, setSearchValue }) => {
                     className={({ isActive }) =>
                       `inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-xs font-bold transition-all ${
                         isActive
-                          ? "bg-emerald-50 text-emerald-700"
-                          : "bg-white text-slate-500 ring-1 ring-slate-200 hover:text-slate-900"
+                          ? "bg-blue-600 text-white shadow-sm"
+                          : "bg-white text-slate-500 ring-1 ring-blue-100 hover:bg-blue-50 hover:text-blue-700"
                       }`
                     }
                   >

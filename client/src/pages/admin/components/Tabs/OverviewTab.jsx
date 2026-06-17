@@ -24,7 +24,7 @@ const OverviewTab = ({
             <div className="flex justify-end mb-4">
                 <button
                     onClick={() => navigate('/admin/overview')}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#102a5a] text-white text-sm font-semibold hover:bg-[#1a3a6b] transition-all shadow-sm"
+                    className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700"
                 >
                     <Eye className="w-4 h-4" />
                     Full Overview & Visitors
@@ -32,7 +32,7 @@ const OverviewTab = ({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-                <div className="bg-white rounded-2xl border border-[#e2e8f0] p-4 shadow-sm flex flex-col gap-1 md:col-span-1">
+                <div className="flex flex-col gap-1 rounded-xl border border-blue-100 bg-white p-4 shadow-sm md:col-span-1">
                     <p className="text-xs uppercase tracking-wide text-slate-500">
                         Total kids
                     </p>
@@ -40,11 +40,13 @@ const OverviewTab = ({
                         <p className="text-2xl font-bold text-slate-900">
                             {totalKids}
                         </p>
-                        <Users className="w-7 h-7 text-[#102a5a]" />
+                        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 ring-1 ring-blue-100">
+                            <Users className="h-5 w-5 text-blue-600" />
+                        </span>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-2xl border border-[#e2e8f0] p-4 shadow-sm flex flex-col gap-1 md:col-span-1">
+                <div className="flex flex-col gap-1 rounded-xl border border-blue-100 bg-white p-4 shadow-sm md:col-span-1">
                     <p className="text-xs uppercase tracking-wide text-slate-500">
                         Active sessions
                     </p>
@@ -52,11 +54,13 @@ const OverviewTab = ({
                         <p className="text-2xl font-bold text-slate-900">
                             {activeSessionsCount}
                         </p>
-                        <CalendarClock className="w-7 h-7 text-[#102a5a]" />
+                        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-50 ring-1 ring-cyan-100">
+                            <CalendarClock className="h-5 w-5 text-cyan-700" />
+                        </span>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-2xl border border-[#e2e8f0] p-4 shadow-sm flex flex-col gap-1 md:col-span-1">
+                <div className="flex flex-col gap-1 rounded-xl border border-blue-100 bg-white p-4 shadow-sm md:col-span-1">
                     <p className="text-xs uppercase tracking-wide text-slate-500">
                         Active rounds
                     </p>
@@ -64,11 +68,13 @@ const OverviewTab = ({
                         <p className="text-2xl font-bold text-slate-900">
                             {activeRoundsCount}
                         </p>
-                        <CalendarClock className="w-7 h-7 text-[#102a5a]" />
+                        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 ring-1 ring-blue-100">
+                            <CalendarClock className="h-5 w-5 text-blue-600" />
+                        </span>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-2xl border border-[#e2e8f0] p-4 shadow-sm flex flex-col gap-1 md:col-span-1">
+                <div className="flex flex-col gap-1 rounded-xl border border-blue-100 bg-white p-4 shadow-sm md:col-span-1">
                     <p className="text-xs uppercase tracking-wide text-slate-500">
                         Gallery photos
                     </p>
@@ -76,11 +82,13 @@ const OverviewTab = ({
                         <p className="text-2xl font-bold text-slate-900">
                             {publishedPhotos}
                         </p>
-                        <ImageIcon className="w-7 h-7 text-[#102a5a]" />
+                        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50 ring-1 ring-amber-100">
+                            <ImageIcon className="h-5 w-5 text-amber-600" />
+                        </span>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-2xl border border-[#e2e8f0] p-4 shadow-sm flex flex-col gap-1 md:col-span-1">
+                <div className="flex flex-col gap-1 rounded-xl border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-sky-50 p-4 shadow-sm md:col-span-1">
                     <p className="text-xs uppercase tracking-wide text-slate-500">
                         Occupancy
                     </p>
@@ -88,9 +96,9 @@ const OverviewTab = ({
                         <p className="text-2xl font-bold text-slate-900">
                             {averageOccupancy}%
                         </p>
-                        <div className="w-16 h-2 rounded-full bg-[#e5e7eb] overflow-hidden">
+                        <div className="h-2 w-16 overflow-hidden rounded-full bg-blue-100">
                             <div
-                                className="h-full bg-[#102a5a]"
+                                className="h-full bg-blue-600"
                                 style={{ width: `${averageOccupancy}%` }}
                             />
                         </div>
@@ -100,12 +108,12 @@ const OverviewTab = ({
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Upcoming sessions */}
-                <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5 shadow-sm">
-                    <div className="flex items-center justify-between mb-3">
+                <div className="rounded-xl border border-blue-100 bg-white p-5 shadow-sm">
+                    <div className="mb-3 flex items-center justify-between">
                         <h2 className="text-sm font-semibold text-slate-900">
                             Upcoming sessions
                         </h2>
-                        <span className="text-[11px] text-slate-500">
+                        <span className="rounded-lg border border-blue-100 bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700">
                             next 3 sessions
                         </span>
                     </div>
@@ -113,7 +121,7 @@ const OverviewTab = ({
                         {sessions.slice(0, 3).map((s) => (
                             <div
                                 key={s.id}
-                                className="flex items-center justify-between text-xs md:text-sm border-b border-dashed border-[#e5e7eb] pb-2 last:border-b-0 last:pb-0"
+                                className="flex items-center justify-between border-b border-dashed border-blue-100 pb-2 text-xs last:border-b-0 last:pb-0 md:text-sm"
                             >
                                 <div>
                                     <p className="font-semibold text-slate-800">
@@ -137,14 +145,14 @@ const OverviewTab = ({
                 </div>
 
                 {/* Latest messages */}
-                <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5 shadow-sm">
-                    <div className="flex items-center justify_between mb-3">
+                <div className="rounded-xl border border-blue-100 bg-white p-5 shadow-sm">
+                    <div className="mb-3 flex items-center justify-between">
                         <h2 className="text-sm font-semibold text-slate-900">
                             Latest messages<br></br><br></br>
                             last 3 requests
                         </h2>
 
-                        <span className="text-[11px] text-slate-500">
+                        <span className="rounded-lg border border-blue-100 bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700">
                             {/* last 3 requests */}
                         </span>
 
@@ -158,7 +166,7 @@ const OverviewTab = ({
                         {messages.slice(0, 3).map((m) => (
                             <div
                                 key={m.id}
-                                className="border-b border-dashed border-[#e5e7eb] pb-2 last:border-b-0 last:pb-0 text-xs md:text-sm"
+                                className="border-b border-dashed border-blue-100 pb-2 text-xs last:border-b-0 last:pb-0 md:text-sm"
                             >
                                 <p className="font-semibold text-slate-800">
                                     {m.parentName} · {m.phone}

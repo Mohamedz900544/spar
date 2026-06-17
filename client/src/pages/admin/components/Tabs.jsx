@@ -45,7 +45,7 @@ const Tabs = ({ activeTab, setActiveTab, newMessagesCount }) => {
     newMessagesCount > 0 && (
       <span
         className={`inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold leading-none ${
-          isActive ? "bg-white/70 text-emerald-700" : "bg-emerald-600 text-white"
+          isActive ? "bg-white/80 text-blue-700" : "bg-blue-600 text-white"
         }`}
       >
         {newMessagesCount}
@@ -64,8 +64,8 @@ const Tabs = ({ activeTab, setActiveTab, newMessagesCount }) => {
             onClick={() => setActiveTab(tab.id)}
             className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold transition-all ${
               isActive
-                ? "bg-emerald-50 text-emerald-700"
-                : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                ? "bg-blue-600 text-white shadow-sm shadow-blue-600/20"
+                : "text-slate-500 hover:bg-blue-50 hover:text-blue-700"
             }`}
           >
             <TabIcon className="h-4 w-4 shrink-0" />
@@ -89,8 +89,8 @@ const Tabs = ({ activeTab, setActiveTab, newMessagesCount }) => {
             onClick={() => setActiveTab(tab.id)}
             className={`inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-xs font-bold transition-all ${
               isActive
-                ? "bg-emerald-50 text-emerald-700"
-                : "bg-white text-slate-500 ring-1 ring-slate-200 hover:text-slate-900"
+                ? "bg-blue-600 text-white shadow-sm"
+                : "bg-white text-slate-500 ring-1 ring-blue-100 hover:bg-blue-50 hover:text-blue-700"
             }`}
           >
             <TabIcon className="h-3.5 w-3.5" />

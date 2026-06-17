@@ -206,6 +206,79 @@ button {
   display: none;
 }
 
+/* Admin dashboard inherits the parent dashboard color system. */
+.admin-parent-theme [class~="bg-[#102a5a]"] {
+  background-color: #2563eb;
+}
+
+.admin-parent-theme [class~="hover:bg-[#1a3a6b]"]:hover {
+  background-color: #1d4ed8;
+}
+
+.admin-parent-theme [class~="text-[#102a5a]"] {
+  color: #1d4ed8;
+}
+
+.admin-parent-theme [class~="border-[#102a5a]"] {
+  border-color: #2563eb;
+}
+
+.admin-parent-theme [class~="bg-[#102a5a]/10"],
+.admin-parent-theme [class~="bg-[#102a5a]/5"] {
+  background-color: #eff6ff;
+}
+
+.admin-parent-theme [class~="border-[#102a5a]/20"] {
+  border-color: #bfdbfe;
+}
+
+.admin-parent-theme [class~="border-[#e2e8f0]"],
+.admin-parent-theme [class~="border-[#e5e7eb]"] {
+  border-color: #dbeafe;
+}
+
+.admin-parent-theme [class~="border-slate-200"],
+.admin-parent-theme [class~="border-slate-100"] {
+  border-color: #dbeafe;
+}
+
+.admin-parent-theme [class~="hover:border-slate-300"]:hover {
+  border-color: #bfdbfe;
+}
+
+.admin-parent-theme [class~="ring-slate-200"] {
+  --tw-ring-color: #dbeafe;
+}
+
+.admin-parent-theme [class~="bg-[#f1f5f9]"] {
+  background-color: #eff6ff;
+}
+
+.admin-parent-theme [class~="hover:bg-[#f1f5f9]"]:hover {
+  background-color: #eff6ff;
+}
+
+.admin-parent-theme [class~="bg-slate-50"],
+.admin-parent-theme [class~="bg-slate-50/50"],
+.admin-parent-theme [class~="bg-slate-50/70"] {
+  background-color: rgb(239 246 255 / 0.72);
+}
+
+.admin-parent-theme [class~="hover:bg-slate-50"]:hover {
+  background-color: #eff6ff;
+}
+
+.admin-parent-theme [class~="focus:border-[#FBBF24]"]:focus {
+  border-color: #93c5fd;
+}
+
+.admin-parent-theme [class~="focus:ring-[#FBBF24]"]:focus,
+.admin-parent-theme [class~="focus:ring-[#FBBF24]/50"]:focus,
+.admin-parent-theme [class~="focus:ring-[#FBBF24]/40"]:focus,
+.admin-parent-theme [class~="focus:ring-[#FBBF24]/30"]:focus {
+  --tw-ring-color: rgb(219 234 254 / 1);
+}
+
 /* Page blocks specific scrollbar */
 .blocks-scrollbar {
   scrollbar-width: thin;
