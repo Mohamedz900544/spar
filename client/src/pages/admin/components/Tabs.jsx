@@ -9,6 +9,7 @@ import {
   GraduationCap,
   Eye,
   FileArchive,
+  KeyRound,
 } from "lucide-react";
 
 const ADMIN_TABS = [
@@ -18,6 +19,7 @@ const ADMIN_TABS = [
   { id: "enrollments", label: "Enrollments", icon: Users },
   { id: "instructors", label: "Instructors", icon: GraduationCap },
   { id: "users", label: "Users", icon: Users },
+  { id: "ghostprocess", label: "GhostProcess", icon: KeyRound },
   { id: "sp-recording", label: "SP Recording", icon: FileArchive },
   { id: "gallery", label: "Gallery", icon: ImageIcon },
   { id: "messages", label: "Messages", icon: Inbox },

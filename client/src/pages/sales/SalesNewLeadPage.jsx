@@ -52,22 +52,16 @@ const SalesNewLeadPage = () => {
 
   return (
     <section className="max-w-3xl mx-auto">
-      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-        <div
-          className="px-6 py-5 relative overflow-hidden"
-          style={{ background: "linear-gradient(135deg, #071228 0%, #102a5a 55%, #1a3a6b 100%)" }}
-        >
-          <div className="absolute top-3 right-6 w-16 h-16 rounded-full bg-[#FBBF24]/10" />
-          <div className="absolute -bottom-4 left-1/4 w-10 h-10 rounded-full bg-[#2dd4bf]/10" />
-
-          <div className="mt-4 relative z-10">
+      <div className="overflow-hidden rounded-xl border border-blue-100 bg-white shadow-sm">
+        <div className="border-b border-blue-100 bg-gradient-to-br from-white via-blue-50 to-sky-50 px-6 py-5">
+          <div className="mt-4">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[10px] font-semibold text-white/50 uppercase tracking-wider">Completion</span>
-              <span className="text-xs font-bold text-[#FBBF24]">{progress}%</span>
+              <span className="text-[10px] font-semibold text-blue-700 uppercase tracking-wider">Completion</span>
+              <span className="text-xs font-bold text-blue-700">{progress}%</span>
             </div>
-            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+            <div className="h-1.5 overflow-hidden rounded-full bg-blue-100">
               <div
-                className="h-full bg-gradient-to-r from-[#FBBF24] to-[#F59E0B] rounded-full transition-all duration-500 ease-out"
+                className="h-full rounded-full bg-blue-600 transition-all duration-500 ease-out"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -192,8 +186,7 @@ const SalesNewLeadPage = () => {
             <button
               type="submit"
               disabled={sales.isCreatingLead}
-              className="w-full inline-flex items-center justify-center gap-2.5 rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-lg hover:shadow-xl transition-all disabled:opacity-60 group"
-              style={{ background: "linear-gradient(135deg, #102a5a 0%, #1a3a6b 100%)" }}
+              className="group inline-flex w-full items-center justify-center gap-2.5 rounded-lg bg-blue-600 px-6 py-3.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-blue-700 disabled:opacity-60"
             >
               {sales.isCreatingLead ? (
                 <>

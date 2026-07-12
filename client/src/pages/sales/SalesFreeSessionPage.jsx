@@ -66,7 +66,7 @@ const CARD_STATUS_STYLES = {
   pending: {
     border: "border-slate-100 hover:border-[#FBBF24]/30 hover:shadow-md",
     header: "border-slate-100 bg-slate-50/50",
-    icon: "bg-gradient-to-br from-[#102a5a] to-[#1a3a6b] text-white",
+    icon: "bg-gradient-to-br from-blue-600 to-blue-700 text-white",
     panel: "border-amber-100 bg-amber-50/40",
     panelText: "text-amber-700",
   },
@@ -750,12 +750,7 @@ const SalesFreeSessionPage = () => {
                         type="button"
                         onClick={() => assign(lead)}
                         disabled={!canAssign}
-                        className="w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-white shadow-md transition-all hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-55 disabled:shadow-none"
-                        style={{
-                          background: isAssigned
-                            ? "linear-gradient(135deg, #059669, #10b981)"
-                            : "linear-gradient(135deg, #102a5a, #1a3a6b)",
-                        }}
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-55 disabled:shadow-none"
                       >
                         <CalendarClock className="w-4 h-4" />
                         {!draft.instructorId

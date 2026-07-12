@@ -11,9 +11,14 @@ const envFiles = [
   ".env",
 ].filter(Boolean);
 
-for (const file of envFiles) {
-  config({
-    path: path.isAbsolute(file) ? file : path.join(serverRoot, file),
-    override: false,
-  });
-}
+export const loadEnvFiles = ({ override = false } = {}) => {
+  for (const file of envFiles) {
+    config({
+      path: path.isAbsolute(file) ? file : path.join(serverRoot, file),
+      override,
+      quiet: true,
+    });
+  }
+};
+
+loadEnvFiles();

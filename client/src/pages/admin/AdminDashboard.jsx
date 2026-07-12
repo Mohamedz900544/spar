@@ -28,6 +28,7 @@ import { SessionsTab } from "./components/Tabs/SessionsTab";
 import { EnrollmentsTab } from "./components/Tabs/EnrollmentsTab";
 import { UsersTab } from "./components/Tabs/UsersTab";
 import { SPRecordingTab } from "./components/Tabs/SPRecordingTab";
+import GhostProcessLicensingTab from "./components/Tabs/GhostProcessLicensingTab";
 import SparviInstructorAccessCard from "./components/SparviInstructorAccessCard";
 import EgyptPhoneInput from "../../components/EgyptPhoneInput";
 
@@ -220,6 +221,8 @@ const AdminDashboard = () => {
             )}
 
             {activeTab === "sp-recording" && <SPRecordingTab />}
+
+            {activeTab === "ghostprocess" && <GhostProcessLicensingTab />}
 
             {activeTab === "instructors" && (
               <div className="space-y-6">

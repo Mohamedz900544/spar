@@ -145,11 +145,13 @@ function App() {
             <Route path="/parent/profile" element={<ParentProfile userData={userData} setUserData={setUserData} />} />
           </Route>
 
-          <Route element={<AdminHeader searchValue={searchValue} setSearchValue={setSearchValue} />}>
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/overview" element={<AdminOverview />} />
-            <Route path="/admin/round/:roundId" element={<RoundSessionsPage />} />
-            <Route path="/admin/round/:roundId/students" element={<RoundStudentsPage searchValue={searchValue} />} />
+          <Route element={<ProtectedRoute allowedRole={"admin"} redirectTo="/login" />}>
+            <Route element={<AdminHeader searchValue={searchValue} setSearchValue={setSearchValue} />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/overview" element={<AdminOverview />} />
+              <Route path="/admin/round/:roundId" element={<RoundSessionsPage />} />
+              <Route path="/admin/round/:roundId/students" element={<RoundStudentsPage searchValue={searchValue} />} />
+            </Route>
           </Route>
           <Route path="/our-story" element={<OurStory />} />
           <Route path="/contact" element={<Contact />} />

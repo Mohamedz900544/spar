@@ -18,6 +18,9 @@ import salesRoutes from "./routes/sales.routes.js";
 import whatsappWebhookRoutes from "./routes/whatsappWebhook.routes.js";
 import sparviRoutes from "./routes/sparvi.routes.js";
 import spRecordingRoutes from "./routes/spRecording.routes.js";
+import ghostprocessActivationRoutes from "./routes/ghostprocessActivation.routes.js";
+import ghostprocessOpenAIRoutes from "./routes/ghostprocessOpenAI.routes.js";
+import ghostprocessAdminRoutes from "./routes/ghostprocessAdmin.routes.js";
 // import "./config/cloudinary.js";
 import "./automatingUpdatingStatusOfSession.js"
 import "./automatingLeadFollowUpStatus.js";
@@ -38,6 +41,7 @@ const allowedOrigins = [
   "http://localhost:5174",
   "http://localhost:5173",
   "https://sparvilab.com",
+  "https://sparvilab.alwaysdata.net",
   "https://www.sparvilab.com",
   "https://spschool.online",
   "https://www.spschool.online",
@@ -85,6 +89,9 @@ app.use('/api/admin/sp-recordings', spRecordingRoutes)
 app.use("/api/instructor", instructorRoutes);
 app.use("/api/sales", salesRoutes);
 app.use("/api/sparvi", sparviRoutes);
+app.use("/api/activations", ghostprocessActivationRoutes);
+app.use("/api/openai", ghostprocessOpenAIRoutes);
+app.use("/api/admin/ghostprocess", ghostprocessAdminRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/blocks", publicBlocksRoutes); // <-- share is public
 app.use("/api/portfolio", publicPortfolioRoutes);
