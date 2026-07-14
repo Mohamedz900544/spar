@@ -131,6 +131,8 @@ const WEEKDAY_INDEX = {
     saturday: 6,
 };
 
+const TIME_REGEX = /^([01]\d|2[0-3]):[0-5]\d$/;
+
 const toDateOnly = (value) => {
     if (!value) return "";
     const date = value instanceof Date ? value : new Date(value);
@@ -138,25 +140,62 @@ const toDateOnly = (value) => {
     return date.toISOString().slice(0, 10);
 };
 
+const normalizeWeeklySessionSlots = (roundDetails) => {
+    const {
+        weeklySessionDay,
+        weeklySessionTime,
+        twoSessionsPerWeek,
+        secondWeeklySessionDay,
+        secondWeeklySessionTime,
+    } = roundDetails;
+
+    const slots = [
+        {
+            day: weeklySessionDay,
+            time: weeklySessionTime,
+        },
+    ];
+
+    if (twoSessionsPerWeek) {
+        slots.push({
+            day: secondWeeklySessionDay,
+            time: secondWeeklySessionTime,
+        });
+    }
+
+    const seen = new Set();
+    return slots.map((slot, index) => {
+        const day = slot.day?.toString?.().trim().toLowerCase();
+        const time = slot.time?.toString?.().trim();
+        const weekdayIndex = WEEKDAY_INDEX[day];
+
+        if (weekdayIndex === undefined) {
+            throw new Error(`Valid ${index === 0 ? "first" : "second"} session weekday is required`);
+        }
+
+        if (!TIME_REGEX.test(time || "")) {
+            throw new Error(`Valid ${index === 0 ? "first" : "second"} session time is required`);
+        }
+
+        const key = `${day}-${time}`;
+        if (seen.has(key)) {
+            throw new Error("Weekly sessions cannot use the same weekday and time");
+        }
+        seen.add(key);
+
+        return { day, time, weekdayIndex };
+    });
+};
+
 const createWeeklySessions = (roundDetails) => {
     const {
         startDate,
         endDate,
-        weeklySessionDay,
-        weeklySessionTime,
         level,
         campus,
         sessionDurationMinutes = 120,
     } = roundDetails;
-
-    const weekdayIndex = WEEKDAY_INDEX[weeklySessionDay];
-    if (weekdayIndex === undefined) {
-        throw new Error("Valid weekly session day is required");
-    }
-
-    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(weeklySessionTime || "")) {
-        throw new Error("Valid weekly session time is required");
-    }
+    const slots = normalizeWeeklySessionSlots(roundDetails);
 
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -172,26 +211,37 @@ const createWeeklySessions = (roundDetails) => {
         throw new Error("End date must be after start date");
     }
 
-    const firstSessionDate = new Date(start);
-    const daysUntilSession = (weekdayIndex - firstSessionDate.getUTCDay() + 7) % 7;
-    firstSessionDate.setUTCDate(firstSessionDate.getUTCDate() + daysUntilSession);
-
     const sessions = [];
-    for (
-        const current = new Date(firstSessionDate);
-        current <= end;
-        current.setUTCDate(current.getUTCDate() + 7)
-    ) {
-        sessions.push({
-            title: `Session ${sessions.length + 1}`,
-            date: toDateOnly(current),
-            time: weeklySessionTime,
-            durationMinutes: sessionDurationMinutes,
-            level,
-            campus,
-            status: "Draft",
-        });
+    for (const slot of slots) {
+        const firstSessionDate = new Date(start);
+        const daysUntilSession = (slot.weekdayIndex - firstSessionDate.getUTCDay() + 7) % 7;
+        firstSessionDate.setUTCDate(firstSessionDate.getUTCDate() + daysUntilSession);
+
+        for (
+            const current = new Date(firstSessionDate);
+            current <= end;
+            current.setUTCDate(current.getUTCDate() + 7)
+        ) {
+            sessions.push({
+                date: toDateOnly(current),
+                time: slot.time,
+                durationMinutes: sessionDurationMinutes,
+                level,
+                campus,
+                status: "Draft",
+            });
+        }
     }
+
+    sessions.sort((a, b) => {
+        const dateCompare = a.date.localeCompare(b.date);
+        if (dateCompare !== 0) return dateCompare;
+        return a.time.localeCompare(b.time);
+    });
+
+    sessions.forEach((session, index) => {
+        session.title = `Session ${index + 1}`;
+    });
 
     return sessions;
 };
@@ -210,11 +260,22 @@ export const createRound = async (req, res) => {
 
     try {
         const { sessions, ...roundDetails } = req.body;
-        const sessionDurationMinutes = 120;
+        const twoSessionsPerWeek =
+            roundDetails.twoSessionsPerWeek === true ||
+            roundDetails.twoSessionsPerWeek === "true" ||
+            Number(roundDetails.sessionsPerWeek) === 2;
+        const sessionDurationMinutes = twoSessionsPerWeek ? 60 : 120;
         const normalizedRoundDetails = {
             ...roundDetails,
+            twoSessionsPerWeek,
+            sessionsPerWeek: twoSessionsPerWeek ? 2 : 1,
             sessionDurationMinutes,
         };
+
+        if (!twoSessionsPerWeek) {
+            delete normalizedRoundDetails.secondWeeklySessionDay;
+            delete normalizedRoundDetails.secondWeeklySessionTime;
+        }
 
         const sessionsToCreate =
             sessions && sessions.length > 0

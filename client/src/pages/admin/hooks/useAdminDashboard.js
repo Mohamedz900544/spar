@@ -369,8 +369,12 @@ export const useAdminDashboard = () => {
     campus: "",
     startDate: "",
     endDate: "",
+    twoSessionsPerWeek: false,
+    sessionsPerWeek: 1,
     weeklySessionDay: "saturday",
     weeklySessionTime: "",
+    secondWeeklySessionDay: "wednesday",
+    secondWeeklySessionTime: "",
     sessionDurationMinutes: 120,
     status: "Active",
   });
@@ -1147,7 +1151,18 @@ export const useAdminDashboard = () => {
   /* ========== ROUNDS HANDLERS ========== */
 
   const handleNewRoundChange = (field, value) => {
-    setNewRound((prev) => ({ ...prev, [field]: value }));
+    setNewRound((prev) => {
+      if (field === "twoSessionsPerWeek") {
+        return {
+          ...prev,
+          twoSessionsPerWeek: value,
+          sessionsPerWeek: value ? 2 : 1,
+          sessionDurationMinutes: value ? 60 : 120,
+        };
+      }
+
+      return { ...prev, [field]: value };
+    });
   };
 
   const handleCreateRound = async (e, setIsCreatingRound) => {
@@ -1159,9 +1174,17 @@ export const useAdminDashboard = () => {
       !newRound.startDate ||
       !newRound.endDate ||
       !newRound.weeklySessionDay ||
-      !newRound.weeklySessionTime
+      !newRound.weeklySessionTime ||
+      (
+        newRound.twoSessionsPerWeek &&
+        (!newRound.secondWeeklySessionDay || !newRound.secondWeeklySessionTime)
+      )
     ) {
-      toast.error("Please fill start date, end date, weekly day, and session time.");
+      toast.error(
+        newRound.twoSessionsPerWeek
+          ? "Please fill both weekly session days and times."
+          : "Please fill start date, end date, weekly day, and session time."
+      );
       setIsCreatingRound?.(false);
       return;
     }
@@ -1172,7 +1195,16 @@ export const useAdminDashboard = () => {
       return;
     }
 
-    const payload = { ...newRound };
+    const payload = {
+      ...newRound,
+      sessionsPerWeek: newRound.twoSessionsPerWeek ? 2 : 1,
+      sessionDurationMinutes: newRound.twoSessionsPerWeek ? 60 : 120,
+    };
+
+    if (!newRound.twoSessionsPerWeek) {
+      delete payload.secondWeeklySessionDay;
+      delete payload.secondWeeklySessionTime;
+    }
 
     try {
       const res = await fetch(`${API_BASE_URL}/api/admin/rounds`, {
@@ -1213,8 +1245,12 @@ export const useAdminDashboard = () => {
         campus: "",
         startDate: "",
         endDate: "",
+        twoSessionsPerWeek: false,
+        sessionsPerWeek: 1,
         weeklySessionDay: "saturday",
         weeklySessionTime: "",
+        secondWeeklySessionDay: "wednesday",
+        secondWeeklySessionTime: "",
         sessionDurationMinutes: 120,
         status: "Active",
       });

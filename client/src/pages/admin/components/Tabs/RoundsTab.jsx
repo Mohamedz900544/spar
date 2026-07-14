@@ -44,6 +44,30 @@ const formatTime = (value) => {
     });
 };
 
+const isTwoSessionsRound = (round) =>
+    Boolean(round?.twoSessionsPerWeek || Number(round?.sessionsPerWeek) === 2);
+
+const formatDuration = (minutes) => {
+    const normalizedMinutes = Number(minutes) || 120;
+    if (normalizedMinutes === 60) return "1 hour";
+    if (normalizedMinutes % 60 === 0) return `${normalizedMinutes / 60} hours`;
+    return `${normalizedMinutes} minutes`;
+};
+
+const formatRoundSchedule = (round) => {
+    const firstSession = `${WEEKDAY_LABELS[round.weeklySessionDay] || "TBA"} at ${formatTime(round.weeklySessionTime)}`;
+    const duration = formatDuration(
+        round.sessionDurationMinutes || (isTwoSessionsRound(round) ? 60 : 120)
+    );
+
+    if (!isTwoSessionsRound(round)) {
+        return `${firstSession} - ${duration}`;
+    }
+
+    const secondSession = `${WEEKDAY_LABELS[round.secondWeeklySessionDay] || "TBA"} at ${formatTime(round.secondWeeklySessionTime)}`;
+    return `${firstSession} + ${secondSession} - ${duration} each`;
+};
+
 //some styles for scrollbar
 const scrollbarStyles = `
   .custom-scrollbar::-webkit-scrollbar {
@@ -179,10 +203,30 @@ export const RoundsTab = ({
                         />
                     </div>
                 </div>
+
+                <label className="flex items-start gap-2 rounded-xl border border-[#e2e8f0] bg-white px-3 py-2 text-xs text-slate-700">
+                    <input
+                        type="checkbox"
+                        checked={Boolean(newRound.twoSessionsPerWeek)}
+                        onChange={(e) =>
+                            handleNewRoundChange("twoSessionsPerWeek", e.target.checked)
+                        }
+                        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#102a5a] focus:ring-[#FBBF24]"
+                    />
+                    <span>
+                        <span className="block font-semibold text-slate-800">
+                            2 sessions per week
+                        </span>
+                        <span className="block text-[11px] text-slate-500">
+                            Each session is 1 hour.
+                        </span>
+                    </span>
+                </label>
+
                 <div className="grid grid-cols-2 gap-3">
                     <div>
                         <label className="block text-xs font-medium text-slate-700 mb-1">
-                            Weekly session day
+                            {newRound.twoSessionsPerWeek ? "First session day" : "Weekly session day"}
                         </label>
                         <select
                             className="w-full rounded-xl border border-[#e2e8f0] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
@@ -200,7 +244,7 @@ export const RoundsTab = ({
                     </div>
                     <div>
                         <label className="block text-xs font-medium text-slate-700 mb-1">
-                            Weekly session time
+                            {newRound.twoSessionsPerWeek ? "First session time" : "Weekly session time"}
                         </label>
                         <input
                             type="time"
@@ -213,9 +257,46 @@ export const RoundsTab = ({
                     </div>
                 </div>
 
+                {newRound.twoSessionsPerWeek && (
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-xs font-medium text-slate-700 mb-1">
+                                Second session day
+                            </label>
+                            <select
+                                className="w-full rounded-xl border border-[#e2e8f0] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
+                                value={newRound.secondWeeklySessionDay}
+                                onChange={(e) =>
+                                    handleNewRoundChange("secondWeeklySessionDay", e.target.value)
+                                }
+                            >
+                                {WEEKDAY_OPTIONS.map((day) => (
+                                    <option key={day.value} value={day.value}>
+                                        {day.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-slate-700 mb-1">
+                                Second session time
+                            </label>
+                            <input
+                                type="time"
+                                className="w-full rounded-xl border border-[#e2e8f0] px-3 py-2 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-[#FBBF24]"
+                                value={newRound.secondWeeklySessionTime}
+                                onChange={(e) =>
+                                    handleNewRoundChange("secondWeeklySessionTime", e.target.value)
+                                }
+                            />
+                        </div>
+                    </div>
+                )}
+
                 <div className="rounded-xl border border-[#e2e8f0] bg-slate-50 px-3 py-2 text-[11px] text-slate-600">
-                    The system will create one weekly session on the selected day
-                    between the start and end dates. Every session is fixed at 2 hours.
+                    {newRound.twoSessionsPerWeek
+                        ? "The system will create two weekly one-hour sessions between the start and end dates."
+                        : "The system will create one weekly 2-hour session between the start and end dates."}
                 </div>
 
                 <Button type="submit" text={'Create round'} isLoading={isCreatingRound} />
@@ -250,7 +331,7 @@ export const RoundsTab = ({
                                         <p className="text-[11px] text-slate-500">
                                             {formatDate(r.startDate)} to {formatDate(r.endDate)} -{" "}
                                             {r.sessionsCount || 0} sessions -{" "}
-                                            {WEEKDAY_LABELS[r.weeklySessionDay] || "TBA"} at {formatTime(r.weeklySessionTime)} - 2 hours
+                                            {formatRoundSchedule(r)}
                                         </p>
                                     </div>
                                     <p className="text-[11px] text-slate-500 mt-1">
