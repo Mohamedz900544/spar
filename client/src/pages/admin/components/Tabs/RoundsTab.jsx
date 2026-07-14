@@ -121,7 +121,7 @@ export const RoundsTab = ({
         {/* Create round */}
         <div className="bg-white rounded-2xl border border-[#e2e8f0] p-5 shadow-sm lg:col-span-1">
             <h2 className="text-sm md:text-base font-semibold text-slate-900 mb-3">
-                Create new round
+                Create new roundd
             </h2>
             <form
                 onSubmit={(e) => handleCreateRound(e, setIsCreatingRound)}
