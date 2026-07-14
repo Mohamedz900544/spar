@@ -663,6 +663,116 @@ export const useAdminDashboard = () => {
       toast.error(err.message || "Failed to delete parent");
     }
   };
+
+  const handleLinkRoundToChild = async ({ parentId, childId, roundId }) => {
+    const token = getTokenOrRedirect();
+    if (!token) return false;
+
+    if (!parentId || !childId || !roundId) {
+      toast.error("Please choose a child and a round.");
+      return false;
+    }
+
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/api/admin/parents/${parentId}/children/${childId}/rounds`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ roundId }),
+        }
+      );
+
+      const data = await parseResponseOrThrow(res, "Failed to link round");
+
+      if (data.parent) {
+        const normalizedParent = {
+          ...data.parent,
+          id: getSessionId(data.parent),
+        };
+        const updatedParentId = (normalizedParent.id || parentId)?.toString?.();
+
+        setUsers((prev) =>
+          prev.map((user) => {
+            const userId = (user.id || user._id)?.toString?.();
+            return userId === updatedParentId ? normalizedParent : user;
+          })
+        );
+      }
+
+      if (data.enrollment) {
+        const normalizedEnrollment = {
+          ...data.enrollment,
+          id: getSessionId(data.enrollment),
+        };
+        const enrollmentId = normalizedEnrollment.id?.toString?.();
+
+        setEnrollments((prev) => {
+          const exists = prev.some(
+            (enrollment) =>
+              (enrollment.id || enrollment._id)?.toString?.() === enrollmentId
+          );
+          return exists
+            ? prev.map((enrollment) =>
+              (enrollment.id || enrollment._id)?.toString?.() === enrollmentId
+                ? normalizedEnrollment
+                : enrollment
+            )
+            : [normalizedEnrollment, ...prev];
+        });
+      }
+
+      if (data.round) {
+        const normalizedRound = {
+          ...data.round,
+          id: getSessionId(data.round),
+        };
+        const normalizedRoundId = normalizedRound.id?.toString?.();
+
+        setRounds((prev) =>
+          prev.some(
+            (round) => (round.id || round._id)?.toString?.() === normalizedRoundId
+          )
+            ? prev
+            : [normalizedRound, ...prev]
+        );
+      }
+
+      if (Array.isArray(data.updatedSessions)) {
+        const updatedSessions = data.updatedSessions.map((session) => ({
+          ...session,
+          id: getSessionId(session),
+          date: getSessionDateKey(session),
+        }));
+        const updatedById = new Map(
+          updatedSessions.map((session) => [
+            (session.id || session._id)?.toString?.(),
+            session,
+          ])
+        );
+
+        setSessions((prev) =>
+          sortSessionsBySchedule(
+            prev.map((session) => {
+              const sessionId = (session.id || session._id)?.toString?.();
+              const updated = updatedById.get(sessionId);
+              return updated ? { ...session, ...updated } : session;
+            })
+          )
+        );
+      }
+
+      toast.success("Round linked to child successfully");
+      return true;
+    } catch (err) {
+      console.error("Link child round error:", err);
+      toast.error(err.message || "Failed to link round");
+      return false;
+    }
+  };
   // ***********************
 
   async function deleteSessions(id) {
@@ -1610,6 +1720,7 @@ export const useAdminDashboard = () => {
     userSearch,
     setUserSearch,
     handleDeleteParent,
+    handleLinkRoundToChild,
     blockProjectsByUser,
 
     // rounds

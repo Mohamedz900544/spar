@@ -1,6 +1,7 @@
 // src/routes/adminRoutes.js
 import express from "express";
 import bcrypt from "bcryptjs";
+import mongoose from "mongoose";
 import { authRequired, adminOnly } from "../middleware/auth.js";
 import Session from "../models/Session.js";
 import Enrollment from "../models/Enrollment.js";
@@ -528,6 +529,128 @@ router.delete("/sales-agents/:id", authRequired, adminOnly, async (req, res) => 
     });
   } catch (err) {
     console.error("Delete sales agent error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.post("/parents/:parentId/children/:childId/rounds", authRequired, adminOnly, async (req, res) => {
+  try {
+    const { parentId, childId } = req.params;
+    const { roundId, roundCode, code } = req.body;
+
+    if (
+      !mongoose.Types.ObjectId.isValid(parentId) ||
+      !mongoose.Types.ObjectId.isValid(childId)
+    ) {
+      return res.status(400).json({ message: "Invalid parent or child id" });
+    }
+
+    if (!roundId && !roundCode && !code) {
+      return res.status(400).json({ message: "Round is required" });
+    }
+
+    const parent = await User.findOne({ _id: parentId, role: "parent" });
+    if (!parent) {
+      return res.status(404).json({ message: "Parent not found" });
+    }
+
+    const child = parent.children.id(childId);
+    if (!child) {
+      return res.status(404).json({ message: "Child not found in parent profile" });
+    }
+
+    const normalizedCode = (roundCode || code || "").toString().trim().toUpperCase();
+    const roundQuery = roundId
+      ? { _id: roundId }
+      : { code: normalizedCode };
+
+    if (roundId && !mongoose.Types.ObjectId.isValid(roundId)) {
+      return res.status(400).json({ message: "Invalid round id" });
+    }
+
+    const round = await Round.findOne(roundQuery).populate("sessions").lean();
+    if (!round) {
+      return res.status(404).json({ message: "Round not found" });
+    }
+
+    const firstSession = Array.isArray(round.sessions) ? round.sessions[0] : null;
+    const capacity = Number(firstSession?.capacity || 0);
+    const enrolled = Number(firstSession?.enrolled || 0);
+    if (capacity > 0 && enrolled >= capacity) {
+      return res.status(400).json({ message: "This round is fully booked." });
+    }
+
+    const existing = await Enrollment.findOne({
+      user: parent._id,
+      childId: child._id,
+      $or: [{ round: round._id }, { roundCode: round.code }],
+    }).lean();
+
+    if (existing) {
+      return res.status(409).json({
+        message: `Child ${child.name} is already enrolled in this round`,
+      });
+    }
+
+    const enrollment = await Enrollment.create({
+      user: parent._id,
+      childId: child._id,
+      childName: child.name,
+      parentName: parent.name,
+      phone: parent.phone,
+      level: round.level || "Level 1",
+      sessionTitle: round.name || "",
+      status: "Pending",
+      roundCode: round.code,
+      round: round._id,
+    });
+
+    await Session.updateMany(
+      { round: round._id },
+      { $inc: { enrolled: 1 } }
+    );
+
+    await User.updateOne(
+      { _id: parent._id, "children._id": child._id },
+      {
+        $addToSet: {
+          linkedRounds: round._id,
+          linkedRoundCodes: round.code,
+          "children.$.enrolledRounds": round._id,
+        },
+      }
+    );
+
+    const [updatedParent, updatedSessions] = await Promise.all([
+      User.findById(parent._id)
+        .select("name email phone photoUrl children createdAt linkedRoundCodes linkedRounds")
+        .lean(),
+      Session.find({ round: round._id }).lean(),
+    ]);
+
+    return res.status(201).json({
+      message: "Round linked to child successfully",
+      parent: updatedParent
+        ? {
+            ...updatedParent,
+            id: updatedParent._id.toString(),
+          }
+        : null,
+      enrollment: {
+        ...enrollment.toObject(),
+        id: enrollment._id.toString(),
+      },
+      round: {
+        ...round,
+        id: round._id.toString(),
+      },
+      updatedSessions: updatedSessions.map((session) => ({
+        ...session,
+        id: session._id.toString(),
+      })),
+    });
+  } catch (err) {
+    console.error("Admin link child round error:", err);
     return res.status(500).json({ message: "Server error" });
   }
 });
