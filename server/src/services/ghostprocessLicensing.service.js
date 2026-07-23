@@ -736,6 +736,11 @@ export const listGhostProcessLogs = async ({ license_id, limit = 100 } = {}) => 
   const parsedLimit = Math.min(Math.max(Number.parseInt(limit, 10) || 100, 1), 300);
   const filter =
     license_id && isValidObjectId(license_id) ? { license: license_id } : {};
+  const visibleConsumptionFilter = {
+    ...filter,
+    response_json: { $ne: null },
+    hidden_from_logs: { $ne: true },
+  };
 
   const [apiLogs, consumptionLogs] = await Promise.all([
     GhostProcessApiLog.find(filter)
@@ -743,7 +748,7 @@ export const listGhostProcessLogs = async ({ license_id, limit = 100 } = {}) => 
       .limit(parsedLimit)
       .populate("license", "code customer_name")
       .lean(),
-    GhostProcessConsumptionRequest.find(filter)
+    GhostProcessConsumptionRequest.find(visibleConsumptionFilter)
       .sort({ created_at: -1 })
       .limit(parsedLimit)
       .populate("license", "code customer_name")
@@ -768,19 +773,44 @@ export const listGhostProcessLogs = async ({ license_id, limit = 100 } = {}) => 
       meta: sanitizeForLicenseLog(log.meta || {}),
       created_at: serializeDate(log.created_at),
     })),
-    consumption_logs: consumptionLogs
-      .filter((log) => log.response_json)
-      .map((log) => ({
-        id: log._id.toString(),
-        license_id: getObjectIdString(log.license),
-        code: log.license?.code || null,
-        customer_name: log.license?.customer_name || null,
-        request_id: log.request_id,
-        hardware_id: log.hardware_id,
-        remaining_before: log.remaining_before,
-        remaining_after: log.remaining_after,
-        created_at: serializeDate(log.created_at),
-      })),
+    consumption_logs: consumptionLogs.map((log) => ({
+      id: log._id.toString(),
+      license_id: getObjectIdString(log.license),
+      code: log.license?.code || null,
+      customer_name: log.license?.customer_name || null,
+      request_id: log.request_id,
+      hardware_id: log.hardware_id,
+      remaining_before: log.remaining_before,
+      remaining_after: log.remaining_after,
+      created_at: serializeDate(log.created_at),
+    })),
+  };
+};
+
+export const deleteGhostProcessLogs = async ({ license_id } = {}) => {
+  const filter =
+    license_id && isValidObjectId(license_id) ? { license: license_id } : {};
+
+  const [apiLogsResult, consumptionLogsResult] = await Promise.all([
+    GhostProcessApiLog.deleteMany(filter),
+    GhostProcessConsumptionRequest.updateMany(
+      {
+        ...filter,
+        response_json: { $ne: null },
+        hidden_from_logs: { $ne: true },
+      },
+      {
+        $set: {
+          hidden_from_logs: true,
+          logs_hidden_at: new Date(),
+        },
+      }
+    ),
+  ]);
+
+  return {
+    api_logs_deleted: apiLogsResult.deletedCount || 0,
+    consumption_logs_removed: consumptionLogsResult.modifiedCount || 0,
   };
 };
 

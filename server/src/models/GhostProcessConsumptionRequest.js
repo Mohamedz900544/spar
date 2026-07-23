@@ -32,6 +32,15 @@ const ghostProcessConsumptionRequestSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.Mixed,
       default: null,
     },
+    hidden_from_logs: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    logs_hidden_at: {
+      type: Date,
+      default: null,
+    },
     created_at: {
       type: Date,
       default: Date.now,

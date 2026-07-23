@@ -11,6 +11,7 @@ import {
   RotateCcw,
   Save,
   Search,
+  Trash2,
 } from "lucide-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -103,6 +104,7 @@ const GhostProcessLicensingTab = () => {
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [isDeletingLogs, setIsDeletingLogs] = useState(false);
   const [isRefreshingKey, setIsRefreshingKey] = useState(false);
 
   const apiFetch = useCallback(async (path, options = {}) => {
@@ -317,6 +319,37 @@ const GhostProcessLicensingTab = () => {
       await loadLogs(licenseId);
     } catch (error) {
       toast.error(error.message || "Could not load logs");
+    }
+  };
+
+  const handleDeleteLogs = async () => {
+    const selectedLicense = licenses.find(
+      (license) => `${getLicenseId(license)}` === `${selectedLicenseId}`
+    );
+    const targetLabel = selectedLicense
+      ? `logs for ${selectedLicense.code}`
+      : "all GhostProcess logs";
+    const confirmed = window.confirm(`Delete ${targetLabel}?`);
+    if (!confirmed) return;
+
+    try {
+      setIsDeletingLogs(true);
+      const params = new URLSearchParams();
+      if (selectedLicenseId) params.set("license_id", selectedLicenseId);
+      const path = params.toString() ? `/logs?${params.toString()}` : "/logs";
+      const data = await apiFetch(path, { method: "DELETE" });
+      setApiLogs([]);
+      setConsumptionLogs([]);
+      const deletedCount =
+        Number(data.api_logs_deleted || 0) +
+        Number(data.consumption_logs_removed || 0);
+      toast.success(
+        deletedCount > 0 ? `Deleted ${deletedCount} logs` : "No logs to delete"
+      );
+    } catch (error) {
+      toast.error(error.message || "Could not delete logs");
+    } finally {
+      setIsDeletingLogs(false);
     }
   };
 
@@ -758,6 +791,18 @@ const GhostProcessLicensingTab = () => {
             >
               <RefreshCw className="h-4 w-4" />
               Refresh
+            </button>
+            <button
+              type="button"
+              onClick={handleDeleteLogs}
+              disabled={
+                isDeletingLogs ||
+                (apiLogs.length === 0 && consumptionLogs.length === 0)
+              }
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-rose-600 px-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Trash2 className="h-4 w-4" />
+              {isDeletingLogs ? "Deleting..." : "Delete Logs"}
             </button>
           </div>
         </div>

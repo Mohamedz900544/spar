@@ -4,6 +4,7 @@ import { authRequired, adminOnly } from "../middleware/auth.js";
 import {
   addQuestionsToLicense,
   createGhostProcessLicenses,
+  deleteGhostProcessLogs,
   getOpenAIKeyStatus,
   listGhostProcessLicenses,
   listGhostProcessLogs,
@@ -164,6 +165,21 @@ router.get(
       return res.json({ ok: true, ...logs });
     } catch (error) {
       console.error("GhostProcess logs error:", safeErrorMessage(error));
+      return res.status(500).json({ ok: false, message: "Server error" });
+    }
+  }
+);
+
+router.delete(
+  "/logs",
+  [query("license_id").optional({ checkFalsy: true }).isMongoId()],
+  async (req, res) => {
+    if (sendValidationErrors(req, res)) return;
+    try {
+      const result = await deleteGhostProcessLogs(req.query);
+      return res.json({ ok: true, ...result });
+    } catch (error) {
+      console.error("GhostProcess delete logs error:", safeErrorMessage(error));
       return res.status(500).json({ ok: false, message: "Server error" });
     }
   }
