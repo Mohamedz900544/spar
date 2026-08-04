@@ -1,7 +1,10 @@
 import express from "express";
+import mongoose from "mongoose";
 import Lead, { LEAD_STATUSES } from "../models/Lead.js";
 import { authRequired, agentOrAdmin } from "../middleware/auth.js";
 import User from "../models/User.js";
+import Round from "../models/Round.js";
+import Session from "../models/Session.js";
 import {
   notifyInstructorFreeSessionAssigned,
   notifyParentFreeSessionAssigned,
@@ -42,6 +45,8 @@ const FREE_SESSION_TIMEZONE = "Africa/Cairo";
 const PUBLIC_FREE_SESSION_DAYS_AHEAD = 3;
 const PUBLIC_FREE_SESSION_MIN_LEAD_MINUTES = 120;
 const PUBLIC_FREE_SESSION_MAX_SLOTS = 180;
+const ROUND_SESSION_FALLBACK_DURATION_MINUTES = 120;
+const SESSION_TIME_REGEX = /^([01]\d|2[0-3]):[0-5]\d$/;
 const LOCAL_DATE_TIME_REGEX =
   /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d{1,3})?)?$/;
 const WEEKDAY_NAME_TO_KEY = {
@@ -385,12 +390,233 @@ const stringifyId = (value) => {
   return `${value}`;
 };
 
+const normalizeRoundCode = (value) =>
+  value?.toString?.().trim().toUpperCase() || "";
+
+const getSessionDateKey = (value) => {
+  if (!value) return "";
+
+  if (typeof value === "string") {
+    const match = value.trim().match(/^(\d{4}-\d{2}-\d{2})/);
+    if (match) return match[1];
+  }
+
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toISOString().slice(0, 10);
+};
+
+const resolveRoundSessionRange = (session, round) => {
+  const dateKey = getSessionDateKey(session?.date);
+  const time = `${session?.time || ""}`.trim();
+  if (!dateKey || !SESSION_TIME_REGEX.test(time)) {
+    return null;
+  }
+
+  const startDate = parseDateTimeInTimeZone(
+    `${dateKey}T${time}:00`,
+    FREE_SESSION_TIMEZONE
+  );
+  if (Number.isNaN(startDate.getTime())) {
+    return null;
+  }
+
+  const durationRaw = Number(
+    session?.durationMinutes ?? round?.sessionDurationMinutes
+  );
+  const durationMinutes =
+    Number.isFinite(durationRaw) && durationRaw > 0
+      ? durationRaw
+      : ROUND_SESSION_FALLBACK_DURATION_MINUTES;
+  const endDate = new Date(startDate.getTime() + durationMinutes * 60 * 1000);
+
+  return {
+    source: "round",
+    sessionId: stringifyId(session?._id || session?.id),
+    roundId: stringifyId(round?._id || round?.id || session?.round),
+    roundCode: round?.code || "",
+    roundName: round?.name || "",
+    sessionTitle: session?.title || "",
+    durationMinutes,
+    startDate,
+    endDate,
+  };
+};
+
+const cloneBusyRangesByInstructor = (sourceRangesByInstructor) => {
+  const rangesByInstructor = new Map();
+
+  for (const [instructorId, ranges] of sourceRangesByInstructor || []) {
+    const normalizedInstructorId = stringifyId(instructorId);
+    if (!normalizedInstructorId || !Array.isArray(ranges)) continue;
+
+    const clonedRanges = ranges
+      .map((range) => {
+        const startDate =
+          range?.startDate instanceof Date
+            ? range.startDate
+            : new Date(range?.startDate);
+        const endDate =
+          range?.endDate instanceof Date ? range.endDate : new Date(range?.endDate);
+
+        if (
+          Number.isNaN(startDate.getTime()) ||
+          Number.isNaN(endDate.getTime()) ||
+          startDate.getTime() >= endDate.getTime()
+        ) {
+          return null;
+        }
+
+        return {
+          ...range,
+          instructorId: normalizedInstructorId,
+          startDate,
+          endDate,
+        };
+      })
+      .filter(Boolean);
+
+    if (clonedRanges.length) {
+      rangesByInstructor.set(normalizedInstructorId, clonedRanges);
+    }
+  }
+
+  return rangesByInstructor;
+};
+
+const serializeBusyRange = (range) => ({
+  ...range,
+  startDate: range.startDate?.toISOString?.() || range.startDate,
+  endDate: range.endDate?.toISOString?.() || range.endDate,
+});
+
+const loadRoundBusyRangesByInstructor = async (instructors = []) => {
+  const instructorRoundLinks = new Map();
+  const allRoundIds = new Set();
+  const allRoundCodes = new Set();
+
+  for (const instructor of instructors || []) {
+    const instructorId = stringifyId(instructor?._id || instructor?.id);
+    if (!instructorId) continue;
+
+    const roundIds = new Set();
+    for (const linkedRound of instructor.linkedRounds || []) {
+      const roundId = stringifyId(linkedRound);
+      if (!roundId || !mongoose.Types.ObjectId.isValid(roundId)) continue;
+      roundIds.add(roundId);
+      allRoundIds.add(roundId);
+    }
+
+    const roundCodes = new Set();
+    for (const linkedRoundCode of instructor.linkedRoundCodes || []) {
+      const roundCode = normalizeRoundCode(linkedRoundCode);
+      if (!roundCode) continue;
+      roundCodes.add(roundCode);
+      allRoundCodes.add(roundCode);
+    }
+
+    if (roundIds.size || roundCodes.size) {
+      instructorRoundLinks.set(instructorId, { roundIds, roundCodes });
+    }
+  }
+
+  if (!instructorRoundLinks.size) {
+    return new Map();
+  }
+
+  const roundClauses = [];
+  if (allRoundIds.size) {
+    roundClauses.push({ _id: { $in: Array.from(allRoundIds) } });
+  }
+  if (allRoundCodes.size) {
+    roundClauses.push({ code: { $in: Array.from(allRoundCodes) } });
+  }
+
+  const roundQuery =
+    roundClauses.length === 1 ? roundClauses[0] : { $or: roundClauses };
+  const rounds = await Round.find(roundQuery)
+    .select("code name sessionDurationMinutes status")
+    .lean();
+  if (!rounds.length) {
+    return new Map();
+  }
+
+  const roundById = new Map();
+  const roundIdsByInstructor = new Map();
+
+  for (const round of rounds) {
+    const roundId = stringifyId(round._id);
+    const roundCode = normalizeRoundCode(round.code);
+    if (!roundId) continue;
+
+    roundById.set(roundId, round);
+
+    for (const [instructorId, links] of instructorRoundLinks) {
+      if (links.roundIds.has(roundId) || links.roundCodes.has(roundCode)) {
+        if (!roundIdsByInstructor.has(instructorId)) {
+          roundIdsByInstructor.set(instructorId, new Set());
+        }
+        roundIdsByInstructor.get(instructorId).add(roundId);
+      }
+    }
+  }
+
+  const matchedRoundIds = Array.from(roundById.keys());
+  if (!matchedRoundIds.length) {
+    return new Map();
+  }
+
+  const sessions = await Session.find({ round: { $in: matchedRoundIds } })
+    .select("round title date time durationMinutes status")
+    .lean();
+
+  const sessionsByRound = new Map();
+  for (const session of sessions) {
+    if (session.status === "Completed") continue;
+
+    const roundId = stringifyId(session.round);
+    if (!roundId) continue;
+    if (!sessionsByRound.has(roundId)) {
+      sessionsByRound.set(roundId, []);
+    }
+    sessionsByRound.get(roundId).push(session);
+  }
+
+  const rangesByInstructor = new Map();
+  for (const [instructorId, roundIds] of roundIdsByInstructor) {
+    const ranges = [];
+
+    for (const roundId of roundIds) {
+      const round = roundById.get(roundId);
+      if (round?.status === "Completed") continue;
+
+      for (const session of sessionsByRound.get(roundId) || []) {
+        const range = resolveRoundSessionRange(session, round);
+        if (!range) continue;
+        ranges.push({ instructorId, ...range });
+      }
+    }
+
+    if (ranges.length) {
+      ranges.sort(
+        (first, second) => first.startDate.getTime() - second.startDate.getTime()
+      );
+      rangesByInstructor.set(instructorId, ranges);
+    }
+  }
+
+  return rangesByInstructor;
+};
+
 const buildBusyRangesByInstructor = (
   assignedSessions,
   fallbackDurationMinutes,
-  excludedLeadId = ""
+  excludedLeadId = "",
+  seedBusyRangesByInstructor = new Map()
 ) => {
-  const rangesByInstructor = new Map();
+  const rangesByInstructor = cloneBusyRangesByInstructor(
+    seedBusyRangesByInstructor
+  );
 
   for (const lead of assignedSessions || []) {
     const leadId = stringifyId(lead._id || lead.id);
@@ -408,7 +634,13 @@ const buildBusyRangesByInstructor = (
     if (!rangesByInstructor.has(instructorId)) {
       rangesByInstructor.set(instructorId, []);
     }
-    rangesByInstructor.get(instructorId).push({ leadId, ...range });
+    rangesByInstructor.get(instructorId).push({
+      source: "freeSession",
+      leadId,
+      parentName: lead.parentName || "",
+      childName: lead.childName || "",
+      ...range,
+    });
   }
 
   return rangesByInstructor;
@@ -449,6 +681,7 @@ const getAvailableInstructorsForScheduledDate = ({
   assignedSessions,
   durationMinutes,
   excludedLeadId = "",
+  seedBusyRangesByInstructor = new Map(),
 }) => {
   const targetRange = {
     startDate: scheduledDate,
@@ -457,7 +690,8 @@ const getAvailableInstructorsForScheduledDate = ({
   const busyRangesByInstructor = buildBusyRangesByInstructor(
     assignedSessions,
     durationMinutes,
-    excludedLeadId
+    excludedLeadId,
+    seedBusyRangesByInstructor
   );
 
   return (instructors || []).reduce((available, instructor) => {
@@ -521,6 +755,7 @@ const buildPublicFreeSessionSlots = ({
   instructors,
   assignedSessions,
   now = new Date(),
+  seedBusyRangesByInstructor = new Map(),
 }) => {
   const durationMinutes = getFreeSessionDurationMinutes();
   const minLeadMinutes = getPublicFreeSessionMinLeadMinutes();
@@ -528,7 +763,9 @@ const buildPublicFreeSessionSlots = ({
   const daysAhead = getPublicFreeSessionDaysAhead();
   const busyRangesByInstructor = buildBusyRangesByInstructor(
     assignedSessions,
-    durationMinutes
+    durationMinutes,
+    "",
+    seedBusyRangesByInstructor
   );
   const slotsByStart = new Map();
 
@@ -603,10 +840,10 @@ const buildPublicFreeSessionSlots = ({
     .slice(0, PUBLIC_FREE_SESSION_MAX_SLOTS);
 };
 
-const loadFreeSessionBookingData = () =>
-  Promise.all([
+const loadFreeSessionBookingData = async () => {
+  const [instructors, assignedSessions] = await Promise.all([
     User.find({ role: "instructor" })
-      .select("name email phone campusCode workingHours")
+      .select("name email phone campusCode workingHours linkedRounds linkedRoundCodes")
       .lean(),
     Lead.find({
       "freeSession.isAssigned": true,
@@ -615,6 +852,11 @@ const loadFreeSessionBookingData = () =>
       .select("parentName childName freeSession")
       .lean(),
   ]);
+  const roundBusyRangesByInstructor =
+    await loadRoundBusyRangesByInstructor(instructors);
+
+  return [instructors, assignedSessions, roundBusyRangesByInstructor];
+};
 
 const pickRandomItem = (items) =>
   items[Math.floor(Math.random() * items.length)];
@@ -640,13 +882,15 @@ const isValidEmail = (value) =>
 
 router.get("/public/free-session/slots", async (_req, res) => {
   try {
-    const [instructors, assignedSessions] = await loadFreeSessionBookingData();
+    const [instructors, assignedSessions, roundBusyRangesByInstructor] =
+      await loadFreeSessionBookingData();
     const durationMinutes = getFreeSessionDurationMinutes();
     const minLeadMinutes = getPublicFreeSessionMinLeadMinutes();
     const days = buildPublicFreeSessionDays();
     const slots = buildPublicFreeSessionSlots({
       instructors,
       assignedSessions,
+      seedBusyRangesByInstructor: roundBusyRangesByInstructor,
     });
 
     return res.json({
@@ -717,12 +961,14 @@ router.post("/public/free-session/book", async (req, res) => {
 
     const durationMinutes = getFreeSessionDurationMinutes();
     const followUpDelayMinutes = getFreeSessionFollowUpDelayMinutes();
-    const [instructors, assignedSessions] = await loadFreeSessionBookingData();
+    const [instructors, assignedSessions, roundBusyRangesByInstructor] =
+      await loadFreeSessionBookingData();
     const availableInstructors = getAvailableInstructorsForScheduledDate({
       scheduledDate,
       instructors,
       assignedSessions,
       durationMinutes,
+      seedBusyRangesByInstructor: roundBusyRangesByInstructor,
     });
 
     if (!availableInstructors.length) {
@@ -836,10 +1082,12 @@ router.get("/dashboard", authRequired, agentOrAdmin, async (_req, res) => {
     const [leads, instructors] = await Promise.all([
       Lead.find().sort({ createdAt: -1 }).lean(),
       User.find({ role: "instructor" })
-        .select("name email phone campusCode workingHours")
+        .select("name email phone campusCode workingHours linkedRounds linkedRoundCodes")
         .sort({ createdAt: -1 })
         .lean(),
     ]);
+    const roundBusyRangesByInstructor =
+      await loadRoundBusyRangesByInstructor(instructors);
 
     const stats = LEAD_STATUSES.reduce(
       (acc, status) => ({ ...acc, [status]: 0 }),
@@ -863,7 +1111,11 @@ router.get("/dashboard", authRequired, agentOrAdmin, async (_req, res) => {
         ...instructor,
         id: instructor._id.toString(),
         workingHours: normalizeInstructorWorkingHours(instructor.workingHours),
+        busyRanges: (
+          roundBusyRangesByInstructor.get(instructor._id.toString()) || []
+        ).map(serializeBusyRange),
       })),
+      freeSessionDurationMinutes: getFreeSessionDurationMinutes(),
     });
   } catch (err) {
     console.error("Sales dashboard error:", err);
@@ -1379,28 +1631,42 @@ router.patch("/leads/:id/free-session", authRequired, agentOrAdmin, async (req, 
     })
       .select("parentName childName freeSession")
       .lean();
+    const roundBusyRangesByInstructor =
+      await loadRoundBusyRangesByInstructor([instructor]);
+    const busyRangesByInstructor = buildBusyRangesByInstructor(
+      instructorAssignedSessions,
+      durationMinutes,
+      req.params.id,
+      roundBusyRangesByInstructor
+    );
+    const conflictingRange = (
+      busyRangesByInstructor.get(stringifyId(instructor._id)) || []
+    ).find((busyRange) => rangesOverlap(targetRange, busyRange));
 
-    const conflictingLead = instructorAssignedSessions.find((existingLead) => {
-      const existingRange = resolveFreeSessionRange(
-        existingLead.freeSession,
-        durationMinutes
-      );
-      return rangesOverlap(targetRange, existingRange);
-    });
-
-    if (conflictingLead) {
-      const conflictStart = conflictingLead.freeSession?.scheduledAt
-        ? new Date(conflictingLead.freeSession.scheduledAt).toLocaleString("en-GB", {
+    if (conflictingRange) {
+      const conflictStart = conflictingRange.startDate
+        ? new Date(conflictingRange.startDate).toLocaleString("en-GB", {
             timeZone: "Africa/Cairo",
           })
         : "this selected time";
+      const conflictLabel =
+        conflictingRange.source === "round"
+          ? `round ${conflictingRange.roundCode || conflictingRange.roundName || ""}`.trim()
+          : "free session";
       return res.status(409).json({
-        message: `This instructor already has a session at ${conflictStart}. Choose another slot.`,
+        message: `This instructor already has ${conflictLabel} at ${conflictStart}. Choose another slot.`,
         conflict: {
-          leadId: conflictingLead._id?.toString?.() || "",
-          parentName: conflictingLead.parentName || "",
-          childName: conflictingLead.childName || "",
-          scheduledAt: conflictingLead.freeSession?.scheduledAt || null,
+          source: conflictingRange.source || "busy",
+          leadId: conflictingRange.leadId || "",
+          parentName: conflictingRange.parentName || "",
+          childName: conflictingRange.childName || "",
+          roundId: conflictingRange.roundId || "",
+          roundCode: conflictingRange.roundCode || "",
+          roundName: conflictingRange.roundName || "",
+          sessionId: conflictingRange.sessionId || "",
+          sessionTitle: conflictingRange.sessionTitle || "",
+          scheduledAt: conflictingRange.startDate || null,
+          endsAt: conflictingRange.endDate || null,
         },
       });
     }

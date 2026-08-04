@@ -182,6 +182,48 @@ const resolveLeadSessionRange = (lead, fallbackDurationMinutes = 60) => {
   };
 };
 
+const resolveInstructorBusyRange = (busyRange, fallbackInstructorId = "") => {
+  const instructorId = (
+    busyRange?.instructorId ||
+    busyRange?.instructor ||
+    fallbackInstructorId ||
+    ""
+  ).toString();
+  const startDate = new Date(busyRange?.startDate || busyRange?.scheduledAt || "");
+  const endDate = new Date(busyRange?.endDate || busyRange?.endsAt || "");
+
+  if (
+    !instructorId ||
+    Number.isNaN(startDate.getTime()) ||
+    Number.isNaN(endDate.getTime()) ||
+    startDate.getTime() >= endDate.getTime()
+  ) {
+    return null;
+  }
+
+  return {
+    ...busyRange,
+    instructorId,
+    startDate,
+    endDate,
+  };
+};
+
+const getBusyRangeLabel = (busyRange) => {
+  if (!busyRange) return "";
+  if (busyRange.source === "round") {
+    return busyRange.roundCode
+      ? `Round ${busyRange.roundCode}`
+      : busyRange.roundName || "Round session";
+  }
+  if (busyRange.source === "freeSession") {
+    return busyRange.childName
+      ? `Free session - ${busyRange.childName}`
+      : "Free session";
+  }
+  return "Busy";
+};
+
 const getFreeSessionStatus = (lead, now = new Date()) => {
   if (!lead?.freeSession?.isAssigned) {
     return "pending";
@@ -195,7 +237,7 @@ const getFreeSessionStatus = (lead, now = new Date()) => {
   return "assigned";
 };
 
-const buildBusyRangesByInstructor = (leads) => {
+const buildBusyRangesByInstructor = (leads, instructors) => {
   const rangesByInstructor = {};
 
   for (const lead of leads || []) {
@@ -207,6 +249,20 @@ const buildBusyRangesByInstructor = (leads) => {
     rangesByInstructor[range.instructorId].push(range);
   }
 
+  for (const instructor of instructors || []) {
+    const instructorId = (instructor.id || instructor._id || "").toString();
+    if (!instructorId || !Array.isArray(instructor.busyRanges)) continue;
+
+    for (const busyRange of instructor.busyRanges) {
+      const range = resolveInstructorBusyRange(busyRange, instructorId);
+      if (!range) continue;
+      if (!rangesByInstructor[range.instructorId]) {
+        rangesByInstructor[range.instructorId] = [];
+      }
+      rangesByInstructor[range.instructorId].push(range);
+    }
+  }
+
   for (const key of Object.keys(rangesByInstructor)) {
     rangesByInstructor[key].sort(
       (first, second) => first.startDate.getTime() - second.startDate.getTime()
@@ -216,12 +272,20 @@ const buildBusyRangesByInstructor = (leads) => {
   return rangesByInstructor;
 };
 
-const buildInstructorSlots = (instructor, busyRanges = [], daysAhead = 21) => {
+const buildInstructorSlots = (
+  instructor,
+  busyRanges = [],
+  daysAhead = 21,
+  freeSessionDurationMinutes = 60
+) => {
   if (!instructor) return [];
 
   const normalizedHours = normalizeWorkingHours(instructor.workingHours);
   const now = new Date();
-  const slotDurationMinutes = normalizedHours.slotDurationMinutes;
+  const slotStepMinutes = normalizedHours.slotDurationMinutes;
+  const durationRaw = Number(freeSessionDurationMinutes);
+  const sessionDurationMinutes =
+    Number.isFinite(durationRaw) && durationRaw > 0 ? durationRaw : 60;
   const slots = [];
 
   for (let dayOffset = 0; dayOffset < daysAhead; dayOffset += 1) {
@@ -238,8 +302,8 @@ const buildInstructorSlots = (instructor, busyRanges = [], daysAhead = 21) => {
 
       for (
         let minuteCursor = startMinutes;
-        minuteCursor + slotDurationMinutes <= endMinutes;
-        minuteCursor += slotDurationMinutes
+        minuteCursor + sessionDurationMinutes <= endMinutes;
+        minuteCursor += slotStepMinutes
       ) {
         const slotDate = new Date(baseDate);
         slotDate.setHours(Math.floor(minuteCursor / 60), minuteCursor % 60, 0, 0);
@@ -248,8 +312,8 @@ const buildInstructorSlots = (instructor, busyRanges = [], daysAhead = 21) => {
           continue;
         }
 
-        const slotEndsAt = new Date(slotDate.getTime() + slotDurationMinutes * 60 * 1000);
-        const hasConflict = busyRanges.some(
+        const slotEndsAt = new Date(slotDate.getTime() + sessionDurationMinutes * 60 * 1000);
+        const conflictingRange = busyRanges.find(
           (busyRange) =>
             slotDate.getTime() < busyRange.endDate.getTime() &&
             busyRange.startDate.getTime() < slotEndsAt.getTime()
@@ -261,7 +325,8 @@ const buildInstructorSlots = (instructor, busyRanges = [], daysAhead = 21) => {
           dateKey: `${slotDate.getFullYear()}-${slotDate.getMonth() + 1}-${slotDate.getDate()}`,
           dateLabel: formatSlotDate(slotDate),
           timeLabel: formatSlotTime(slotDate),
-          isAvailable: !hasConflict,
+          isAvailable: !conflictingRange,
+          conflictLabel: getBusyRangeLabel(conflictingRange),
         });
       }
     }
@@ -315,8 +380,8 @@ const SalesFreeSessionPage = () => {
   }, [sales.instructors]);
 
   const busyRangesByInstructor = useMemo(
-    () => buildBusyRangesByInstructor(sales.leads || []),
-    [sales.leads]
+    () => buildBusyRangesByInstructor(sales.leads || [], sales.instructors || []),
+    [sales.instructors, sales.leads]
   );
 
   const groupedSlotPickerDates = useMemo(() => {
@@ -428,7 +493,12 @@ const SalesFreeSessionPage = () => {
     const instructorBusyRanges = (busyRangesByInstructor[instructorId] || []).filter(
       (busyRange) => busyRange.leadId !== normalizedLeadId
     );
-    const slots = buildInstructorSlots(instructor, instructorBusyRanges);
+    const slots = buildInstructorSlots(
+      instructor,
+      instructorBusyRanges,
+      21,
+      sales.freeSessionDurationMinutes
+    );
     setSlotPicker({
       open: true,
       leadId,
@@ -870,10 +940,11 @@ const SalesFreeSessionPage = () => {
                               type="button"
                               disabled={!slot.isAvailable}
                               onClick={() => selectSlotFromPicker(slot.value)}
+                              title={!slot.isAvailable ? slot.conflictLabel || "Busy" : undefined}
                               className={`rounded-xl border px-3 py-2 text-sm font-semibold transition-all ${buttonClass}`}
                             >
                               {slot.timeLabel}
-                              {!slot.isAvailable ? " - Booked" : ""}
+                              {!slot.isAvailable ? " - Busy" : ""}
                             </button>
                           );
                         })}

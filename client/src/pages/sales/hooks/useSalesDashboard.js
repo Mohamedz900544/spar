@@ -37,6 +37,7 @@ export const useSalesDashboard = () => {
   const [error, setError] = useState("");
   const [leads, setLeads] = useState([]);
   const [instructors, setInstructors] = useState([]);
+  const [freeSessionDurationMinutes, setFreeSessionDurationMinutes] = useState(60);
   const [stats, setStats] = useState({});
   const [noteDrafts, setNoteDrafts] = useState({});
   const [paymentDrafts, setPaymentDrafts] = useState({});
@@ -82,6 +83,7 @@ export const useSalesDashboard = () => {
 
       setLeads(data.leads || []);
       setInstructors(data.instructors || []);
+      setFreeSessionDurationMinutes(Number(data.freeSessionDurationMinutes) || 60);
       setStats(data.stats || {});
       hydratePaymentDrafts(data.leads || []);
       setError("");
@@ -613,6 +615,7 @@ export const useSalesDashboard = () => {
     error,
     leads,
     instructors,
+    freeSessionDurationMinutes,
     stats,
     noteDrafts,
     paymentDrafts,
