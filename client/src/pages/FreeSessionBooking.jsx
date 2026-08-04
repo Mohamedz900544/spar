@@ -180,14 +180,16 @@ const getDayInfo = (dateKey, labels) => {
   };
 };
 
-const formatSlotTime = (localTime, lang) => {
+const formatDayDate = (day) =>
+  [day?.weekday, day?.day, day?.month].filter(Boolean).join(" ");
+
+const formatSlotTime = (localTime) => {
   const [hourValue, minuteValue] = `${localTime || ""}`.split(":").map(Number);
   if (!Number.isFinite(hourValue) || !Number.isFinite(minuteValue)) return "";
 
   const hour12 = hourValue % 12 || 12;
   const minute = String(minuteValue).padStart(2, "0");
-  const suffix =
-    lang === "ar" ? (hourValue >= 12 ? "م" : "ص") : hourValue >= 12 ? "PM" : "AM";
+  const suffix = hourValue >= 12 ? "PM" : "AM";
 
   return `${hour12}:${minute} ${suffix}`;
 };
@@ -258,9 +260,8 @@ const FreeSessionBooking = () => {
   );
   const selectedSlotLabel =
     selectedDay && selectedSlot
-      ? `${selectedDay.weekday} ${selectedDay.day} ${selectedDay.month} - ${formatSlotTime(
-          selectedSlot.localTime,
-          lang
+      ? `${formatDayDate(selectedDay)} - ${formatSlotTime(
+          selectedSlot.localTime
         )}`
       : "";
 
@@ -556,15 +557,15 @@ const FreeSessionBooking = () => {
                             setBookingError("");
                           }}
                           className={[
-                            "flex h-28 w-[90px] flex-col items-center justify-center rounded-lg border-2 px-3 py-3 text-center transition",
+                            "flex min-h-16 min-w-[150px] items-center justify-center rounded-lg border-2 px-4 py-3 text-center transition",
                             active
                               ? "border-[#FBBF24] bg-[#FFF9E6] text-[#102a5a] shadow-[0_8px_18px_rgba(251,191,36,0.22)]"
                               : "border-slate-300 bg-white text-slate-700 hover:border-[#FBBF24]",
                           ].join(" ")}
                         >
-                          <span className="text-sm font-bold">{day.weekday}</span>
-                          <span className="mt-1 text-3xl font-black leading-none">{day.day}</span>
-                          <span className="mt-2 text-xs font-bold">{day.month}</span>
+                          <span className="text-sm font-black leading-snug">
+                            {formatDayDate(day)}
+                          </span>
                         </button>
                       );
                     })}
@@ -591,7 +592,7 @@ const FreeSessionBooking = () => {
                               : "border-slate-200 bg-white text-slate-500 hover:border-[#FBBF24]",
                           ].join(" ")}
                         >
-                          {formatSlotTime(slot.localTime, lang)}
+                          {formatSlotTime(slot.localTime)}
                         </button>
                       );
                     })}

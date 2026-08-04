@@ -14,7 +14,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { formatDate, formatDateTime, formatTime, toWhatsAppLink } from "./salesHelpers";
+import { formatDate, formatDateTime, toWhatsAppLink } from "./salesHelpers";
 
 const WEEK_DAYS = [
   "sunday",
@@ -24,6 +24,15 @@ const WEEK_DAYS = [
   "thursday",
   "friday",
   "saturday",
+];
+const WEEK_DAY_LABELS = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
 ];
 const TIME_RANGE_REGEX = /^(?:([01]\d|2[0-3]):([0-5]\d)|24:00)$/;
 const FREE_SESSION_FILTERS = [
@@ -137,13 +146,34 @@ const normalizeWorkingHours = (workingHours) => {
   };
 };
 
-const formatSlotDate = (date) => formatDate(date);
+const formatSlotDate = (value) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return formatDate(value);
+  return `${WEEK_DAY_LABELS[date.getDay()]}, ${formatDate(date)}`;
+};
 
-const formatSlotTime = (date) => formatTime(date);
+const formatSlotTime = (value) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value || "-";
+
+  const hours = date.getHours();
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const hour12 = hours % 12 || 12;
+  const suffix = hours >= 12 ? "PM" : "AM";
+  return `${hour12}:${minutes} ${suffix}`;
+};
+
+const formatSlotDateTime = (value) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return formatDateTime(value);
+  return `${formatSlotDate(date)} ${formatSlotTime(date)}`;
+};
 
 const formatSessionRange = (range) => {
   if (!range) return "-";
-  return `${formatDate(range.startDate)}, ${formatTime(range.startDate)} - ${formatTime(range.endDate)}`;
+  return `${formatSlotDate(range.startDate)} ${formatSlotTime(
+    range.startDate
+  )} - ${formatSlotTime(range.endDate)}`;
 };
 
 const resolveLeadSessionRange = (lead, fallbackDurationMinutes = 60) => {
@@ -808,7 +838,9 @@ const SalesFreeSessionPage = () => {
                         disabled={!draft.instructorId}
                         className="w-full rounded-xl border-2 border-slate-200 bg-slate-50/50 px-4 py-3 text-left text-sm font-medium text-slate-800 outline-none transition-all hover:border-[#FBBF24]/60 disabled:cursor-not-allowed disabled:opacity-60"
                       >
-                        {draft.scheduledAt ? formatDateTime(draft.scheduledAt) : "Choose from instructor availability"}
+                        {draft.scheduledAt
+                          ? formatSlotDateTime(draft.scheduledAt)
+                          : "Choose from instructor availability"}
                       </button>
                       <p className="mt-1.5 text-[11px] text-slate-400">
                         Slots are generated from the instructor Working Hours.
@@ -867,7 +899,7 @@ const SalesFreeSessionPage = () => {
                         </p>
                         <p>
                           <span className="font-semibold text-[#102a5a]">Scheduled:</span>{" "}
-                          {formatDateTime(lead.freeSession?.scheduledAt)}
+                          {formatSlotDateTime(lead.freeSession?.scheduledAt)}
                         </p>
                         <p className="text-[11px] text-slate-400">
                           Assigned by {lead.freeSession?.assignedByName || "-"} at{" "}
