@@ -424,10 +424,14 @@ const resolveRoundSessionRange = (session, round) => {
   const durationRaw = Number(
     session?.durationMinutes ?? round?.sessionDurationMinutes
   );
+  const isTwoSessionsPerWeek =
+    round?.twoSessionsPerWeek === true || Number(round?.sessionsPerWeek) === 2;
   const durationMinutes =
     Number.isFinite(durationRaw) && durationRaw > 0
       ? durationRaw
-      : ROUND_SESSION_FALLBACK_DURATION_MINUTES;
+      : isTwoSessionsPerWeek
+        ? 60
+        : ROUND_SESSION_FALLBACK_DURATION_MINUTES;
   const endDate = new Date(startDate.getTime() + durationMinutes * 60 * 1000);
 
   return {
@@ -535,7 +539,7 @@ const loadRoundBusyRangesByInstructor = async (instructors = []) => {
   const roundQuery =
     roundClauses.length === 1 ? roundClauses[0] : { $or: roundClauses };
   const rounds = await Round.find(roundQuery)
-    .select("code name sessionDurationMinutes status")
+    .select("code name sessionDurationMinutes twoSessionsPerWeek sessionsPerWeek status")
     .lean();
   if (!rounds.length) {
     return new Map();
