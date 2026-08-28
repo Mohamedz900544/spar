@@ -8,11 +8,6 @@ import {
 
 const router = express.Router();
 
-const RATE_LIMIT_WINDOW_MS = 60 * 1000;
-const RATE_LIMIT_MAX_REQUESTS = 30;
-const RATE_LIMIT_MAX_BUCKETS = 3000;
-const rateLimitBuckets = new Map();
-
 const trimBodyString = (field) =>
   body(field)
     .isString()
@@ -60,70 +55,6 @@ const sendValidationErrors = (req, res) => {
   res.status(400).json(bodyPayload);
   return true;
 };
-
-const getRateLimitKey = (req) =>
-  `${req.path}:${req.body?.hardware_id || req.ip || "unknown"}`;
-
-const pruneRateLimitBuckets = (now) => {
-  if (rateLimitBuckets.size < RATE_LIMIT_MAX_BUCKETS) return;
-
-  for (const [key, bucket] of rateLimitBuckets.entries()) {
-    if (bucket.resetAt <= now) {
-      rateLimitBuckets.delete(key);
-    }
-  }
-
-  while (rateLimitBuckets.size > RATE_LIMIT_MAX_BUCKETS) {
-    const oldestKey = rateLimitBuckets.keys().next().value;
-    if (!oldestKey) break;
-    rateLimitBuckets.delete(oldestKey);
-  }
-};
-
-const ghostProcessRateLimit = (req, res, next) => {
-  const now = Date.now();
-  pruneRateLimitBuckets(now);
-
-  const key = getRateLimitKey(req);
-  let bucket = rateLimitBuckets.get(key);
-  if (!bucket || bucket.resetAt <= now) {
-    bucket = {
-      count: 0,
-      limitedLogged: false,
-      resetAt: now + RATE_LIMIT_WINDOW_MS,
-    };
-    rateLimitBuckets.set(key, bucket);
-  }
-
-  bucket.count += 1;
-  if (bucket.count <= RATE_LIMIT_MAX_REQUESTS) {
-    next();
-    return;
-  }
-
-  const bodyPayload = {
-    ok: false,
-    error: "rate_limited",
-    message: "Too many requests. Try again shortly.",
-  };
-
-  if (!bucket.limitedLogged) {
-    bucket.limitedLogged = true;
-    void logGhostProcessApiRequest({
-      endpoint: req.originalUrl,
-      method: req.method,
-      hardwareId: req.body?.hardware_id,
-      appVersion: req.body?.app_version,
-      statusCode: 429,
-      responseBody: bodyPayload,
-    });
-  }
-
-  res.set("Retry-After", Math.ceil((bucket.resetAt - now) / 1000).toString());
-  res.status(429).json(bodyPayload);
-};
-
-router.use(ghostProcessRateLimit);
 
 router.post(
   "/key",

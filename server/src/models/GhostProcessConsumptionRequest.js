@@ -57,15 +57,6 @@ ghostProcessConsumptionRequestSchema.index(
   { license: 1, request_id: 1 },
   { unique: true }
 );
-ghostProcessConsumptionRequestSchema.index({
-  license: 1,
-  hidden_from_logs: 1,
-  created_at: -1,
-});
-ghostProcessConsumptionRequestSchema.index({
-  hidden_from_logs: 1,
-  created_at: -1,
-});
 
 const GhostProcessConsumptionRequest = mongoose.model(
   "GhostProcessConsumptionRequest",

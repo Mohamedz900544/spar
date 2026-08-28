@@ -30,15 +30,6 @@ const ERROR_STATUS = {
   server_error: 500,
 };
 
-const VALIDATE_LAST_SEEN_WRITE_INTERVAL_MS = 5 * 60 * 1000;
-const GHOST_PROCESS_LOGS_ENABLED =
-  process.env.GHOST_PROCESS_LOGS_ENABLED === "true";
-const CONSUMPTION_IDEMPOTENCY_RETENTION_MS = 2 * 60 * 60 * 1000;
-const CONSUMPTION_CLEANUP_INTERVAL_MS = 30 * 60 * 1000;
-
-let lastConsumptionCleanupAt = 0;
-let consumptionCleanupPromise = null;
-
 const isObject = (value) =>
   value && typeof value === "object" && !Array.isArray(value);
 
@@ -126,39 +117,10 @@ export const sanitizeForLicenseLog = (value) => {
   );
 };
 
-const cleanupGhostProcessConsumptionRequestsIfDue = () => {
-  const now = Date.now();
-  if (
-    consumptionCleanupPromise ||
-    now - lastConsumptionCleanupAt < CONSUMPTION_CLEANUP_INTERVAL_MS
-  ) {
-    return;
-  }
-
-  lastConsumptionCleanupAt = now;
-  const cutoff = new Date(now - CONSUMPTION_IDEMPOTENCY_RETENTION_MS);
-  consumptionCleanupPromise = GhostProcessConsumptionRequest.deleteMany({
-    created_at: { $lt: cutoff },
-  })
-    .catch((error) => {
-      console.error(
-        "GhostProcess consumption cleanup error:",
-        maskSecretText(error.message)
-      );
-    })
-    .finally(() => {
-      consumptionCleanupPromise = null;
-    });
-};
-
-const serializeLicense = (license, consumedQuestions = null) => {
+const serializeLicense = (license, consumedQuestions = 0) => {
   if (!license) return null;
   const raw = license.toObject ? license.toObject() : license;
   const id = getObjectIdString(raw);
-  const totalConsumedQuestions =
-    typeof consumedQuestions === "number"
-      ? consumedQuestions
-      : raw.consumed_questions || 0;
 
   return {
     id,
@@ -176,7 +138,7 @@ const serializeLicense = (license, consumedQuestions = null) => {
     created_at: serializeDate(raw.created_at),
     activated_at: serializeDate(raw.activated_at),
     last_seen_at: serializeDate(raw.last_seen_at),
-    consumed_questions: totalConsumedQuestions,
+    consumed_questions: consumedQuestions || raw.consumed_questions || 0,
   };
 };
 
@@ -367,18 +329,6 @@ const updateLastSeen = async (licenseId) =>
     { new: true }
   ).lean();
 
-const updateLastSeenIfStale = async (
-  license,
-  minIntervalMs = VALIDATE_LAST_SEEN_WRITE_INTERVAL_MS
-) => {
-  const lastSeen = asDateOrNull(license?.last_seen_at);
-  if (lastSeen && Date.now() - lastSeen.getTime() < minIntervalMs) {
-    return license;
-  }
-
-  return updateLastSeen(license._id);
-};
-
 const resolveExistingConsumption = async (licenseId, requestId) => {
   for (let attempt = 0; attempt < 6; attempt += 1) {
     const existing = await GhostProcessConsumptionRequest.findOne({
@@ -397,51 +347,20 @@ const resolveExistingConsumption = async (licenseId, requestId) => {
 };
 
 export const listGhostProcessLicenses = async () => {
-  const licenses = await GhostProcessLicense.find().sort({ created_at: -1 }).lean();
-  const licensesMissingCounter = licenses.filter(
-    (license) => typeof license.consumed_questions !== "number"
-  );
-
-  if (licensesMissingCounter.length === 0) {
-    return licenses.map((license) => serializeLicense(license));
-  }
-
-  const missingLicenseIds = licensesMissingCounter.map((license) => license._id);
-  const counts = await GhostProcessConsumptionRequest.aggregate([
-    {
-      $match: {
-        license: { $in: missingLicenseIds },
-        response_json: { $ne: null },
-      },
-    },
-    { $group: { _id: "$license", consumed_questions: { $sum: 1 } } },
+  const [licenses, counts] = await Promise.all([
+    GhostProcessLicense.find().sort({ created_at: -1 }).lean(),
+    GhostProcessConsumptionRequest.aggregate([
+      { $match: { response_json: { $ne: null } } },
+      { $group: { _id: "$license", consumed_questions: { $sum: 1 } } },
+    ]),
   ]);
 
   const countMap = new Map(
     counts.map((entry) => [entry._id.toString(), entry.consumed_questions])
   );
 
-  await GhostProcessLicense.bulkWrite(
-    missingLicenseIds.map((licenseId) => ({
-      updateOne: {
-        filter: { _id: licenseId, consumed_questions: { $exists: false } },
-        update: {
-          $set: {
-            consumed_questions: countMap.get(licenseId.toString()) || 0,
-          },
-        },
-      },
-    })),
-    { ordered: false }
-  );
-
   return licenses.map((license) =>
-    serializeLicense(
-      license,
-      typeof license.consumed_questions === "number"
-        ? license.consumed_questions
-        : countMap.get(license._id.toString()) || 0
-    )
+    serializeLicense(license, countMap.get(license._id.toString()) || 0)
   );
 };
 
@@ -619,10 +538,10 @@ export const activateGhostProcessLicense = async ({
       if (current?.hardware_id !== hardwareId) {
         return errorResponse("hardware_mismatch", licenseId);
       }
-      refreshed = await updateLastSeenIfStale(current);
+      refreshed = await updateLastSeen(license._id);
     }
   } else {
-    refreshed = await updateLastSeenIfStale(license);
+    refreshed = await updateLastSeen(license._id);
   }
 
   const token = await issueLicenseToken(refreshed._id);
@@ -647,7 +566,7 @@ export const validateGhostProcessLicense = async ({
   const error = validateUsableLicense(tokenRecord.license, hardwareId);
   if (error) return errorResponse(error, tokenRecord.license._id.toString());
 
-  const refreshed = await updateLastSeenIfStale(tokenRecord.license);
+  const refreshed = await updateLastSeen(tokenRecord.license._id);
 
   return successResponse(
     await buildLicensePayload(refreshed, "Validated", token),
@@ -660,8 +579,6 @@ export const consumeGhostProcessQuestion = async ({
   hardware_id,
   request_id,
 }) => {
-  cleanupGhostProcessConsumptionRequestsIfDue();
-
   const hardwareId = normalizeHardwareId(hardware_id);
   const token = trimString(license_token);
   const requestId = trimString(request_id);
@@ -704,7 +621,7 @@ export const consumeGhostProcessQuestion = async ({
   const before = await GhostProcessLicense.findOneAndUpdate(
     buildUsableLicenseQuery(currentLicense._id, hardwareId),
     {
-      $inc: { remaining_questions: -1, consumed_questions: 1 },
+      $inc: { remaining_questions: -1 },
       $set: { last_seen_at: new Date() },
     },
     { new: false }
@@ -750,24 +667,12 @@ export const getOpenAIKeyForLicense = async ({
   if (!apiKey) return errorResponse("openai_key_missing", licenseId);
 
   const keyVersion = await getOpenAIKeyVersion();
-  const lastSeen = asDateOrNull(freshLicense.last_seen_at);
-  const setPayload = {};
-
-  if (freshLicense.openai_key_version_ack !== keyVersion) {
-    setPayload.openai_key_version_ack = keyVersion;
-  }
-  if (
-    !lastSeen ||
-    Date.now() - lastSeen.getTime() >= VALIDATE_LAST_SEEN_WRITE_INTERVAL_MS
-  ) {
-    setPayload.last_seen_at = new Date();
-  }
-
-  if (Object.keys(setPayload).length > 0) {
-    await GhostProcessLicense.findByIdAndUpdate(freshLicense._id, {
-      $set: setPayload,
-    });
-  }
+  await GhostProcessLicense.findByIdAndUpdate(freshLicense._id, {
+    $set: {
+      openai_key_version_ack: keyVersion,
+      last_seen_at: new Date(),
+    },
+  });
 
   return successResponse(
     {
@@ -828,13 +733,6 @@ export const getOpenAIKeyStatus = async () => ({
 });
 
 export const listGhostProcessLogs = async ({ license_id, limit = 100 } = {}) => {
-  if (!GHOST_PROCESS_LOGS_ENABLED) {
-    return {
-      api_logs: [],
-      consumption_logs: [],
-    };
-  }
-
   const parsedLimit = Math.min(Math.max(Number.parseInt(limit, 10) || 100, 1), 300);
   const filter =
     license_id && isValidObjectId(license_id) ? { license: license_id } : {};
@@ -895,32 +793,38 @@ export const deleteGhostProcessLogs = async ({ license_id } = {}) => {
 
   const [apiLogsResult, consumptionLogsResult] = await Promise.all([
     GhostProcessApiLog.deleteMany(filter),
-    GhostProcessConsumptionRequest.deleteMany(filter),
+    GhostProcessConsumptionRequest.updateMany(
+      {
+        ...filter,
+        response_json: { $ne: null },
+        hidden_from_logs: { $ne: true },
+      },
+      {
+        $set: {
+          hidden_from_logs: true,
+          logs_hidden_at: new Date(),
+        },
+      }
+    ),
   ]);
 
   return {
     api_logs_deleted: apiLogsResult.deletedCount || 0,
-    consumption_logs_removed: consumptionLogsResult.deletedCount || 0,
+    consumption_logs_removed: consumptionLogsResult.modifiedCount || 0,
   };
 };
 
-export const logGhostProcessApiRequest = async (payload = {}) => {
-  if (!GHOST_PROCESS_LOGS_ENABLED) {
-    return;
-  }
-
-  const {
-    licenseId = null,
-    endpoint,
-    method,
-    hardwareId = "",
-    appVersion = "",
-    requestId = "",
-    statusCode,
-    responseBody = {},
-    meta = {},
-  } = payload;
-
+export const logGhostProcessApiRequest = async ({
+  licenseId = null,
+  endpoint,
+  method,
+  hardwareId = "",
+  appVersion = "",
+  requestId = "",
+  statusCode,
+  responseBody = {},
+  meta = {},
+}) => {
   try {
     await GhostProcessApiLog.create({
       license: licenseId && isValidObjectId(licenseId) ? licenseId : null,
