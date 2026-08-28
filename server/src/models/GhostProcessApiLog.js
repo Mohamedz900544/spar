@@ -68,6 +68,9 @@ const ghostProcessApiLogSchema = new mongoose.Schema(
   }
 );
 
+ghostProcessApiLogSchema.index({ license: 1, created_at: -1 });
+ghostProcessApiLogSchema.index({ endpoint: 1, created_at: -1 });
+
 const GhostProcessApiLog = mongoose.model(
   "GhostProcessApiLog",
   ghostProcessApiLogSchema

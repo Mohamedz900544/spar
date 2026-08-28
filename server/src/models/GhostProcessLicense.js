@@ -33,6 +33,11 @@ const ghostProcessLicenseSchema = new mongoose.Schema(
       min: 0,
       default: 0,
     },
+    consumed_questions: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
     window_start: {
       type: Date,
       default: null,
