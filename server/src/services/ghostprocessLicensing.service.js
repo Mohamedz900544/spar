@@ -30,6 +30,11 @@ const ERROR_STATUS = {
   server_error: 500,
 };
 
+const GHOST_PROCESS_LOG_RETENTION_MS = 30 * 1000;
+
+let lastApiLogCleanupAt = 0;
+let apiLogCleanupPromise = null;
+
 const isObject = (value) =>
   value && typeof value === "object" && !Array.isArray(value);
 
@@ -64,6 +69,33 @@ const asDateOrNull = (value) => {
 const serializeDate = (value) => {
   const date = asDateOrNull(value);
   return date ? date.toISOString() : null;
+};
+
+const getRecentLogCutoff = (now = Date.now()) =>
+  new Date(now - GHOST_PROCESS_LOG_RETENTION_MS);
+
+const getLogExpiryDate = (now = Date.now()) =>
+  new Date(now + GHOST_PROCESS_LOG_RETENTION_MS);
+
+const cleanupGhostProcessApiLogsIfDue = (force = false) => {
+  const now = Date.now();
+  if (apiLogCleanupPromise) return apiLogCleanupPromise;
+  if (!force && now - lastApiLogCleanupAt < GHOST_PROCESS_LOG_RETENTION_MS) {
+    return Promise.resolve();
+  }
+
+  lastApiLogCleanupAt = now;
+  apiLogCleanupPromise = GhostProcessApiLog.deleteMany({
+    created_at: { $lt: getRecentLogCutoff(now) },
+  })
+    .catch((error) => {
+      console.error("GhostProcess API log cleanup error:", maskSecretText(error.message));
+    })
+    .finally(() => {
+      apiLogCleanupPromise = null;
+    });
+
+  return apiLogCleanupPromise;
 };
 
 const errorResponse = (error, licenseId = null, message = error) => ({
@@ -733,17 +765,25 @@ export const getOpenAIKeyStatus = async () => ({
 });
 
 export const listGhostProcessLogs = async ({ license_id, limit = 100 } = {}) => {
+  await cleanupGhostProcessApiLogsIfDue(true);
+
   const parsedLimit = Math.min(Math.max(Number.parseInt(limit, 10) || 100, 1), 300);
+  const recentCutoff = getRecentLogCutoff();
   const filter =
     license_id && isValidObjectId(license_id) ? { license: license_id } : {};
+  const recentApiLogFilter = {
+    ...filter,
+    created_at: { $gte: recentCutoff },
+  };
   const visibleConsumptionFilter = {
     ...filter,
+    created_at: { $gte: recentCutoff },
     response_json: { $ne: null },
     hidden_from_logs: { $ne: true },
   };
 
   const [apiLogs, consumptionLogs] = await Promise.all([
-    GhostProcessApiLog.find(filter)
+    GhostProcessApiLog.find(recentApiLogFilter)
       .sort({ created_at: -1 })
       .limit(parsedLimit)
       .populate("license", "code customer_name")
@@ -826,6 +866,8 @@ export const logGhostProcessApiRequest = async ({
   meta = {},
 }) => {
   try {
+    void cleanupGhostProcessApiLogsIfDue();
+
     await GhostProcessApiLog.create({
       license: licenseId && isValidObjectId(licenseId) ? licenseId : null,
       endpoint,
@@ -839,6 +881,7 @@ export const logGhostProcessApiRequest = async ({
       message: responseBody?.message || null,
       meta: sanitizeForLicenseLog(meta || {}),
       created_at: new Date(),
+      expires_at: getLogExpiryDate(),
     });
   } catch (error) {
     console.error("GhostProcess API log error:", maskSecretText(error.message));

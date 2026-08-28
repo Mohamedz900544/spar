@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+const API_LOG_RETENTION_SECONDS = 30;
+
 const ghostProcessApiLogSchema = new mongoose.Schema(
   {
     license: {
@@ -60,6 +62,11 @@ const ghostProcessApiLogSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
       index: true,
+    },
+    expires_at: {
+      type: Date,
+      default: () => new Date(Date.now() + API_LOG_RETENTION_SECONDS * 1000),
+      index: { expires: 0 },
     },
   },
   {
